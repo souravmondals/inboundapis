@@ -924,11 +924,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\tcreatelead\\EquitasInboundAPI\\CreateLeads.csproj",
+      "projectUniqueName": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\CreateLeads\\CreateLeads.csproj",
       "projectName": "CreateLeads",
-      "projectPath": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\tcreatelead\\EquitasInboundAPI\\CreateLeads.csproj",
+      "projectPath": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\CreateLeads\\CreateLeads.csproj",
       "packagesPath": "C:\\Users\\EW195XS\\.nuget\\packages\\",
-      "outputPath": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\tcreatelead\\EquitasInboundAPI\\obj\\",
+      "outputPath": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\CreateLeads\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\EW195XS\\AppData\\Roaming\\NuGet\\NuGet.Config",

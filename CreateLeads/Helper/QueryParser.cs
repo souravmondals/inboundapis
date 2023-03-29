@@ -124,7 +124,7 @@
                         }
                     }
                     string baseUrl = Convert.ToString(httpClient?.BaseAddress, CultureInfo.CurrentCulture);
-                    string preferred_header = "return=representation";
+                    string preferred_header = "odata.include-annotations=\"OData.Community.Display.V1.FormattedValue\""; 
                     using (HttpRequestMessage batchRequest = new HttpRequestMessage
                     {
                         Method = HttpMethod.Post,

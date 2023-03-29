@@ -81,7 +81,7 @@
                 else if (httpMethod == HttpMethod.Delete)
                 {
                     messageContent.Headers.Add("Content-ID", contentId.ToString(CultureInfo.CurrentCulture));
-                }
+                }                
                 else
                 {
                     //// request other than GET may have content, which is normally JSON
@@ -89,6 +89,10 @@
                     {
                         StringContent stringContent = new StringContent(content);
                         stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;type=entry");
+                        stringContent.Headers.Add("Prefer", "return=representation");
+                        stringContent.Headers.Add("OData-MaxVersion", "4.0");
+                        stringContent.Headers.Add("OData-Version", "4.0");
+                     
                         requestMessage.Content = stringContent;
                     }
 
@@ -120,7 +124,7 @@
                         }
                     }
                     string baseUrl = Convert.ToString(httpClient?.BaseAddress, CultureInfo.CurrentCulture);
-                    string preferred_header = "odata.include-annotations=\"OData.Community.Display.V1.FormattedValue\"";
+                    string preferred_header = "return=representation";
                     using (HttpRequestMessage batchRequest = new HttpRequestMessage
                     {
                         Method = HttpMethod.Post,

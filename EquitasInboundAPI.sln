@@ -5,7 +5,7 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateLeads", "CreateLeads\CreateLeads.csproj", "{8BBCA01B-1535-4050-8858-12E257061E45}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateCase", "CreateCase\CreateCase.csproj", "{5D45477A-B1F6-4CFA-AE92-CFA62DB563A6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManageCase", "ManageCase\ManageCase.csproj", "{5D45477A-B1F6-4CFA-AE92-CFA62DB563A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

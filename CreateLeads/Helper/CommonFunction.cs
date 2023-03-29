@@ -61,6 +61,12 @@ namespace CreateLeads
             return Respons_Id;
         }
 
+        public static string GetIdFromPostRespons201(dynamic PResponseData, string datakey)
+        {
+            string Respons_Id = PResponseData[datakey];
+            return Respons_Id;
+        }
+
         public async Task<string> getIDFromGetResponce(string primaryField ,List<JObject> RsponsData)
         {
             string resourceID = "";

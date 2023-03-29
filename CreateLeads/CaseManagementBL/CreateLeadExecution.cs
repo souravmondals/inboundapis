@@ -227,7 +227,7 @@ namespace CreateLeads
 
                     postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
-                    Lead_details = await this._queryParser.HttpApiCall("leads", HttpMethod.Post, postDataParametr);
+                    Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
                 }
                 else
                 {
@@ -277,7 +277,7 @@ namespace CreateLeads
 
                     postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
-                    Lead_details = await this._queryParser.HttpApiCall("leads", HttpMethod.Post, postDataParametr);
+                    Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
                 }
                 else
                 {
@@ -347,7 +347,7 @@ namespace CreateLeads
 
                 postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
-                Lead_details = await this._queryParser.HttpApiCall("leads", HttpMethod.Post, postDataParametr);
+                Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
 
             }
             else if (string.Equals(LeadData.ChannelType.ToString(), "Email"))
@@ -414,7 +414,7 @@ namespace CreateLeads
 
                 postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
-                Lead_details = await this._queryParser.HttpApiCall("leads", HttpMethod.Post, postDataParametr);
+                Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
             }
 
             
@@ -428,6 +428,11 @@ namespace CreateLeads
                 if (respons_code.responsecode == 204)
                 {
                     ldRtPrm.LeadID = CommonFunction.GetIdFromPostRespons(respons_code.responsebody.ToString());
+                    ldRtPrm.InfoMessage = Error.Lead_Success;
+                }
+                else if (respons_code.responsecode == 201)
+                {
+                    ldRtPrm.LeadID = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "eqs_crmleadid");
                     ldRtPrm.InfoMessage = Error.Lead_Success;
                 }
                 else

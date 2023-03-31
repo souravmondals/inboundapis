@@ -27,6 +27,7 @@
         private const string BearerHeaderValueCacheKey = nameof(HttpInterceptor) + "-BearerValue";
         private static readonly object SyncObject = new object();
         private readonly IMemoryCache _cache;
+        private readonly ErrorLogger _errorLogger;
 
 
         public QueryParser(ILogger<QueryParser> logger, IKeyVaultService keyVaultService, IMemoryCache cache)
@@ -35,6 +36,7 @@
             this._keyVaultService = keyVaultService;
             this._log = logger;
             this._cache = cache;
+            this._errorLogger = new ErrorLogger(keyVaultService);
         }
 
         public async Task<List<JObject>> HttpApiCall(string odataQuery, HttpMethod httpMethod, string parameterToPost = "")
@@ -155,7 +157,7 @@
 
 
                         HttpResponseMessage response = await httpClient.SendAsync(batchRequest).ConfigureAwait(true);
-                        ErrorLogger.requestPerser(batchRequest, response);
+                        _errorLogger.requestPerser(batchRequest, response);
 
                        // log.LogInformationWithTraceID($"Send batch request to CE Started");
                         MultipartMemoryStreamProvider body = await response.Content.ReadAsMultipartAsync().ConfigureAwait(true);

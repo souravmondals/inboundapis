@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System.Reflection.PortableExecutable;
 using System.Linq;
 using Microsoft.VisualBasic;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ManageCase.Controllers
 {
@@ -18,11 +19,12 @@ namespace ManageCase.Controllers
 
         private readonly ILogger<CaseController> _log;
         private readonly IQueryParser _queryp;
+       
 
         public CaseController(ILogger<CaseController> log, IQueryParser queryParser) 
         {
             this._log = log;
-            this._queryp = queryParser;
+            this._queryp = queryParser;            
         }
 
         [HttpPost("CreateCase")]        

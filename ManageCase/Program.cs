@@ -1,5 +1,9 @@
 using ManageCase;
 using Microsoft.Extensions.Caching.Memory;
+using Azure.Identity;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Extensions.Configuration.AzureKeyVault;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,10 +23,21 @@ builder.Services.AddLogging();
 
 var app = builder.Build();
 
+/*
+    builder.Host.ConfigureAppConfiguration((context, config) => {
+        var settings = new ConfigurationBuilder().AddJsonFile("data/config/appsettings.json").Build();
+        var keyVaultURL = settings["KeyVaultConfiguration:KeyVaultURL"];
+        var keyVaultClientId = settings["KeyVaultConfiguration:ClientId"];
+        var keyVaultClientSecret = settings["KeyVaultConfiguration:ClientSecret"];
+        config.AddAzureKeyVault(keyVaultURL, keyVaultClientId, keyVaultClientSecret, new DefaultKeyVaultSecretManager());
+    });
+*/
+
+
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 //{
-    app.UseSwagger();
+app.UseSwagger();
     app.UseSwaggerUI();
 //}
 

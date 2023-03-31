@@ -1,19 +1,25 @@
-﻿using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-
-namespace CreateLeads
+﻿namespace CreateLeads
 {
-    public static class ErrorLogger
+
+    using Microsoft.ApplicationInsights;
+    using Microsoft.ApplicationInsights.DataContracts;
+    using System;
+    using System.Collections.Generic;
+    using System.Net.Http;
+
+    public class ErrorLogger
     {
-        public static void LogCustomEvent(string ErrorMessage)
+        private readonly IKeyVaultService _keyVaultService;
+        public ErrorLogger(IKeyVaultService keyVaultService)
+        {
+            this._keyVaultService = keyVaultService;
+        }
+        public void LogCustomEvent(string ErrorMessage)
         {
             Dictionary<string, object> message = new Dictionary<string, object>();
             message["Messages"] = ErrorMessage;
             TelemetryClient teleClient = new TelemetryClient();
-            teleClient.Context.InstrumentationKey = KeyVaultService.getSecret("APPINSIGHTS_INSTRUMENTATIONKEY");
+            teleClient.Context.InstrumentationKey = this._keyVaultService.ReadSecret("appinsinstrumentationkey");
             var eventTrigger = new EventTelemetry("Info Message");
             foreach (var d in message)
             {
@@ -22,7 +28,7 @@ namespace CreateLeads
             teleClient.TrackEvent(eventTrigger);
         }
 
-        public static void requestPerser(HttpRequestMessage request, HttpResponseMessage ResponsMessage)
+        public void requestPerser(HttpRequestMessage request, HttpResponseMessage ResponsMessage)
         {
             MultipartContent multipartContent = (MultipartContent)request.Content;
             string requestmes = "SendAsync > Request \n ";
@@ -43,8 +49,8 @@ namespace CreateLeads
             }
 
             requestmes += "\n SendAsync > Response " + ResponsMessage.Content.ReadAsStringAsync().Result;
-            LogCustomEvent($"SendAsync : {requestmes}");
+            this.LogCustomEvent($"SendAsync : {requestmes}");
         }
-        
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
@@ -11,16 +12,15 @@ namespace ManageCase
     {
 
         public ILogger _logger;
-        public IKeyVaultService _keyVault;
         public IQueryParser _queryParser;
+       
         Dictionary<string, int> Channel = new Dictionary<string, int>();
         Dictionary<string, int> LeadStatus = new Dictionary<string, int>();
         private CommonFunction commonFunc;
 
         public CreateCaseExecution(ILogger logger, IQueryParser queryParser)
         {
-            
-            this._keyVault = new KeyVaultService();
+                    
             this._logger = logger;           
             this._queryParser = queryParser;
             this.commonFunc = new CommonFunction(queryParser);

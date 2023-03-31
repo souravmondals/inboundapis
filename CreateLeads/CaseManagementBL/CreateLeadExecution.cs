@@ -10,17 +10,15 @@ namespace CreateLeads
     public class CreateLeadExecution
     {
 
-        public ILogger _logger;
-        public IKeyVaultService _keyVault;
+        public ILogger _logger;       
         public IQueryParser _queryParser;
         Dictionary<string, int> Channel = new Dictionary<string, int>();
         Dictionary<string, int> LeadStatus = new Dictionary<string, int>();
         private CommonFunction commonFunc;
 
         public CreateLeadExecution(ILogger logger, IQueryParser queryParser)
-        {
-            
-            this._keyVault = new KeyVaultService();
+        {            
+           
             this._logger = logger;           
             this._queryParser = queryParser;
             this.commonFunc = new CommonFunction(queryParser);

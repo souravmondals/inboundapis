@@ -23,25 +23,24 @@ namespace KeyVaultReader
 
             Host.CreateDefaultBuilder(args)
                 .ConfigureAppConfiguration((context, config) =>
-                {
+                {                    
                     var builtConfig = config.Build();
-
-                    if (string.IsNullOrEmpty(builtConfig["KeyVaultName"]))
-                        throw new Exception("Configure the KeyVaultName by using an Environment Variable");
-
-                    var azureServiceTokenProvider = new AzureServiceTokenProvider();
+                    var keyVaultEndpoint = "https://" + builtConfig["KeyVaultName"] + ".vault.azure.net";
+                   // var connectionString = "RunAs=App;AppId={ClientId};TenantId={TenantId};AppKey={ClientSecret}";
+                    var connectionString = "RunAs=App;AppId=3404dd26-4637-46f2-9008-fa6d84783d8d;TenantId=e22e4eaa-623f-4164-abb8-ac89a5a17e13;AppKey=0K08Q~UJzSop85IVavjd4~4Cqt9IPvdUmOyMrczR";
+                    var azureServiceTokenProvider = new AzureServiceTokenProvider(connectionString);
                     var keyVaultClient = new KeyVaultClient(
                         new KeyVaultClient.AuthenticationCallback(
                             azureServiceTokenProvider.KeyVaultTokenCallback));
+                    config.AddAzureKeyVault(keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
 
-                    config.AddAzureKeyVault(
-                        $"https://{builtConfig["KeyVaultName"]}.vault.azure.net/",
-                        keyVaultClient,
-                        new DefaultKeyVaultSecretManager());
+                   
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
                 });
+
+        
     }
 }

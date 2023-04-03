@@ -13,15 +13,16 @@ namespace ManageCase
 
         public ILogger _logger;
         public IQueryParser _queryParser;
-       
+        private readonly IKeyVaultService _keyVaultService;
         Dictionary<string, int> Channel = new Dictionary<string, int>();
         Dictionary<string, int> LeadStatus = new Dictionary<string, int>();
         private CommonFunction commonFunc;
 
-        public CreateCaseExecution(ILogger logger, IQueryParser queryParser)
+        public CreateCaseExecution(ILogger logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
         {
                     
-            this._logger = logger;           
+            this._logger = logger;
+            this._keyVaultService = keyVaultService;
             this._queryParser = queryParser;
             this.commonFunc = new CommonFunction(queryParser);
 
@@ -39,87 +40,94 @@ namespace ManageCase
         }
 
 
-        public async Task<LeadReturnParam> ValidateLeade(dynamic LeadData)
+        public async Task<LeadReturnParam> ValidateLeade(dynamic LeadData, string appkey)
         {
             LeadReturnParam ldRtPrm = new LeadReturnParam();
             try
             {
                 string channel = LeadData.ChannelType;
-
-                if (!string.IsNullOrEmpty(channel) && channel != "")
+                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey))
                 {
-                    int ValidationError = 0;
-
-                    if (string.Equals(LeadData.ChannelType.ToString(), "InternetBanking") || string.Equals(LeadData.ChannelType.ToString(), "MobileBanking") || string.Equals(LeadData.ChannelType.ToString(), "ESFBWebsite"))
+                    if (!string.IsNullOrEmpty(channel) && channel != "")
                     {
-                        if (LeadData.FirstName == null || string.IsNullOrEmpty(LeadData.FirstName.ToString()) || LeadData.FirstName.ToString() == "")
-                        {
-                            ValidationError = 1;
-                        }
-                        if (LeadData.LastName == null || string.IsNullOrEmpty(LeadData.LastName.ToString()) || LeadData.LastName.ToString() == "")
-                        {
-                            ValidationError = 1;
-                        }
-                        if (LeadData.MobileNumber == null || string.IsNullOrEmpty(LeadData.MobileNumber.ToString()) || LeadData.MobileNumber.ToString() == "")
-                        {
-                            ValidationError = 1;
-                        }                        
-                        if (LeadData.ProductCode == null || string.IsNullOrEmpty(LeadData.ProductCode.ToString()) || LeadData.ProductCode.ToString() == "")
-                        {
-                            ValidationError = 1;
-                        }
+                        int ValidationError = 0;
 
-                        if (string.Equals(LeadData.ChannelType.ToString(), "InternetBanking") || string.Equals(LeadData.ChannelType.ToString(), "MobileBanking"))
+                        if (string.Equals(LeadData.ChannelType.ToString(), "InternetBanking") || string.Equals(LeadData.ChannelType.ToString(), "MobileBanking") || string.Equals(LeadData.ChannelType.ToString(), "ESFBWebsite"))
                         {
-                            if (LeadData.CustomerID == null || string.IsNullOrEmpty(LeadData.CustomerID.ToString()) || LeadData.CustomerID.ToString() == "")
+                            if (LeadData.FirstName == null || string.IsNullOrEmpty(LeadData.FirstName.ToString()) || LeadData.FirstName.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                            if (LeadData.LastName == null || string.IsNullOrEmpty(LeadData.LastName.ToString()) || LeadData.LastName.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                            if (LeadData.MobileNumber == null || string.IsNullOrEmpty(LeadData.MobileNumber.ToString()) || LeadData.MobileNumber.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                            if (LeadData.ProductCode == null || string.IsNullOrEmpty(LeadData.ProductCode.ToString()) || LeadData.ProductCode.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+
+                            if (string.Equals(LeadData.ChannelType.ToString(), "InternetBanking") || string.Equals(LeadData.ChannelType.ToString(), "MobileBanking"))
+                            {
+                                if (LeadData.CustomerID == null || string.IsNullOrEmpty(LeadData.CustomerID.ToString()) || LeadData.CustomerID.ToString() == "")
+                                {
+                                    ValidationError = 1;
+                                }
+                            }
+
+                        }
+                        else if (string.Equals(LeadData.ChannelType.ToString(), "ChatBot"))
+                        {
+                            if (LeadData.Email == null || string.IsNullOrEmpty(LeadData.Email.ToString()) || LeadData.Email.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+
+                            if (LeadData.MobileNumber == null || string.IsNullOrEmpty(LeadData.MobileNumber.ToString()) || LeadData.MobileNumber.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+
+                            if (LeadData.Transcript == null || string.IsNullOrEmpty(LeadData.Transcript.ToString()) || LeadData.Transcript.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+
+                        }
+                        else if (string.Equals(LeadData.ChannelType.ToString(), "Email"))
+                        {
+                            if (LeadData.Email == null || string.IsNullOrEmpty(LeadData.Email.ToString()) || LeadData.Email.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+
+                            if (LeadData.EmailBody == null || string.IsNullOrEmpty(LeadData.EmailBody.ToString()) || LeadData.EmailBody.ToString() == "")
                             {
                                 ValidationError = 1;
                             }
                         }
 
-                    }
-                    else if (string.Equals(LeadData.ChannelType.ToString(), "ChatBot"))
-                    {
-                        if (LeadData.Email == null || string.IsNullOrEmpty(LeadData.Email.ToString()) || LeadData.Email.ToString() == "")
+
+                        if (ValidationError == 1)
                         {
-                            ValidationError = 1;
+                            ldRtPrm.IsError = 1;
+                            ldRtPrm.ErrorMessage = Error.Incorrect_Input;
                         }
 
-                        if (LeadData.MobileNumber == null || string.IsNullOrEmpty(LeadData.MobileNumber.ToString()) || LeadData.MobileNumber.ToString() == "")
-                        {
-                            ValidationError = 1;
-                        }
-                        
-                        if (LeadData.Transcript == null || string.IsNullOrEmpty(LeadData.Transcript.ToString()) || LeadData.Transcript.ToString() == "")
-                        {
-                            ValidationError = 1;
-                        }
+
+                        ldRtPrm = await this.CreateLead(LeadData);
+
 
                     }
-                    else if (string.Equals(LeadData.ChannelType.ToString(), "Email"))
-                    {
-                        if (LeadData.Email == null || string.IsNullOrEmpty(LeadData.Email.ToString()) || LeadData.Email.ToString() == "")
-                        {
-                            ValidationError = 1;
-                        }
-
-                        if (LeadData.EmailBody == null || string.IsNullOrEmpty(LeadData.EmailBody.ToString()) || LeadData.EmailBody.ToString() == "")
-                        {
-                            ValidationError = 1;
-                        }
-                    }
-                                        
-
-                    if (ValidationError == 1)
+                    else
                     {
                         ldRtPrm.IsError = 1;
-                        ldRtPrm.ErrorMessage = Error.Incorrect_Input;                        
+                        ldRtPrm.ErrorMessage = Error.Incorrect_Input;
                     }
-
-
-                    ldRtPrm = await this.CreateLead(LeadData);
-
-
                 }
                 else
                 {
@@ -134,6 +142,19 @@ namespace ManageCase
                 throw ex;
             }
             
+        }
+
+
+        public bool checkappkey(string appkey)
+        {
+            if (this._keyVaultService.ReadSecret("CreateLeadappkey") == appkey)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public async Task<LeadReturnParam> ValidateLeadeStatus(dynamic LeadStatus)

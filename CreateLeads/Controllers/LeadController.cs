@@ -18,11 +18,13 @@ namespace CreateLeads.Controllers
 
         private readonly ILogger<LeadController> _log;
         private readonly IQueryParser _queryp;
+        private readonly IKeyVaultService _keyVaultService;
 
-        public LeadController(ILogger<LeadController> log, IQueryParser queryParser) 
+        public LeadController(ILogger<LeadController> log, IQueryParser queryParser, IKeyVaultService keyVaultService) 
         {
             this._log = log;
             this._queryp = queryParser;
+            this._keyVaultService = keyVaultService;
         }
 
         [HttpPost("CreateLead")]        
@@ -32,16 +34,16 @@ namespace CreateLeads.Controllers
             {
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
-                CreateLeadExecution createleadEx = new CreateLeadExecution(this._log, this._queryp);
+                CreateLeadExecution createleadEx = new CreateLeadExecution(this._log, this._queryp, this._keyVaultService);
 
                 string Header_Value = string.Empty;
-                if (Request.Headers.TryGetValue("Sequeritykey", out var headerValues))
+                if (Request.Headers.TryGetValue("appkey", out var headerValues))
                 {
                     Header_Value = headerValues;
                 }
 
 
-                LeadReturnParam Leadstatus = await createleadEx.ValidateLeade(request);
+                LeadReturnParam Leadstatus = await createleadEx.ValidateLeade(request, Header_Value);
 
 
                 /*
@@ -85,7 +87,7 @@ namespace CreateLeads.Controllers
             {
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
-                CreateLeadExecution createleadEx = new CreateLeadExecution(this._log, this._queryp);
+                CreateLeadExecution createleadEx = new CreateLeadExecution(this._log, this._queryp, this._keyVaultService);
                 LeadReturnParam Leadstatus = await createleadEx.ValidateLeadeStatus(request);
                 return Ok(Leadstatus);
             }

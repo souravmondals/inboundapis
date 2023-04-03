@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System.Reflection.PortableExecutable;
 using System.Linq;
 using Microsoft.VisualBasic;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ManageCase.Controllers
 {
@@ -18,11 +19,14 @@ namespace ManageCase.Controllers
 
         private readonly ILogger<CaseController> _log;
         private readonly IQueryParser _queryp;
+        private readonly IKeyVaultService _keyVaultService;
 
-        public CaseController(ILogger<CaseController> log, IQueryParser queryParser) 
+
+        public CaseController(ILogger<CaseController> log, IQueryParser queryParser, IKeyVaultService keyVaultService) 
         {
             this._log = log;
             this._queryp = queryParser;
+            this._keyVaultService = keyVaultService;
         }
 
         [HttpPost("CreateCase")]        
@@ -32,7 +36,7 @@ namespace ManageCase.Controllers
             {
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
-                CreateCaseExecution createleadEx = new CreateCaseExecution(this._log, this._queryp);
+                CreateCaseExecution createleadEx = new CreateCaseExecution(this._log, this._queryp, this._keyVaultService);
 
                 string Header_Value = string.Empty;
                 if (Request.Headers.TryGetValue("Sequeritykey", out var headerValues))
@@ -41,7 +45,7 @@ namespace ManageCase.Controllers
                 }
 
 
-                LeadReturnParam Leadstatus = await createleadEx.ValidateLeade(request);
+                LeadReturnParam Leadstatus = await createleadEx.ValidateLeade(request, Header_Value);
 
                 
                 return Ok(Leadstatus);
@@ -63,7 +67,7 @@ namespace ManageCase.Controllers
             {
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
-                CreateCaseExecution createleadEx = new CreateCaseExecution(this._log, this._queryp);
+                CreateCaseExecution createleadEx = new CreateCaseExecution(this._log, this._queryp, this._keyVaultService);
                 LeadReturnParam Leadstatus = await createleadEx.ValidateLeadeStatus(request);
                 return Ok(Leadstatus);
             }

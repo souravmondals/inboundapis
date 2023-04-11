@@ -153,7 +153,7 @@
 
 
                         HttpResponseMessage response = await httpClient.SendAsync(batchRequest).ConfigureAwait(true);
-                        _errorLogger.requestPerser(batchRequest, response);
+                       // _errorLogger.requestPerser(batchRequest, response);
 
                        // log.LogInformationWithTraceID($"Send batch request to CE Started");
                         MultipartMemoryStreamProvider body = await response.Content.ReadAsMultipartAsync().ConfigureAwait(true);

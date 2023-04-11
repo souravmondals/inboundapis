@@ -112,38 +112,32 @@ namespace ManageCase
             return TableId;
         }
 
-        public async Task<string> getCustomerId(string CustomerCode)
+        public async Task<string> getclassificationId(string classification)
         {            
-            return await this.getIDfromMSDTable("contacts", "contactid", "ccs_customercode", CustomerCode);
+            return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_name", classification);
         }
 
-        public async Task<string> getCityId(string CityCode)
+        public async Task<string> getCustomerId(string uciccode)
         {           
-            return await this.getIDfromMSDTable("eqs_cities", "eqs_cityid", "eqs_name", CityCode);
+            return await this.getIDfromMSDTable("contacts", "contactid", "eqs_customerid", uciccode);
         }
 
-        public async Task<string> getBranchId(string BranchCode)
-        {            
-            return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchid", "eqs_branchidvalue", BranchCode); 
-        }
-
-        public async Task<Dictionary<string,string>> getProductId(string ProductCode)
+        public async Task<string> getAccountId(string AccountNumber)
         {
-            string query_url = $"eqs_products()?$select=eqs_productid,_eqs_businesscategoryid_value,_eqs_productcategory_value,eqs_crmproductcategorycode&$filter=eqs_productcode eq '{ProductCode}'";
-            var productdtails =  await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string ProductId = await this.getIDFromGetResponce("eqs_productid", productdtails);
-            string businesscategoryid = await this.getIDFromGetResponce("_eqs_businesscategoryid_value", productdtails);
-            string productcategory = await this.getIDFromGetResponce("_eqs_productcategory_value", productdtails);
-            string crmproductcategorycode = await this.getIDFromGetResponce("eqs_crmproductcategorycode", productdtails);
-            Dictionary<string, string> ProductData = new Dictionary<string, string>() { 
-                { "ProductId", ProductId },
-                { "businesscategoryid", businesscategoryid },
-                { "productcategory", productcategory },
-                { "crmproductcategorycode", crmproductcategorycode },
-            };
-            return ProductData; 
+            return await this.getIDfromMSDTable("eqs_accounts", "eqs_accountid", "eqs_accountno", AccountNumber);
         }
 
+        public async Task<string> getCategoryId(string Category)
+        {            
+            return await this.getIDfromMSDTable("ccs_categories", "ccs_categoryid", "ccs_name", Category); 
+        }
+
+        public async Task<string> getSubCategoryId(string subCategory)
+        {
+            return await this.getIDfromMSDTable("ccs_subcategories", "ccs_subcategoryid", "ccs_name", subCategory);
+        }
+
+        
         public async Task<string> MeargeJsonString(string json1, string json2)
         {
             string first = json1.Remove(json1.Length - 1, 1);

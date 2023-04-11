@@ -36,19 +36,19 @@ namespace ManageCase.Controllers
             {
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
-                CreateCaseExecution createleadEx = new CreateCaseExecution(this._log, this._queryp, this._keyVaultService);
+                CreateCaseExecution createcaseEx = new CreateCaseExecution(this._log, this._queryp, this._keyVaultService);
 
                 string Header_Value = string.Empty;
-                if (Request.Headers.TryGetValue("Sequeritykey", out var headerValues))
+                if (Request.Headers.TryGetValue("appkey", out var headerValues))
                 {
                     Header_Value = headerValues;
                 }
 
 
-                LeadReturnParam Leadstatus = await createleadEx.ValidateLeade(request, Header_Value);
+                CaseReturnParam Casetatus = await createcaseEx.ValidateLeade(request, Header_Value);
 
                 
-                return Ok(Leadstatus);
+                return Ok(Casetatus);
                 
                     
             }
@@ -60,15 +60,35 @@ namespace ManageCase.Controllers
             }
         }
 
-        [HttpPost("UpdateCaseStatus")]
-        public async Task<IActionResult> UpdateCaseStatus()
+        [HttpPost("getCaseStatus")]
+        public async Task<IActionResult> getCaseStatus()
         {
             try
             {
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
                 CreateCaseExecution createleadEx = new CreateCaseExecution(this._log, this._queryp, this._keyVaultService);
-                LeadReturnParam Leadstatus = await createleadEx.ValidateLeadeStatus(request);
+                CaseReturnParam Leadstatus = await createleadEx.ValidateCaseStatus(request);
+                return Ok(Leadstatus);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest();
+
+            }
+
+        }
+
+        [HttpPost("getCaseList")]
+        public async Task<IActionResult> getCaseList()
+        {
+            try
+            {
+                StreamReader requestReader = new StreamReader(Request.Body);
+                dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
+                CreateCaseExecution createleadEx = new CreateCaseExecution(this._log, this._queryp, this._keyVaultService);
+                CaseReturnParam Leadstatus = await createleadEx.ValidateCaseStatus(request);
                 return Ok(Leadstatus);
             }
             catch (Exception ex)

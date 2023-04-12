@@ -45,7 +45,7 @@ namespace ManageCase.Controllers
                 }
 
 
-                CaseReturnParam Casetatus = await createcaseEx.ValidateLeade(request, Header_Value);
+                CaseReturnParam Casetatus = await createcaseEx.ValidateCreateCase(request, Header_Value);
 
                 
                 return Ok(Casetatus);
@@ -68,8 +68,15 @@ namespace ManageCase.Controllers
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
                 CreateCaseExecution createleadEx = new CreateCaseExecution(this._log, this._queryp, this._keyVaultService);
-                CaseReturnParam Leadstatus = await createleadEx.ValidateCaseStatus(request);
-                return Ok(Leadstatus);
+
+                string Header_Value = string.Empty;
+                if (Request.Headers.TryGetValue("appkey", out var headerValues))
+                {
+                    Header_Value = headerValues;
+                }
+
+                CaseStatusRtParam Casetatus = await createleadEx.ValidategetCaseStatus(request, Header_Value);
+                return Ok(Casetatus);
             }
             catch (Exception ex)
             {
@@ -88,8 +95,15 @@ namespace ManageCase.Controllers
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
                 CreateCaseExecution createleadEx = new CreateCaseExecution(this._log, this._queryp, this._keyVaultService);
-                CaseReturnParam Leadstatus = await createleadEx.ValidateCaseStatus(request);
-                return Ok(Leadstatus);
+                
+                string Header_Value = string.Empty;
+                if (Request.Headers.TryGetValue("appkey", out var headerValues))
+                {
+                    Header_Value = headerValues;
+                }
+
+                CaseListParam CaseList = await createleadEx.getCaseList(request, Header_Value);
+                return Ok(CaseList);
             }
             catch (Exception ex)
             {

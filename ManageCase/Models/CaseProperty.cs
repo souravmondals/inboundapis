@@ -5,8 +5,7 @@ namespace ManageCase
 {
     
     public class LeadMsdProperty
-    {
-       // public string leadid { get; set; }
+    {      
         public string caseorigincode { get; set; }
         public string eqs_casetype { get; set; }
         public string title { get; set; }
@@ -37,6 +36,38 @@ namespace ManageCase
         public string ErrorMessage { get; set; }
         public string InfoMessage { get; set; }
         public string Messages { get; set; }
+
+    }
+
+    public class CaseStatusRtParam
+    {
+        public string ReturnCode { get; set; }
+        public string CaseStatus { get; set; }       
+        public string ErrorMessage { get; set; }
+        public string InfoMessage { get; set; }
+        public int IsError { get; set; }
+
+    }
+
+    public class CaseDetails
+    {
+        public string CaseID { get; set; }
+        public string CaseStatus { get; set; }
+        public string Description { get; set; }
+
+        public string Casetype { get; set; }
+        public string Subject { get; set; }
+        public string Priority { get; set; }
+
+    }
+
+    public class CaseListParam
+    {
+        public string ReturnCode { get; set; }
+        public List<CaseDetails> AllCases { get; set; }
+        public string ErrorMessage { get; set; }
+        public string InfoMessage { get; set; }
+        public int IsError { get; set; }
 
     }
 

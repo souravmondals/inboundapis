@@ -61,6 +61,12 @@ namespace ManageCase
             return Respons_Id;
         }
 
+        public static string GetIdFromPostRespons201(dynamic PResponseData, string datakey)
+        {
+            string Respons_Id = PResponseData[datakey];
+            return Respons_Id;
+        }
+
         public async Task<string> getIDFromGetResponce(string primaryField ,List<JObject> RsponsData)
         {
             string resourceID = "";
@@ -104,6 +110,43 @@ namespace ManageCase
                 return resourceID;
         }
 
+        public async Task<JArray> getDataFromResponce(List<JObject> RsponsData)
+        {
+            string resourceID = "";
+            foreach (JObject item in RsponsData)
+            {
+                if (Enum.TryParse(item["responsecode"].ToString(), out HttpStatusCode responseStatus) && responseStatus == HttpStatusCode.OK)
+                {
+                    dynamic responseValue = item["responsebody"];
+                    JArray resArray = new JArray();
+                    string urlMetaData = string.Empty;
+                    if (responseValue?.value != null)
+                    {
+                        resArray = (JArray)responseValue?.value;
+                        urlMetaData = responseValue["@odata.context"];
+                    }
+                    else if (responseValue is JArray)
+                    {
+                        resArray = responseValue;
+
+                    }
+                    else
+                    {
+                        resArray.Add(responseValue);
+                        urlMetaData = responseValue["@odata.context"];
+                    }
+
+                    if (resArray != null && resArray.Any())
+                    {
+
+                        return resArray;
+
+                    }
+                }
+            }
+            return new JArray();
+        }
+
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
             string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
@@ -137,7 +180,12 @@ namespace ManageCase
             return await this.getIDfromMSDTable("ccs_subcategories", "ccs_subcategoryid", "ccs_name", subCategory);
         }
 
-        
+        public async Task<string> getCaseStatus(string CaseID)
+        {
+            return await this.getIDfromMSDTable("incidents", "statuscode", "ticketnumber", CaseID);
+        }
+
+
         public async Task<string> MeargeJsonString(string json1, string json2)
         {
             string first = json1.Remove(json1.Length - 1, 1);

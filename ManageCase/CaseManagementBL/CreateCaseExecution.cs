@@ -1,9 +1,11 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Xml.Linq;
 
 namespace ManageCase
@@ -16,7 +18,11 @@ namespace ManageCase
         private readonly IKeyVaultService _keyVaultService;
         Dictionary<string, string> Channel = new Dictionary<string, string>();
         Dictionary<string, string> CaseType = new Dictionary<string, string>();
+        Dictionary<string, string> _CaseType = new Dictionary<string, string>();
         Dictionary<string, int> Priority = new Dictionary<string, int>();
+        Dictionary<int, string> _Priority = new Dictionary<int, string>();
+        Dictionary<string, string> StatusCodes = new Dictionary<string, string>();
+        
         private CommonFunction commonFunc;
 
         public CreateCaseExecution(ILogger logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
@@ -36,26 +42,45 @@ namespace ManageCase
             this.CaseType.Add("Query", "1");
             this.CaseType.Add("Suggestion", "789030002");
 
+            this._CaseType.Add("789030001", "Request");
+            this._CaseType.Add("789030003", "Complaint");
+            this._CaseType.Add("1", "Query");
+            this._CaseType.Add("789030002", "Suggestion");
+
             this.Priority.Add("High", 1);
             this.Priority.Add("Normal", 2);
             this.Priority.Add("Low", 3);
 
+            this._Priority.Add(1, "High");
+            this._Priority.Add(2, "Normal");
+            this._Priority.Add(3, "Low");
+
+            this.StatusCodes.Add("5", "Problem Solved");
+            this.StatusCodes.Add("1000", "Information Provided");
+            this.StatusCodes.Add("2000", "Merged");
+            this.StatusCodes.Add("1", "In Progress");
+            this.StatusCodes.Add("2", "On Hold");
+            this.StatusCodes.Add("3", "Waiting for Details");
+            this.StatusCodes.Add("4", "Researching");
+            this.StatusCodes.Add("6", "Cancelled");
+            this.StatusCodes.Add("615290000", "Auto Closed");
+
         }
 
 
-        public async Task<CaseReturnParam> ValidateLeade(dynamic CaseData, string appkey)
+        public async Task<CaseReturnParam> ValidateCreateCase(dynamic CaseData, string appkey)
         {
             CaseReturnParam ldRtPrm = new CaseReturnParam();
             try
             {
                 string channel = CaseData.ChannelType;
-                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey))
+                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "CreateCaseappkey"))
                 {
                     if (!string.IsNullOrEmpty(channel) && channel != "")
                     {
                         int ValidationError = 0;
 
-                        if (string.Equals(CaseData.ChannelType.ToString(), "InternetBanking") || string.Equals(CaseData.ChannelType.ToString(), "MobileBanking") || string.Equals(CaseData.ChannelType.ToString(), "ESFBWebsite"))
+                        if (string.Equals(CaseData.ChannelType.ToString(), "InternetBanking") || string.Equals(CaseData.ChannelType.ToString(), "MobileBanking") || string.Equals(CaseData.ChannelType.ToString(), "IVR"))
                         {
                             if (CaseData.UCIC == null || string.IsNullOrEmpty(CaseData.UCIC.ToString()) || CaseData.UCIC.ToString() == "")
                             {
@@ -137,9 +162,9 @@ namespace ManageCase
         }
 
 
-        public bool checkappkey(string appkey)
+        public bool checkappkey(string appkey, string APIKey)
         {
-            if (this._keyVaultService.ReadSecret("CreateCaseappkey") == appkey)
+            if (this._keyVaultService.ReadSecret(APIKey) == appkey)
             {
                 return true;
             }
@@ -149,32 +174,49 @@ namespace ManageCase
             }
         }
 
-        public async Task<CaseReturnParam> ValidateCaseStatus(dynamic LeadStatus)
+        public async Task<CaseStatusRtParam> ValidategetCaseStatus(dynamic CaseData, string appkey)
         {
-            CaseReturnParam ldRtPrm = new CaseReturnParam();
+            CaseStatusRtParam CSRtPrm = new CaseStatusRtParam();
+                   
+
             int ValidationError = 0;
             try
             {
-
-                if (LeadStatus.LeadId == null || string.IsNullOrEmpty(LeadStatus.LeadId.ToString()) || LeadStatus.LeadId.ToString() == "")
+                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "GetCaseStatusappkey"))
                 {
-                    ValidationError = 1;
+                    if (CaseData.CaseID == null || string.IsNullOrEmpty(CaseData.CaseID.ToString()) || CaseData.CaseID.ToString() == "")
+                    {
+                        ValidationError = 1;
+                    }
+
+                    if (ValidationError == 1)
+                    {
+                        CSRtPrm.IsError = 1;
+                        CSRtPrm.ErrorMessage = Error.Incorrect_Input;
+                    }
+                    else
+                    {                       
+                        string statusCodeId = await this.commonFunc.getCaseStatus(CaseData.CaseID.ToString());
+                        if (statusCodeId == "" || statusCodeId == null)
+                        {
+                            CSRtPrm.IsError = 1;
+                            CSRtPrm.ErrorMessage = Error.Incorrect_Input;
+                        }
+                        else
+                        {
+                            CSRtPrm.CaseStatus = this.StatusCodes[statusCodeId];
+                        }
+                        
+                    }
+                }
+                else
+                {
+                    CSRtPrm.IsError = 1;
+                    CSRtPrm.ErrorMessage = Error.Incorrect_Input;
                 }
 
-                if (LeadStatus.Status == null || string.IsNullOrEmpty(LeadStatus.Status.ToString()) || LeadStatus.Status.ToString() == "")
-                {
-                    ValidationError = 1;
-                }
 
-                if (ValidationError == 1)
-                {
-                    ldRtPrm.IsError = 1;
-                    ldRtPrm.ErrorMessage = Error.Incorrect_Input;
-                }
-
-               
-
-                return ldRtPrm;
+                return CSRtPrm;
             }
             catch (Exception ex)
             {
@@ -205,10 +247,23 @@ namespace ManageCase
             csProperty.SubCategoryId = await this.commonFunc.getSubCategoryId(CaseData.SubCategory.ToString());
 
             odatab.Add("customerid_contact@odata.bind", $"contacts({csProperty.customerid})");
-            odatab.Add("eqs_account@odata.bind", $"eqs_accounts({csProperty.Accountid})");
-            odatab.Add("ccs_classification@odata.bind", $"ccs_classifications({csProperty.ccs_classification})");
-            odatab.Add("ccs_category@odata.bind", $"ccs_categories({csProperty.CategoryId})");
-            odatab.Add("ccs_subcategory@odata.bind", $"ccs_subcategories({csProperty.SubCategoryId})");
+            if (csProperty.Accountid.Length>4)
+            {
+                odatab.Add("eqs_account@odata.bind", $"eqs_accounts({csProperty.Accountid})");
+            }
+            if (csProperty.ccs_classification.Length > 4)
+            {
+                odatab.Add("ccs_classification@odata.bind", $"ccs_classifications({csProperty.ccs_classification})");
+            }
+            if (csProperty.CategoryId.Length > 4)
+            {
+                odatab.Add("ccs_category@odata.bind", $"ccs_categories({csProperty.CategoryId})");
+            }
+            if (csProperty.SubCategoryId.Length > 4)
+            {
+                odatab.Add("ccs_subcategory@odata.bind", $"ccs_subcategories({csProperty.SubCategoryId})");
+            }
+                
 
             postDataParametr = JsonConvert.SerializeObject(case_Property);
             postDataParametr1 = JsonConvert.SerializeObject(odatab);
@@ -226,7 +281,12 @@ namespace ManageCase
                 if (respons_code.responsecode == 204)
                 {
                     csRtPrm.CaseID = CommonFunction.GetIdFromPostRespons(respons_code.responsebody.ToString());
-                    csRtPrm.InfoMessage = Error.Lead_Success;
+                    csRtPrm.InfoMessage = Error.Case_Success;
+                }
+                else if (respons_code.responsecode == 201)
+                {
+                    csRtPrm.CaseID = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "ticketnumber");
+                    csRtPrm.InfoMessage = Error.Case_Success;
                 }
                 else
                 {
@@ -247,19 +307,72 @@ namespace ManageCase
 
         
 
-        public List<JObject> getLeads()
+        public async Task<CaseListParam> getCaseList(dynamic CaseData, string appkey)
         {
-            
+            CaseListParam CSRtPrm = new CaseListParam();
+            CSRtPrm.AllCases = new List<CaseDetails>();
+
+
+            int ValidationError = 0;
             try
             {
-                var output = this._queryParser.HttpApiCall("leads", HttpMethod.Get, "").Result;
-                return output;
+                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "GetCaseListappkey"))
+                {
+                    if (CaseData.CustomerID == null || string.IsNullOrEmpty(CaseData.CustomerID.ToString()) || CaseData.CustomerID.ToString() == "")
+                    {
+                        ValidationError = 1;
+                    }
+
+                    if (ValidationError == 1)
+                    {
+                        CSRtPrm.IsError = 1;
+                        CSRtPrm.ErrorMessage = Error.Incorrect_Input;
+                    }
+                    else
+                    {
+                        string customerid = await this.commonFunc.getCustomerId(CaseData.CustomerID.ToString());
+                        string query_url = $"incidents()?$select=ticketnumber,statuscode,description,eqs_casetype,title,prioritycode&$filter=_customerid_value eq '{customerid}'";
+                        var caseresponsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                        var CaseList = await this.commonFunc.getDataFromResponce(caseresponsdtails);
+                        foreach (var caseDetails in CaseList)
+                        {
+                            CaseDetails case_details = new CaseDetails();
+                            case_details.CaseID = caseDetails["ticketnumber"].ToString();
+                            case_details.CaseStatus = this.StatusCodes[caseDetails["statuscode"].ToString()];
+                            case_details.Description = caseDetails["description"].ToString();
+
+                            if (!string.IsNullOrEmpty(caseDetails["eqs_casetype"].ToString()))
+                            {
+                                case_details.Casetype = this._CaseType[caseDetails["eqs_casetype"].ToString()];
+                            }
+                                
+
+                            case_details.Subject = caseDetails["title"].ToString();
+
+                            if (!string.IsNullOrEmpty(caseDetails["prioritycode"].ToString()))
+                            {
+                                case_details.Priority = this._Priority[Convert.ToInt32(caseDetails["prioritycode"].ToString())];
+                            }
+                                
+
+                            CSRtPrm.AllCases.Add(case_details);
+                        }
+                    }
+                }
+                else
+                {
+                    CSRtPrm.IsError = 1;
+                    CSRtPrm.ErrorMessage = Error.Incorrect_Input;
+                }
+
+
+                return CSRtPrm;
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 throw ex;
             }
-            
+
         }
     }
 }

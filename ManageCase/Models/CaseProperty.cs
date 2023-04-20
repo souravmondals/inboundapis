@@ -32,10 +32,7 @@ namespace ManageCase
     {
         public string ReturnCode { get; set; }      
         public string CaseID { get; set; }
-        public int IsError { get; set; } 
-        public string ErrorMessage { get; set; }
-        public string InfoMessage { get; set; }
-        public string Messages { get; set; }
+        public string Message { get; set; }
 
     }
 
@@ -65,9 +62,7 @@ namespace ManageCase
     {
         public string ReturnCode { get; set; }
         public List<CaseDetails> AllCases { get; set; }
-        public string ErrorMessage { get; set; }
-        public string InfoMessage { get; set; }
-        public int IsError { get; set; }
+        public string Message { get; set; }       
 
     }
 

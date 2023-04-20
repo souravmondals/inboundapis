@@ -27,16 +27,16 @@
         private const string BearerHeaderValueCacheKey = nameof(HttpInterceptor) + "-BearerValue";
         private static readonly object SyncObject = new object();
         private readonly IMemoryCache _cache;
-        private readonly ErrorLogger _errorLogger;
+        private readonly ILoggers _errorLogger;
 
 
-        public QueryParser(ILogger<QueryParser> logger, IKeyVaultService keyVaultService, IMemoryCache cache)
+        public QueryParser(ILogger<QueryParser> logger, IKeyVaultService keyVaultService, IMemoryCache cache, ILoggers loggers)
         {  
               
             this._keyVaultService = keyVaultService;
             this._log = logger;
             this._cache = cache;
-            this._errorLogger = new ErrorLogger(keyVaultService);
+            this._errorLogger = loggers;
         }
 
         public async Task<List<JObject>> HttpApiCall(string odataQuery, HttpMethod httpMethod, string parameterToPost = "")
@@ -91,6 +91,10 @@
                     {
                         StringContent stringContent = new StringContent(content);
                         stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;type=entry");
+                        stringContent.Headers.Add("Prefer", "return=representation");
+                        stringContent.Headers.Add("OData-MaxVersion", "4.0");
+                        stringContent.Headers.Add("OData-Version", "4.0");
+
                         requestMessage.Content = stringContent;
                     }
 
@@ -101,7 +105,7 @@
             }
             catch (Exception ex)
             {
-                log.LogErrorWithTraceID($"Error from CreateHttpMessageContent: {ex.Message} {ex.InnerException!} {ex.StackTrace!}");
+                _errorLogger.LogError("CreateHttpMessageContent", $"Error from CreateHttpMessageContent: {ex.Message} {ex.InnerException!} {ex.StackTrace!}");
                 throw;
             }
         }
@@ -153,7 +157,7 @@
 
 
                         HttpResponseMessage response = await httpClient.SendAsync(batchRequest).ConfigureAwait(true);
-                        _errorLogger.requestPerser(batchRequest, response);
+                       // _errorLogger.requestPerser(batchRequest, response);
 
                        // log.LogInformationWithTraceID($"Send batch request to CE Started");
                         MultipartMemoryStreamProvider body = await response.Content.ReadAsMultipartAsync().ConfigureAwait(true);
@@ -166,7 +170,7 @@
             }
             catch (Exception ex)
             {
-                log.LogErrorWithTraceID($"Error from QueryParser > SendBatchRequestAsync: {ex.Message} {ex.InnerException!} {ex.StackTrace!}");
+                _errorLogger.LogError("SendBatchRequestAsync", $"Error from QueryParser > SendBatchRequestAsync: {ex.Message} {ex.InnerException!} {ex.StackTrace!}");
                 throw;
             }
         }
@@ -195,7 +199,7 @@
             return bearerHeaderValue;
         }
 
-        public static async Task<List<HttpResponseMessage>> ReadHttpContents(MultipartMemoryStreamProvider body, ILogger log)
+        public async Task<List<HttpResponseMessage>> ReadHttpContents(MultipartMemoryStreamProvider body, ILogger log)
         {
             try
             {
@@ -231,13 +235,13 @@
             }
             catch (Exception ex)
             {
-                log.LogErrorWithTraceID($"Error from ReadHttpContents: {ex.Message}");
+                _errorLogger.LogError("AcquireNewTokenAsync", $"Error from ReadHttpContents: {ex.Message}");
                 throw;
             }
         }
 
 
-        public static async Task<List<JObject>> HandleResponses(List<HttpResponseMessage> responses, ILogger log)
+        public async Task<List<JObject>> HandleResponses(List<HttpResponseMessage> responses, ILogger log)
         {
             try
             {
@@ -256,7 +260,7 @@
                             new JProperty("responsebody", entityUri)
                         };
                             result.Add(uriValues);
-                            log.LogDebugWithTraceID($"Entity URI: {entityUri}");
+                            
                         }
                     }
                     else if (response.StatusCode == HttpStatusCode.OK)
@@ -269,7 +273,7 @@
                             new JProperty("responsebody", JObject.Parse(results))
                         };
                         result.Add(mainContent);
-                        log.LogDebugWithTraceID($"Result for get request: OK");
+                        
                     }
                     else if (response.StatusCode == HttpStatusCode.NotFound)
                     {
@@ -282,7 +286,7 @@
                             new JProperty("responsebody", JObject.Parse(results))
                         };
                         result.Add(mainContent);
-                        log.LogDebugWithTraceID($"Requested Entity:" + reqId + " Not found");
+                        _errorLogger.LogError("HandleResponses", $"Requested Entity:" + reqId + " Not found");
                     }
                     else
                     {
@@ -293,7 +297,7 @@
                             new JProperty("responsebody", JObject.Parse(results))
                         };
                         result.Add(error);
-                        log.LogCriticalWithTraceID($"MSD Dataverse API Request failed. Reason: {JsonConvert.SerializeObject(error)}");
+                        _errorLogger.LogError("HandleResponses", $"MSD Dataverse API Request failed. Reason: {JsonConvert.SerializeObject(error)}");
                     }
                 }
 
@@ -301,13 +305,13 @@
             }
             catch (Exception ex)
             {
-                log.LogErrorWithTraceID($"Error from HandleResponses: {ex.Message}");
+                _errorLogger.LogError("HandleResponses", $"Error from HandleResponses: {ex.Message}");
                 throw;
             }
         }
 
 
-        private static HttpResponseMessage DeserializeToResponse(Stream stream, ILogger log)
+        private HttpResponseMessage DeserializeToResponse(Stream stream, ILogger log)
         {
             try
             {
@@ -322,7 +326,7 @@
             }
             catch (Exception ex)
             {
-                log.LogErrorWithTraceID($"Error from DeserializeToResponse: {ex.Message}");
+                _errorLogger.LogError("DeserializeToResponse", $"Error from DeserializeToResponse: {ex.Message}");
                 throw;
             }
         }

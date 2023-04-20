@@ -5,85 +5,64 @@ namespace ManageCase
 {
     
     public class LeadMsdProperty
-    {
-       // public string leadid { get; set; }
-        public int leadsourcecode { get; set; }
-        public string firstname { get; set; }
-        public string middlename { get; set; }
-        public string lastname { get; set; }
-        public string yomifullname
-        {
-            get
-            {
-                return firstname + " " + lastname;
-            }
-
-        }
-
+    {      
+        public string caseorigincode { get; set; }
+        public string eqs_casetype { get; set; }
+        public string title { get; set; }
+        public int prioritycode { get; set; }
         public string description { get; set; }
-        public string mobilephone { get; set; }
-        public string eqs_pincode { get; set; }
-        public string emailaddress1 { get; set; }
-        public string eqs_crmproductcategorycode { get; set;}
-      //  public string eqs_SelfieJourneyStatus { get; set;}
-        
+
 
     }
 
 
     public class CaseProperty
     {
-        public string LeadID { get; set; }
-        
-
-        [JsonPropertyName("FirstName")]
-        public string firstname { get; set; }
-
-        [JsonPropertyName("LastName")]
-        public string lastname { get; set; }
-
-        
-        public string yomifullname {
-            get
-            {
-                return firstname + " " + lastname;
-            }
-             
-        }
-
-        [JsonPropertyName("MobileNumber")]
-        public string mobilephone { get; set; }
-
-        [JsonPropertyName("Pincode")]
-        public string eqs_pincode { get; set; }
-
-        public string emailaddress1 { get; set; }
-
-
-        public string CityName { get; set; }
-        public string CityId { get; set; }
-
-        public string BranchCode { get; set; }
-        public string BranchId { get; set; }        
-
-        public string CustomerID { get; set; }
-        public string ETBCustomerID { get; set; }
-        
-        public string ProductCode { get; set; }
-        public string ProductId { get; set; }
-        public string Businesscategoryid { get; set; }
-        public string Productcategoryid { get; set;}
-
+        public string ccs_classification { get; set; }
+        public string eqs_customerid { get; set; }
+        public string Accountid { get; set; }
+        public string customerid { get; set; }
+        public string CategoryId { get; set; }
+        public string SubCategoryId { get; set; }
 
 
     }
 
-    public class LeadReturnParam
+    public class CaseReturnParam
     {
-        public int IsError { get; set; }
-        public string LeadID { get; set; }
+        public string ReturnCode { get; set; }      
+        public string CaseID { get; set; }
+        public string Message { get; set; }
+
+    }
+
+    public class CaseStatusRtParam
+    {
+        public string ReturnCode { get; set; }
+        public string CaseStatus { get; set; }       
         public string ErrorMessage { get; set; }
         public string InfoMessage { get; set; }
+        public int IsError { get; set; }
+
+    }
+
+    public class CaseDetails
+    {
+        public string CaseID { get; set; }
+        public string CaseStatus { get; set; }
+        public string Description { get; set; }
+
+        public string Casetype { get; set; }
+        public string Subject { get; set; }
+        public string Priority { get; set; }
+
+    }
+
+    public class CaseListParam
+    {
+        public string ReturnCode { get; set; }
+        public List<CaseDetails> AllCases { get; set; }
+        public string Message { get; set; }       
 
     }
 

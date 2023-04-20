@@ -1,138 +1,170 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Xml.Linq;
 
 namespace ManageCase
 {
-    public class CreateCaseExecution
+    public class CreateCaseExecution : ICreateCaseExecution
     {
 
-        public ILogger _logger;
-        public IQueryParser _queryParser;
+        private ILoggers _logger;
+        private IQueryParser _queryParser;
+        public string API_Name { set
+            {
+                _logger.API_Name = value;
+            }
+        }
+        public string Input_payload { set {
+                _logger.Input_payload = value;
+            } 
+        }
+
         private readonly IKeyVaultService _keyVaultService;
-        Dictionary<string, int> Channel = new Dictionary<string, int>();
-        Dictionary<string, int> LeadStatus = new Dictionary<string, int>();
+
+        Dictionary<string, string> Channel = new Dictionary<string, string>();
+        Dictionary<string, string> CaseType = new Dictionary<string, string>();
+        Dictionary<string, string> _CaseType = new Dictionary<string, string>();
+        Dictionary<string, int> Priority = new Dictionary<string, int>();
+        Dictionary<int, string> _Priority = new Dictionary<int, string>();
+        Dictionary<string, string> StatusCodes = new Dictionary<string, string>();
+        
         private CommonFunction commonFunc;
 
-        public CreateCaseExecution(ILogger logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
+        public CreateCaseExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
         {
                     
             this._logger = logger;
+            
             this._keyVaultService = keyVaultService;
             this._queryParser = queryParser;
             this.commonFunc = new CommonFunction(queryParser);
+           
+            this.Channel.Add("MobileBanking", "615290001");
+            this.Channel.Add("InternetBanking", "615290001");
+            this.Channel.Add("IVR", "700610000");
 
-            this.Channel.Add("ESFBWebsite", 6);
-            this.Channel.Add("ChatBot", 8);
-            this.Channel.Add("Email", 3);
-            this.Channel.Add("MobileBanking", 4);
-            this.Channel.Add("InternetBanking", 5);
-            this.Channel.Add("Selfie", 15);
+            this.CaseType.Add("Request", "789030001");
+            this.CaseType.Add("Complaint", "789030003");
+            this.CaseType.Add("Query", "1");
+            this.CaseType.Add("Suggestion", "789030002");
 
-            this.LeadStatus.Add("Open", 0);
-            this.LeadStatus.Add("Onboarded", 1);
-            this.LeadStatus.Add("Not Onboarded", 2);
+            this._CaseType.Add("789030001", "Request");
+            this._CaseType.Add("789030003", "Complaint");
+            this._CaseType.Add("1", "Query");
+            this._CaseType.Add("789030002", "Suggestion");
+
+            this.Priority.Add("High", 1);
+            this.Priority.Add("Normal", 2);
+            this.Priority.Add("Low", 3);
+
+            this._Priority.Add(1, "High");
+            this._Priority.Add(2, "Normal");
+            this._Priority.Add(3, "Low");
+
+            this.StatusCodes.Add("5", "Problem Solved");
+            this.StatusCodes.Add("1000", "Information Provided");
+            this.StatusCodes.Add("2000", "Merged");
+            this.StatusCodes.Add("1", "In Progress");
+            this.StatusCodes.Add("2", "On Hold");
+            this.StatusCodes.Add("3", "Waiting for Details");
+            this.StatusCodes.Add("4", "Researching");
+            this.StatusCodes.Add("6", "Cancelled");
+            this.StatusCodes.Add("615290000", "Auto Closed");
 
         }
 
 
-        public async Task<LeadReturnParam> ValidateLeade(dynamic LeadData, string appkey)
+        public async Task<CaseReturnParam> ValidateCreateCase(dynamic CaseData, string appkey)
         {
-            LeadReturnParam ldRtPrm = new LeadReturnParam();
+            CaseReturnParam ldRtPrm = new CaseReturnParam();
             try
             {
-                string channel = LeadData.ChannelType;
-                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey))
+                string channel = CaseData.ChannelType;
+                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "CreateCaseappkey"))
                 {
                     if (!string.IsNullOrEmpty(channel) && channel != "")
                     {
                         int ValidationError = 0;
 
-                        if (string.Equals(LeadData.ChannelType.ToString(), "InternetBanking") || string.Equals(LeadData.ChannelType.ToString(), "MobileBanking") || string.Equals(LeadData.ChannelType.ToString(), "ESFBWebsite"))
+                        if (string.Equals(CaseData.ChannelType.ToString(), "InternetBanking") || string.Equals(CaseData.ChannelType.ToString(), "MobileBanking") || string.Equals(CaseData.ChannelType.ToString(), "IVR"))
                         {
-                            if (LeadData.FirstName == null || string.IsNullOrEmpty(LeadData.FirstName.ToString()) || LeadData.FirstName.ToString() == "")
+                            if (CaseData.UCIC == null || string.IsNullOrEmpty(CaseData.UCIC.ToString()) || CaseData.UCIC.ToString() == "")
+                            {
+                                ValidationError = 1;                                
+                            }
+                            if (CaseData.Classification == null || string.IsNullOrEmpty(CaseData.Classification.ToString()) || CaseData.Classification.ToString() == "")
                             {
                                 ValidationError = 1;
                             }
-                            if (LeadData.LastName == null || string.IsNullOrEmpty(LeadData.LastName.ToString()) || LeadData.LastName.ToString() == "")
+                            if (CaseData.CaseType == null || string.IsNullOrEmpty(CaseData.CaseType.ToString()) || CaseData.CaseType.ToString() == "")
                             {
                                 ValidationError = 1;
                             }
-                            if (LeadData.MobileNumber == null || string.IsNullOrEmpty(LeadData.MobileNumber.ToString()) || LeadData.MobileNumber.ToString() == "")
-                            {
-                                ValidationError = 1;
-                            }
-                            if (LeadData.ProductCode == null || string.IsNullOrEmpty(LeadData.ProductCode.ToString()) || LeadData.ProductCode.ToString() == "")
-                            {
-                                ValidationError = 1;
-                            }
+                           
 
-                            if (string.Equals(LeadData.ChannelType.ToString(), "InternetBanking") || string.Equals(LeadData.ChannelType.ToString(), "MobileBanking"))
+                            if (string.Equals(CaseData.CaseType.ToString(), "Request"))
                             {
-                                if (LeadData.CustomerID == null || string.IsNullOrEmpty(LeadData.CustomerID.ToString()) || LeadData.CustomerID.ToString() == "")
+                                if (CaseData.AccountNumber == null || string.IsNullOrEmpty(CaseData.AccountNumber.ToString()) || CaseData.AccountNumber.ToString() == "")
+                                {
+                                    ValidationError = 1;
+                                }
+                                if (CaseData.Category == null || string.IsNullOrEmpty(CaseData.Category.ToString()) || CaseData.Category.ToString() == "")
+                                {
+                                    ValidationError = 1;
+                                }
+                                if (CaseData.SubCategory == null || string.IsNullOrEmpty(CaseData.SubCategory.ToString()) || CaseData.SubCategory.ToString() == "")
                                 {
                                     ValidationError = 1;
                                 }
                             }
 
-                        }
-                        else if (string.Equals(LeadData.ChannelType.ToString(), "ChatBot"))
-                        {
-                            if (LeadData.Email == null || string.IsNullOrEmpty(LeadData.Email.ToString()) || LeadData.Email.ToString() == "")
+                            if (string.Equals(CaseData.CaseType.ToString(), "Query"))
                             {
-                                ValidationError = 1;
-                            }
-
-                            if (LeadData.MobileNumber == null || string.IsNullOrEmpty(LeadData.MobileNumber.ToString()) || LeadData.MobileNumber.ToString() == "")
-                            {
-                                ValidationError = 1;
-                            }
-
-                            if (LeadData.Transcript == null || string.IsNullOrEmpty(LeadData.Transcript.ToString()) || LeadData.Transcript.ToString() == "")
-                            {
-                                ValidationError = 1;
-                            }
+                                if (CaseData.Category == null || string.IsNullOrEmpty(CaseData.Category.ToString()) || CaseData.Category.ToString() == "")
+                                {
+                                    ValidationError = 1;
+                                }
+                                if (CaseData.SubCategory == null || string.IsNullOrEmpty(CaseData.SubCategory.ToString()) || CaseData.SubCategory.ToString() == "")
+                                {
+                                    ValidationError = 1;
+                                }
+                            }                            
 
                         }
-                        else if (string.Equals(LeadData.ChannelType.ToString(), "Email"))
-                        {
-                            if (LeadData.Email == null || string.IsNullOrEmpty(LeadData.Email.ToString()) || LeadData.Email.ToString() == "")
-                            {
-                                ValidationError = 1;
-                            }
-
-                            if (LeadData.EmailBody == null || string.IsNullOrEmpty(LeadData.EmailBody.ToString()) || LeadData.EmailBody.ToString() == "")
-                            {
-                                ValidationError = 1;
-                            }
-                        }
+                        
 
 
                         if (ValidationError == 1)
                         {
-                            ldRtPrm.IsError = 1;
-                            ldRtPrm.ErrorMessage = Error.Incorrect_Input;
+                            this._logger.LogInformation("ValidateCreateCase", "Input parameters are incorrect");
+                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
                         }
-
-
-                        ldRtPrm = await this.CreateLead(LeadData);
+                        else
+                        {
+                            ldRtPrm = await this.CreateCase(CaseData);
+                        }                       
 
 
                     }
                     else
                     {
-                        ldRtPrm.IsError = 1;
-                        ldRtPrm.ErrorMessage = Error.Incorrect_Input;
+                        this._logger.LogInformation("ValidateCreateCase", "Input parameters are incorrect");
+                        ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
                     }
                 }
                 else
                 {
-                    ldRtPrm.IsError = 1;
-                    ldRtPrm.ErrorMessage = Error.Incorrect_Input;
+                    this._logger.LogInformation("ValidateCreateCase", "Input parameters are incorrect");
+                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
 
                 return ldRtPrm;
@@ -145,9 +177,9 @@ namespace ManageCase
         }
 
 
-        public bool checkappkey(string appkey)
+        public bool checkappkey(string appkey, string APIKey)
         {
-            if (this._keyVaultService.ReadSecret("CreateLeadappkey") == appkey)
+            if (this._keyVaultService.ReadSecret(APIKey) == appkey)
             {
                 return true;
             }
@@ -157,32 +189,48 @@ namespace ManageCase
             }
         }
 
-        public async Task<LeadReturnParam> ValidateLeadeStatus(dynamic LeadStatus)
+        public async Task<CaseStatusRtParam> ValidategetCaseStatus(dynamic CaseData, string appkey)
         {
-            LeadReturnParam ldRtPrm = new LeadReturnParam();
+            CaseStatusRtParam CSRtPrm = new CaseStatusRtParam();
+                   
+
             int ValidationError = 0;
             try
             {
-
-                if (LeadStatus.LeadId == null || string.IsNullOrEmpty(LeadStatus.LeadId.ToString()) || LeadStatus.LeadId.ToString() == "")
+                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "GetCaseStatusappkey"))
                 {
-                    ValidationError = 1;
+                    if (CaseData.CaseID == null || string.IsNullOrEmpty(CaseData.CaseID.ToString()) || CaseData.CaseID.ToString() == "")
+                    {
+                        ValidationError = 1;
+                    }
+
+                    if (ValidationError == 1)
+                    {                       
+                        CSRtPrm.ErrorMessage = OutputMSG.Incorrect_Input;
+                    }
+                    else
+                    {                       
+                        string statusCodeId = await this.commonFunc.getCaseStatus(CaseData.CaseID.ToString());
+                        if (statusCodeId == "" || statusCodeId == null)
+                        {                          
+                            CSRtPrm.ErrorMessage = OutputMSG.Incorrect_Input;
+                        }
+                        else
+                        {
+                            CSRtPrm.CaseStatus = this.StatusCodes[statusCodeId];
+                        }
+                        
+                    }
+                }
+                else
+                {
+                    this._logger.LogInformation("ValidategetCaseStatus", "Input parameters are incorrect");
+                    CSRtPrm.ReturnCode = "CRM-ERROR-102";
+                    CSRtPrm.ErrorMessage = OutputMSG.Incorrect_Input;
                 }
 
-                if (LeadStatus.Status == null || string.IsNullOrEmpty(LeadStatus.Status.ToString()) || LeadStatus.Status.ToString() == "")
-                {
-                    ValidationError = 1;
-                }
 
-                if (ValidationError == 1)
-                {
-                    ldRtPrm.IsError = 1;
-                    ldRtPrm.ErrorMessage = Error.Incorrect_Input;
-                }
-
-                ldRtPrm = await this.UpdateLead(LeadStatus);
-
-                return ldRtPrm;
+                return CSRtPrm;
             }
             catch (Exception ex)
             {
@@ -190,317 +238,158 @@ namespace ManageCase
             }
         }
 
-        public async Task<LeadReturnParam> CreateLead(dynamic LeadData)
+        public async Task<CaseReturnParam> CreateCase(dynamic CaseData)
         {
-            LeadReturnParam ldRtPrm = new LeadReturnParam();
-            LeadMsdProperty lead_Property = new LeadMsdProperty();
-            CaseProperty ldProperty = new CaseProperty();
+            CaseReturnParam csRtPrm = new CaseReturnParam();
+            LeadMsdProperty case_Property = new LeadMsdProperty();
+            CaseProperty csProperty = new CaseProperty();
             Dictionary<string,string> odatab= new Dictionary<string,string>();
             string postDataParametr, postDataParametr1;
-            List<JObject> Lead_details = new List<JObject>();
+            List<JObject> case_details = new List<JObject>();
 
-            lead_Property.leadsourcecode = this.Channel[LeadData.ChannelType.ToString()];
+            case_Property.caseorigincode = this.Channel[CaseData.ChannelType.ToString()];
+            case_Property.eqs_casetype = this.CaseType[CaseData.CaseType.ToString()];
+            case_Property.title = CaseData.Subject.ToString();
+            case_Property.prioritycode = this.Priority[CaseData.Priority.ToString()];
+            case_Property.description = CaseData.Description.ToString();
 
-            if (string.Equals(LeadData.ChannelType.ToString(), "ESFBWebsite"))
+            csProperty.eqs_customerid = CaseData.UCIC.ToString();
+            csProperty.customerid = await this.commonFunc.getCustomerId(csProperty.eqs_customerid);
+            csProperty.Accountid = await this.commonFunc.getAccountId(CaseData.AccountNumber.ToString());
+            csProperty.ccs_classification = await this.commonFunc.getclassificationId(CaseData.Classification.ToString());
+            csProperty.CategoryId = await this.commonFunc.getCategoryId(CaseData.Category.ToString());
+            csProperty.SubCategoryId = await this.commonFunc.getSubCategoryId(CaseData.SubCategory.ToString());
+
+            odatab.Add("customerid_contact@odata.bind", $"contacts({csProperty.customerid})");
+            if (csProperty.Accountid.Length>4)
             {
-                var productDetails  = await this.commonFunc.getProductId(LeadData.ProductCode.ToString());
-                ldProperty.ProductId = productDetails["ProductId"];
-                ldProperty.Businesscategoryid = productDetails["businesscategoryid"];
-                ldProperty.Productcategoryid = productDetails["productcategory"];
-                lead_Property.eqs_crmproductcategorycode = productDetails["crmproductcategorycode"];
-
-                if (ldProperty.ProductId!="")
-                {
-                    lead_Property.firstname = LeadData.FirstName;
-                    lead_Property.lastname = LeadData.LastName;
-                    lead_Property.mobilephone = LeadData.MobileNumber;
-                    lead_Property.emailaddress1 = LeadData.Email;
-                    odatab.Add("eqs_productid@odata.bind", $"eqs_products({ldProperty.ProductId})");
-                    odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({ldProperty.Productcategoryid})");
-                    odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({ldProperty.Businesscategoryid})");
-
-                    ldProperty.CityId = await this.commonFunc.getCityId(LeadData.CityName.ToString());
-                    if(ldProperty.CityId!= null && ldProperty.CityId!="")
-                        odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
-
-                    ldProperty.BranchId = await this.commonFunc.getBranchId(LeadData.BranchCode.ToString());
-                    if (ldProperty.BranchId != null && ldProperty.BranchId != "")
-                        odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({ldProperty.BranchId})");
-
-
-                    if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
-                    {
-                        ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
-                        if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
-                            odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
-                    }
-                      
-
-                    if (LeadData.Pincode != null && LeadData.Pincode.ToString() != "")
-                        lead_Property.eqs_pincode =  LeadData.Pincode;
-
-                    if (LeadData.MiddleName != null && LeadData.MiddleName.ToString() != "")
-                        lead_Property.middlename = LeadData.MiddleName;
-
-
-                    postDataParametr = JsonConvert.SerializeObject(lead_Property);
-                    postDataParametr1 = JsonConvert.SerializeObject(odatab);
-
-                    postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
-
-                    Lead_details = await this._queryParser.HttpApiCall("leads", HttpMethod.Post, postDataParametr);
-                }
-                else
-                {
-                    ldRtPrm.IsError = 1;
-                    ldRtPrm.ErrorMessage = Error.Resource_n_Found;
-                }
+                odatab.Add("eqs_account@odata.bind", $"eqs_accounts({csProperty.Accountid})");
+            }
+            if (csProperty.ccs_classification.Length > 4)
+            {
+                odatab.Add("ccs_classification@odata.bind", $"ccs_classifications({csProperty.ccs_classification})");
+            }
+            if (csProperty.CategoryId.Length > 4)
+            {
+                odatab.Add("ccs_category@odata.bind", $"ccs_categories({csProperty.CategoryId})");
+            }
+            if (csProperty.SubCategoryId.Length > 4)
+            {
+                odatab.Add("ccs_subcategory@odata.bind", $"ccs_subcategories({csProperty.SubCategoryId})");
+            }
                 
-            }
-            else if (string.Equals(LeadData.ChannelType.ToString(), "MobileBanking") || string.Equals(LeadData.ChannelType.ToString(), "InternetBanking"))
-            {
-                var productDetails = await this.commonFunc.getProductId(LeadData.ProductCode.ToString());
-                ldProperty.ProductId = productDetails["ProductId"];
-                ldProperty.Businesscategoryid = productDetails["businesscategoryid"];
-                ldProperty.Productcategoryid = productDetails["productcategory"];
-                lead_Property.eqs_crmproductcategorycode = productDetails["crmproductcategorycode"];
 
-                if (ldProperty.ProductId != "")
-                {
-                    lead_Property.firstname = LeadData.FirstName;
-                    lead_Property.lastname = LeadData.LastName;
-                    lead_Property.mobilephone = LeadData.MobileNumber;
-                    lead_Property.emailaddress1 = LeadData.Email;
-                    odatab.Add("eqs_productid@odata.bind", $"eqs_products({ldProperty.ProductId})");
-                    odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({ldProperty.Productcategoryid})");
-                    odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({ldProperty.Businesscategoryid})");
+            postDataParametr = JsonConvert.SerializeObject(case_Property);
+            postDataParametr1 = JsonConvert.SerializeObject(odatab);
 
-                    ldProperty.CityId = await this.commonFunc.getCityId(LeadData.CityName.ToString());
-                    if (ldProperty.CityId != null && ldProperty.CityId != "")
-                        odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
+            postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
-                    ldProperty.BranchId = await this.commonFunc.getBranchId(LeadData.BranchCode.ToString());
-                    if (ldProperty.BranchId != null && ldProperty.BranchId != "")
-                        odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({ldProperty.BranchId})");
-                  
-                    ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
-                    if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
-                        odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
+            case_details = await this._queryParser.HttpApiCall("incidents?$select=ticketnumber", HttpMethod.Post, postDataParametr);
 
-                    if (LeadData.Pincode != null && LeadData.Pincode.ToString() != "")
-                        lead_Property.eqs_pincode = LeadData.Pincode;
-
-                    if (LeadData.MiddleName != null && LeadData.MiddleName.ToString() != "")
-                        lead_Property.middlename = LeadData.MiddleName;
-
-                    postDataParametr = JsonConvert.SerializeObject(lead_Property);
-                    postDataParametr1 = JsonConvert.SerializeObject(odatab);
-
-                    postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
-
-                    Lead_details = await this._queryParser.HttpApiCall("leads", HttpMethod.Post, postDataParametr);
-                }
-                else
-                {
-                    ldRtPrm.IsError = 1;
-                    ldRtPrm.ErrorMessage = Error.Resource_n_Found;
-                }
-            }
-            else if (string.Equals(LeadData.ChannelType.ToString(), "ChatBot"))
-            {
-                if (LeadData.FirstName != null && LeadData.FirstName.ToString() != "")
-                    lead_Property.firstname = LeadData.FirstName;
-
-                if (LeadData.LastName != null && LeadData.FirstName.ToString() != "")
-                    lead_Property.lastname = LeadData.LastName;
-
-                if (LeadData.ProductCode != null && LeadData.ProductCode.ToString() != "")
-                {
-                    var productDetails = await this.commonFunc.getProductId(LeadData.ProductCode.ToString());
-                    ldProperty.ProductId = productDetails["ProductId"];
-                    ldProperty.Businesscategoryid = productDetails["businesscategoryid"];
-                    ldProperty.Productcategoryid = productDetails["productcategory"];
-                    lead_Property.eqs_crmproductcategorycode = productDetails["crmproductcategorycode"];
-
-                    odatab.Add("eqs_productid@odata.bind", $"eqs_products({ldProperty.ProductId})");
-                    odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({ldProperty.Productcategoryid})");
-                    odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({ldProperty.Businesscategoryid})");
-                }
-
-                if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
-                {
-                    ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
-                    if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
-                        odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
-                }
-
-                if (LeadData.CityName != null && LeadData.CityName.ToString() != "")
-                {
-                    ldProperty.CityId = await this.commonFunc.getCityId(LeadData.CityName.ToString());
-                    if (ldProperty.CityId != null && ldProperty.CityId != "")
-                        odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
-                }
-                if (LeadData.BranchCode != null && LeadData.BranchCode.ToString() != "")
-                {
-                    ldProperty.BranchId = await this.commonFunc.getBranchId(LeadData.BranchCode.ToString());
-                    if (ldProperty.BranchId != null && ldProperty.BranchId != "")
-                        odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({ldProperty.BranchId})");
-                }
-                if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
-                {
-                    ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
-                    if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
-                        odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
-                }
-
-                lead_Property.mobilephone = LeadData.MobileNumber;
-                lead_Property.emailaddress1 = LeadData.Email;
-                lead_Property.description = LeadData.Transcript;
-
-                if (LeadData.Pincode != null && LeadData.Pincode.ToString() != "")
-                    lead_Property.eqs_pincode = LeadData.Pincode;
-
-                if (LeadData.MiddleName != null && LeadData.MiddleName.ToString() != "")
-                    lead_Property.middlename = LeadData.MiddleName;
-
-                postDataParametr = JsonConvert.SerializeObject(lead_Property);
-                postDataParametr1 = JsonConvert.SerializeObject(odatab);
-
-                postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
-
-                Lead_details = await this._queryParser.HttpApiCall("leads", HttpMethod.Post, postDataParametr);
-
-            }
-            else if (string.Equals(LeadData.ChannelType.ToString(), "Email"))
-            {
-                if (LeadData.FirstName != null && LeadData.FirstName.ToString() != "")
-                    lead_Property.firstname = LeadData.FirstName;
-
-                if (LeadData.LastName != null && LeadData.FirstName.ToString() != "")
-                    lead_Property.lastname = LeadData.LastName;
-
-                if (LeadData.MobileNumber != null && LeadData.MobileNumber.ToString() != "")
-                    lead_Property.mobilephone = LeadData.MobileNumber;
-
-                lead_Property.emailaddress1 = LeadData.Email;
-                lead_Property.description = LeadData.EmailBody;
-
-                if (LeadData.ProductCode != null && LeadData.ProductCode.ToString() != "")
-                {
-                    var productDetails = await this.commonFunc.getProductId(LeadData.ProductCode.ToString());
-                    ldProperty.ProductId = productDetails["ProductId"];
-                    ldProperty.Businesscategoryid = productDetails["businesscategoryid"];
-                    ldProperty.Productcategoryid = productDetails["productcategory"];
-                    lead_Property.eqs_crmproductcategorycode = productDetails["crmproductcategorycode"];
-
-                    odatab.Add("eqs_productid@odata.bind", $"eqs_products({ldProperty.ProductId})");
-                    odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({ldProperty.Productcategoryid})");
-                    odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({ldProperty.Businesscategoryid})");
-                }
-
-                if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
-                {
-                    ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
-                    if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
-                        odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
-                }
-
-                if (LeadData.CityName != null && LeadData.CityName.ToString() != "")
-                {
-                    ldProperty.CityId = await this.commonFunc.getCityId(LeadData.CityName.ToString());
-                    if (ldProperty.CityId != null && ldProperty.CityId != "")
-                        odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
-                }
-                if (LeadData.BranchCode != null && LeadData.BranchCode.ToString() != "")
-                {
-                    ldProperty.BranchId = await this.commonFunc.getBranchId(LeadData.BranchCode.ToString());
-                    if (ldProperty.BranchId != null && ldProperty.BranchId != "")
-                        odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({ldProperty.BranchId})");
-                }
-                if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
-                {
-                    ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
-                    if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
-                        odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
-                }
-
-                if (LeadData.Pincode != null && LeadData.Pincode.ToString() != "")
-                    lead_Property.eqs_pincode = LeadData.Pincode;
-
-                if (LeadData.MiddleName != null && LeadData.MiddleName.ToString() != "")
-                    lead_Property.middlename = LeadData.MiddleName;
-
-                postDataParametr = JsonConvert.SerializeObject(lead_Property);
-                postDataParametr1 = JsonConvert.SerializeObject(odatab);
-
-                postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
-
-                Lead_details = await this._queryParser.HttpApiCall("leads", HttpMethod.Post, postDataParametr);
-            }
 
             
 
-
-
-
-            if (Lead_details.Count >0 )
+            if (case_details.Count >0 )
             {
-                dynamic respons_code = Lead_details[0];
+                dynamic respons_code = case_details[0];
                 if (respons_code.responsecode == 204)
                 {
-                    ldRtPrm.LeadID = CommonFunction.GetIdFromPostRespons(respons_code.responsebody.ToString());
-                    ldRtPrm.InfoMessage = Error.Lead_Success;
+                    csRtPrm.CaseID = CommonFunction.GetIdFromPostRespons(respons_code.responsebody.ToString());
+                    csRtPrm.ReturnCode = "CRM-SUCCESS";
+                    csRtPrm.Message = OutputMSG.Case_Success;
+                }
+                else if (respons_code.responsecode == 201)
+                {
+                    csRtPrm.CaseID = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "ticketnumber");
+                    csRtPrm.ReturnCode = "CRM-SUCCESS";
+                    csRtPrm.Message = OutputMSG.Case_Success;
                 }
                 else
                 {
-                    ldRtPrm.IsError = 1;
-                    ldRtPrm.ErrorMessage = Error.Resource_n_Found;
+                    this._logger.LogError("CreateCase", case_details.ToString());
+                    csRtPrm.ReturnCode = "CRM-ERROR-101";
+                    csRtPrm.Message = OutputMSG.Resource_n_Found;
                 }
             }
             else
             {
-                ldRtPrm.IsError = 1;
-                ldRtPrm.ErrorMessage = Error.Resource_n_Found;
+                this._logger.LogError("CreateCase", case_details.ToString());
+                csRtPrm.ReturnCode = "CRM-ERROR-101";
+                csRtPrm.Message = OutputMSG.Resource_n_Found;
             }
 
 
-            return ldRtPrm;
+            return csRtPrm;
         }
+                      
 
-
-        public async Task<LeadReturnParam> UpdateLead(dynamic LeadData)
+        public async Task<CaseListParam> getCaseList(dynamic CaseData, string appkey)
         {
-            LeadReturnParam ldRtPrm = new LeadReturnParam();
-            List<JObject> Lead_details = new List<JObject>();
-            Dictionary<string, string> odatab = new Dictionary<string, string>();
+            CaseListParam CSRtPrm = new CaseListParam();
+            CSRtPrm.AllCases = new List<CaseDetails>();
 
-            odatab.Add("eqs_leadstatus", this.LeadStatus[LeadData.Status.ToString()]);
 
-            string postDataParametr = JsonConvert.SerializeObject(odatab);
-
-            if (LeadData.LeadID != null && LeadData.LeadID.ToString() != "")
-            {
-                ldRtPrm.LeadID = LeadData.LeadID.ToString();
-                Lead_details = await this._queryParser.HttpApiCall($"leads({ldRtPrm.LeadID})", HttpMethod.Patch, postDataParametr);
-            }
-
-            return ldRtPrm;
-        }
-        
-
-        public List<JObject> getLeads()
-        {
-            
+            int ValidationError = 0;
             try
             {
-                var output = this._queryParser.HttpApiCall("leads", HttpMethod.Get, "").Result;
-                return output;
+                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "GetCaseListappkey"))
+                {
+                    if (CaseData.CustomerID == null || string.IsNullOrEmpty(CaseData.CustomerID.ToString()) || CaseData.CustomerID.ToString() == "")
+                    {
+                        ValidationError = 1;
+                    }
+
+                    if (ValidationError == 1)
+                    {
+                        this._logger.LogInformation("getCaseList", "Input parameters are incorrect");                       
+                        CSRtPrm.Message = OutputMSG.Incorrect_Input;
+                    }
+                    else
+                    {
+                        string customerid = await this.commonFunc.getCustomerId(CaseData.CustomerID.ToString());
+                        string query_url = $"incidents()?$select=ticketnumber,statuscode,description,eqs_casetype,title,prioritycode&$filter=_customerid_value eq '{customerid}'";
+                        var caseresponsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                        var CaseList = await this.commonFunc.getDataFromResponce(caseresponsdtails);
+                        foreach (var caseDetails in CaseList)
+                        {
+                            CaseDetails case_details = new CaseDetails();
+                            case_details.CaseID = caseDetails["ticketnumber"].ToString();
+                            case_details.CaseStatus = this.StatusCodes[caseDetails["statuscode"].ToString()];
+                            case_details.Description = caseDetails["description"].ToString();
+
+                            if (!string.IsNullOrEmpty(caseDetails["eqs_casetype"].ToString()))
+                            {
+                                case_details.Casetype = this._CaseType[caseDetails["eqs_casetype"].ToString()];
+                            }
+                                
+
+                            case_details.Subject = caseDetails["title"].ToString();
+
+                            if (!string.IsNullOrEmpty(caseDetails["prioritycode"].ToString()))
+                            {
+                                case_details.Priority = this._Priority[Convert.ToInt32(caseDetails["prioritycode"].ToString())];
+                            }
+                                
+
+                            CSRtPrm.AllCases.Add(case_details);
+                        }
+                    }
+                }
+                else
+                {
+                    this._logger.LogInformation("getCaseList", "Input parameters are incorrect");
+                    CSRtPrm.ReturnCode = "CRM-ERROR-102";
+                    CSRtPrm.Message = OutputMSG.Incorrect_Input;
+                }
+
+
+                return CSRtPrm;
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 throw ex;
             }
-            
+
         }
     }
 }

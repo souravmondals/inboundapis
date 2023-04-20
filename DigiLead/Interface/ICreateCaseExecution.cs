@@ -1,4 +1,4 @@
-﻿namespace ManageCase
+﻿namespace DigiLead
 {
     public interface ICreateCaseExecution
     {

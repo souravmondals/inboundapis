@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿namespace DigiLead
+{
+
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +14,7 @@ using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Diagnostics.Metrics;
 
-namespace ManageCase
-{
+
     public class CommonFunction
     {
         public IQueryParser _queryParser;

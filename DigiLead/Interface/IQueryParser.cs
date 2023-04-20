@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace ManageCase
+namespace DigiLead
 {
     public interface IQueryParser
     {

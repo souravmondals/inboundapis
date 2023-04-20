@@ -1,16 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Security.Cryptography;
-using System.Xml.Linq;
-
-namespace ManageCase
+﻿namespace DigiLead
 {
-    public class CreateCaseExecution : ICreateCaseExecution
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.Extensions.Caching.Memory;
+    using Microsoft.Extensions.Logging;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+    using System.Net;
+    using System.Net.Http;
+    using System.Security.Cryptography;
+    using System.Xml.Linq;
+
+    public class FtchDgLdStsExecution : ICreateCaseExecution
     {
 
         private ILoggers _logger;
@@ -36,7 +36,7 @@ namespace ManageCase
         
         private CommonFunction commonFunc;
 
-        public CreateCaseExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
+        public FtchDgLdStsExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
         {
                     
             this._logger = logger;

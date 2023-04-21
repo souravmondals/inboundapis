@@ -20,11 +20,11 @@
     public class FetchDigiLeadStatusController : ControllerBase
     {
 
-        private readonly ICreateCaseExecution _createCaseExecution;
+        private readonly IFtchDgLdStsExecution _ftchDgLdStsExecution;
         
-        public FetchDigiLeadStatusController(ICreateCaseExecution createCaseExecution)
+        public FetchDigiLeadStatusController(IFtchDgLdStsExecution ftchDgLdStsExecution)
         {
-            this._createCaseExecution = createCaseExecution;
+            this._ftchDgLdStsExecution = ftchDgLdStsExecution;
         }
 
 
@@ -42,9 +42,9 @@
                 {
                     Header_Value = headerValues;
                 }
-                _createCaseExecution.API_Name = "FetchDigiLeadStatus";
-                _createCaseExecution.Input_payload = request.ToString();
-                CaseReturnParam Casetatus = await _createCaseExecution.ValidateCreateCase(request, Header_Value);
+                _ftchDgLdStsExecution.API_Name = "FetchDigiLeadStatus";
+                _ftchDgLdStsExecution.Input_payload = request.ToString();
+                FtchDgLdStsReturn Casetatus = await _ftchDgLdStsExecution.ValidateFtchDgLdSts(request, Header_Value);
 
                 return Ok(Casetatus);
 

@@ -1,4 +1,4 @@
-﻿namespace ManageCase
+﻿namespace DigiLead
 {
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Identity.Client;

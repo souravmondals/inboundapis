@@ -157,36 +157,17 @@ using System.Diagnostics.Metrics;
             return TableId;
         }
 
-        public async Task<string> getclassificationId(string classification)
+        public async Task<string> getTitle(string TitleId)
         {            
-            return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_name", classification);
+            return await this.getIDfromMSDTable("eqs_titles", "eqs_name", "eqs_titleid", TitleId);
         }
-
-        public async Task<string> getCustomerId(string uciccode)
-        {           
-            return await this.getIDfromMSDTable("contacts", "contactid", "eqs_customerid", uciccode);
-        }
-
-        public async Task<string> getAccountId(string AccountNumber)
-        {
-            return await this.getIDfromMSDTable("eqs_accounts", "eqs_accountid", "eqs_accountno", AccountNumber);
-        }
-
-        public async Task<string> getCategoryId(string Category)
+        
+        public async Task<string> getPurposeOfCreation(string PurposeOfCreatioId)
         {            
-            return await this.getIDfromMSDTable("ccs_categories", "ccs_categoryid", "ccs_name", Category); 
+            return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_name", "eqs_purposeofcreationid", PurposeOfCreatioId);
         }
 
-        public async Task<string> getSubCategoryId(string subCategory)
-        {
-            return await this.getIDfromMSDTable("ccs_subcategories", "ccs_subcategoryid", "ccs_name", subCategory);
-        }
-
-        public async Task<string> getCaseStatus(string CaseID)
-        {
-            return await this.getIDfromMSDTable("incidents", "statuscode", "ticketnumber", CaseID);
-        }
-
+       
 
         public async Task<string> MeargeJsonString(string json1, string json2)
         {

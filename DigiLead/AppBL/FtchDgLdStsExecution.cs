@@ -99,77 +99,88 @@
         public async Task<FtchDgLdStsReturn> getDigiLeadStatus(dynamic RequestData)
         {
             FtchDgLdStsReturn csRtPrm = new FtchDgLdStsReturn();
-            List<JObject> case_details = new List<JObject>();
-
-            var Lead_data = await getLeadData(RequestData.LeadID.ToString());
-            if (Lead_data.Count > 0)
+            try
             {
-                dynamic LeadData = Lead_data[0];
-                csRtPrm.LeadID = RequestData.LeadID;
-                
-                if (LeadData.firstname.ToString().Length>1)
+                var Lead_data = await getLeadData(RequestData.LeadID.ToString());
+                if (Lead_data.Count > 0)
                 {
-                    csRtPrm.individualDetails = new IndividualDetails();
-                    csRtPrm.individualDetails.firstName = LeadData.firstname;
-                    csRtPrm.individualDetails.lastName = LeadData.lastname;
-                    csRtPrm.individualDetails.middleName = LeadData.middlename;
-                    csRtPrm.individualDetails.shortName = LeadData.eqs_shortname;
-                    csRtPrm.individualDetails.mobilePhone = LeadData.mobilephone;
-                    csRtPrm.individualDetails.dob = LeadData.eqs_dob;
-                    csRtPrm.individualDetails.aadhar = LeadData.eqs_aadhaarreference;
-                    csRtPrm.individualDetails.PAN = LeadData.eqs_pan;
-                    csRtPrm.individualDetails.motherMaidenName = LeadData.eqs_mothermaidenname;
-                    csRtPrm.individualDetails.identityType = LeadData.eqs_panform60code;
-                    csRtPrm.individualDetails.NLFound = LeadData.eqs_nlmatchcode;
-                    csRtPrm.individualDetails.reasonNotApplicable = LeadData.eqs_reasonforna;
-                    csRtPrm.individualDetails.voterid = LeadData.eqs_voterid;
-                    csRtPrm.individualDetails.drivinglicense = LeadData.eqs_dlnumber;
-                    csRtPrm.individualDetails.passport = LeadData.eqs_passportnumber;
-                    csRtPrm.individualDetails.ckycnumber = LeadData.eqs_ckycnumber;
+                    dynamic LeadData = Lead_data[0];
+                    csRtPrm.LeadID = RequestData.LeadID;
 
-                    // csRtPrm.individualDetails.reason = TBC;
-                    if (LeadData._eqs_titleid_value != null) { 
-                        csRtPrm.individualDetails.title = await this.commonFunc.getTitle(LeadData._eqs_titleid_value.ToString());
-                    }
-                    if (LeadData._eqs_purposeofcreationid_value != null){
-                        csRtPrm.individualDetails.purposeOfCreation = await this.commonFunc.getPurposeOfCreation(Lead_data._eqs_purposeofcreationid_value.ToString());
-                    }
-
-                    csRtPrm.ReturnCode = "CRM-SUCCESS";
-                    csRtPrm.Message = OutputMSG.Case_Success;
-                }
-                
-                if (LeadData.eqs_companynamepart1.ToString().Length > 1)
-                {
-                    csRtPrm.individualDetails = null;
-                    csRtPrm.corporateDetails = new CorporateDetails();
-                    csRtPrm.corporateDetails.companyName = LeadData.eqs_companynamepart1;
-                    csRtPrm.corporateDetails.companyName2 = LeadData.eqs_companynamepart2;
-                    csRtPrm.corporateDetails.companyName3 = LeadData.eqs_companynamepart3;
-                    csRtPrm.corporateDetails.companyPhone = LeadData.mobilephone;
-                    csRtPrm.corporateDetails.aadhar = LeadData.eqs_aadhaarreference;
-                    csRtPrm.corporateDetails.pocNumber = LeadData.eqs_contactmobile;
-                    csRtPrm.corporateDetails.pocName = LeadData.eqs_contactperson;
-                    csRtPrm.corporateDetails.cinNumber = LeadData.eqs_cinnumber;
-                    csRtPrm.corporateDetails.dateOfIncorporation = LeadData.eqs_dateofregistration;
-                    csRtPrm.corporateDetails.pan = LeadData.eqs_pan;
-                    csRtPrm.corporateDetails.tanNumber = LeadData.eqs_tannumber;
-                    csRtPrm.corporateDetails.NLFound = LeadData.eqs_nlmatchcode;
-                    csRtPrm.corporateDetails.identityType = LeadData.eqs_panform60code;
-                    csRtPrm.corporateDetails.gstNumber = LeadData.eqs_gstnumber;
-                    csRtPrm.corporateDetails.alternateMandatoryCheck = LeadData.eqs_deferalcode;
-                    csRtPrm.corporateDetails.cstNumber = LeadData.eqs_cstvatnumber;
-
-                    //csRtPrm.corporateDetails.tinNumber = TBC;
-                    //csRtPrm.corporateDetails.reason = TBC;
-                    if (LeadData._eqs_purposeofcreationid_value != null)
+                    if (LeadData.firstname.ToString().Length > 1)
                     {
-                        csRtPrm.corporateDetails.purposeOfCreation = await this.commonFunc.getPurposeOfCreation(Lead_data._eqs_purposeofcreationid_value.ToString());
+                        csRtPrm.individualDetails = new IndividualDetails();
+                        csRtPrm.individualDetails.firstName = LeadData.firstname;
+                        csRtPrm.individualDetails.lastName = LeadData.lastname;
+                        csRtPrm.individualDetails.middleName = LeadData.middlename;
+                        csRtPrm.individualDetails.shortName = LeadData.eqs_shortname;
+                        csRtPrm.individualDetails.mobilePhone = LeadData.mobilephone;
+                        csRtPrm.individualDetails.dob = LeadData.eqs_dob;
+                        csRtPrm.individualDetails.aadhar = LeadData.eqs_aadhaarreference;
+                        csRtPrm.individualDetails.PAN = LeadData.eqs_pan;
+                        csRtPrm.individualDetails.motherMaidenName = LeadData.eqs_mothermaidenname;
+                        csRtPrm.individualDetails.identityType = LeadData.eqs_panform60code;
+                        csRtPrm.individualDetails.NLFound = LeadData.eqs_nlmatchcode;
+                        csRtPrm.individualDetails.reasonNotApplicable = LeadData.eqs_reasonforna;
+                        csRtPrm.individualDetails.voterid = LeadData.eqs_voterid;
+                        csRtPrm.individualDetails.drivinglicense = LeadData.eqs_dlnumber;
+                        csRtPrm.individualDetails.passport = LeadData.eqs_passportnumber;
+                        csRtPrm.individualDetails.ckycnumber = LeadData.eqs_ckycnumber;
+
+                        // csRtPrm.individualDetails.reason = TBC;
+                        if (LeadData._eqs_titleid_value != null)
+                        {
+                            csRtPrm.individualDetails.title = await this.commonFunc.getTitle(LeadData._eqs_titleid_value.ToString());
+                        }
+                        if (LeadData._eqs_purposeofcreationid_value != null)
+                        {
+                            csRtPrm.individualDetails.purposeOfCreation = await this.commonFunc.getPurposeOfCreation(Lead_data._eqs_purposeofcreationid_value.ToString());
+                        }
+
+                        csRtPrm.ReturnCode = "CRM-SUCCESS";
+                        csRtPrm.Message = OutputMSG.Case_Success;
+                    }
+
+                    if (LeadData.eqs_companynamepart1.ToString().Length > 1)
+                    {
+                        csRtPrm.individualDetails = null;
+                        csRtPrm.corporateDetails = new CorporateDetails();
+                        csRtPrm.corporateDetails.companyName = LeadData.eqs_companynamepart1;
+                        csRtPrm.corporateDetails.companyName2 = LeadData.eqs_companynamepart2;
+                        csRtPrm.corporateDetails.companyName3 = LeadData.eqs_companynamepart3;
+                        csRtPrm.corporateDetails.companyPhone = LeadData.mobilephone;
+                        csRtPrm.corporateDetails.aadhar = LeadData.eqs_aadhaarreference;
+                        csRtPrm.corporateDetails.pocNumber = LeadData.eqs_contactmobile;
+                        csRtPrm.corporateDetails.pocName = LeadData.eqs_contactperson;
+                        csRtPrm.corporateDetails.cinNumber = LeadData.eqs_cinnumber;
+                        csRtPrm.corporateDetails.dateOfIncorporation = LeadData.eqs_dateofregistration;
+                        csRtPrm.corporateDetails.pan = LeadData.eqs_pan;
+                        csRtPrm.corporateDetails.tanNumber = LeadData.eqs_tannumber;
+                        csRtPrm.corporateDetails.NLFound = LeadData.eqs_nlmatchcode;
+                        csRtPrm.corporateDetails.identityType = LeadData.eqs_panform60code;
+                        csRtPrm.corporateDetails.gstNumber = LeadData.eqs_gstnumber;
+                        csRtPrm.corporateDetails.alternateMandatoryCheck = LeadData.eqs_deferalcode;
+                        csRtPrm.corporateDetails.cstNumber = LeadData.eqs_cstvatnumber;
+
+                        //csRtPrm.corporateDetails.tinNumber = TBC;
+                        //csRtPrm.corporateDetails.reason = TBC;
+                        if (LeadData._eqs_purposeofcreationid_value != null)
+                        {
+                            csRtPrm.corporateDetails.purposeOfCreation = await this.commonFunc.getPurposeOfCreation(Lead_data._eqs_purposeofcreationid_value.ToString());
+                        }
+
+
+                        csRtPrm.ReturnCode = "CRM-SUCCESS";
+                        csRtPrm.Message = OutputMSG.Case_Success;
+                    }
+                    else
+                    {
+                        this._logger.LogInformation("getDigiLeadStatus", "Input parameters are incorrect");
+                        csRtPrm.ReturnCode = "CRM-ERROR-102";
+                        csRtPrm.Message = OutputMSG.Incorrect_Input;
                     }
 
 
-                    csRtPrm.ReturnCode = "CRM-SUCCESS";
-                    csRtPrm.Message = OutputMSG.Case_Success;
                 }
                 else
                 {
@@ -177,15 +188,14 @@
                     csRtPrm.ReturnCode = "CRM-ERROR-102";
                     csRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
-                
-                
             }
-            else
+            catch(Exception ex)
             {
-                this._logger.LogInformation("getDigiLeadStatus", "Input parameters are incorrect");
+                this._logger.LogError("getDigiLeadStatus", ex.Message);
                 csRtPrm.ReturnCode = "CRM-ERROR-102";
                 csRtPrm.Message = OutputMSG.Incorrect_Input;
             }
+            
             
 
             return csRtPrm;

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Cz1HbXbV6SeFNbFH1WyUKSnjJFMi6FLgcarvciNLDhiat3rZTCs/B5bxh0fHMkviLxQpjcUEkMkQoU3d5hdPgw==",
+  "dgSpecHash": "YnAhlvUniqLtDkhx3qLr0U5Izj4k/IgNNmaDKqX48uV1pUzRuqQDt5w0H1HhTXlSmjgUuikerENrYPxZyTWdbQ==",
   "success": true,
-  "projectFilePath": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\CreateLeads\\CreateLeads.csproj",
+  "projectFilePath": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\inboundapis\\CreateLeads\\CreateLeads.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\EW195XS\\.nuget\\packages\\azure.core\\1.25.0\\azure.core.1.25.0.nupkg.sha512",
     "C:\\Users\\EW195XS\\.nuget\\packages\\azure.extensions.aspnetcore.configuration.secrets\\1.2.1\\azure.extensions.aspnetcore.configuration.secrets.1.2.1.nupkg.sha512",

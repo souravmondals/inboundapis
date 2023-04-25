@@ -20,7 +20,8 @@
     <Import Project="$(NuGetPackageRoot)microsoft.net.test.sdk\17.3.2\build\netcoreapp2.1\Microsoft.NET.Test.Sdk.props" Condition="Exists('$(NuGetPackageRoot)microsoft.net.test.sdk\17.3.2\build\netcoreapp2.1\Microsoft.NET.Test.Sdk.props')" />
   </ImportGroup>
   <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <PkgMicrosoft_Extensions_ApiDescription_Server Condition=" '$(PkgMicrosoft_Extensions_ApiDescription_Server)' == '' ">C:\Users\EW195XS\.nuget\packages\microsoft.extensions.apidescription.server\3.0.0</PkgMicrosoft_Extensions_ApiDescription_Server>
     <PkgNUnit_Analyzers Condition=" '$(PkgNUnit_Analyzers)' == '' ">C:\Users\EW195XS\.nuget\packages\nunit.analyzers\3.3.0</PkgNUnit_Analyzers>
-    <PkgNewtonsoft_Json Condition=" '$(PkgNewtonsoft_Json)' == '' ">C:\Users\EW195XS\.nuget\packages\newtonsoft.json\9.0.1</PkgNewtonsoft_Json>
+    <PkgMicrosoft_VisualStudio_Azure_Containers_Tools_Targets Condition=" '$(PkgMicrosoft_VisualStudio_Azure_Containers_Tools_Targets)' == '' ">C:\Users\EW195XS\.nuget\packages\microsoft.visualstudio.azure.containers.tools.targets\1.17.0</PkgMicrosoft_VisualStudio_Azure_Containers_Tools_Targets>
   </PropertyGroup>
 </Project>

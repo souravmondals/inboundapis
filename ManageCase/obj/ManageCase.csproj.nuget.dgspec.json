@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\ManageCase\\ManageCase.csproj": {}
+    "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\inboundapis\\ManageCase\\ManageCase.csproj": {}
   },
   "projects": {
-    "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\ManageCase\\ManageCase.csproj": {
+    "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\inboundapis\\ManageCase\\ManageCase.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\ManageCase\\ManageCase.csproj",
+        "projectUniqueName": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\inboundapis\\ManageCase\\ManageCase.csproj",
         "projectName": "ManageCase",
-        "projectPath": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\ManageCase\\ManageCase.csproj",
+        "projectPath": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\inboundapis\\ManageCase\\ManageCase.csproj",
         "packagesPath": "C:\\Users\\EW195XS\\.nuget\\packages\\",
-        "outputPath": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\ManageCase\\obj\\",
+        "outputPath": "C:\\Program D\\Projects\\Equitas\\EquitasInboundAPI\\TCreatelead\\inboundapis\\ManageCase\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\EW195XS\\AppData\\Roaming\\NuGet\\NuGet.Config",

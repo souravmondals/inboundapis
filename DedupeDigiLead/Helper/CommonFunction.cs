@@ -16,9 +16,11 @@ namespace DedupeDigiLead
     public class CommonFunction
     {
         public IQueryParser _queryParser;
-        public CommonFunction(IQueryParser queryParser)
+        public ILoggers _loggers;
+        public CommonFunction(IQueryParser queryParser, ILoggers loggers)
         {
             this._queryParser = queryParser;
+            this._loggers = loggers;
         }
         public async Task<string> AcquireNewTokenAsync()
         {
@@ -160,29 +162,52 @@ namespace DedupeDigiLead
             return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_name", classification);
         }
 
-        public async Task<string> getCustomerId(string uciccode)
-        {           
-            return await this.getIDfromMSDTable("contacts", "contactid", "eqs_customerid", uciccode);
-        }
-
-        public async Task<string> getAccountId(string AccountNumber)
+        public async Task<JArray> getLeadData(string LeadID)
         {
-            return await this.getIDfromMSDTable("eqs_accounts", "eqs_accountid", "eqs_accountno", AccountNumber);
+            try
+            {
+                string query_url = $"leads()?$select=eqs_internalpan,eqs_aadhar,eqs_passportnumber,fullname,eqs_dob,eqs_cinnumber,eqs_dateofregistration,eqs_entitytypeid&$filter=eqs_crmleadid eq '{LeadID}'";
+                var Leaddtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Lead_dtails = await this.getDataFromResponce(Leaddtails);
+                return Lead_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._loggers.LogError("getLeadData", ex.Message);
+                throw ex;
+            }
         }
 
-        public async Task<string> getCategoryId(string Category)
-        {            
-            return await this.getIDfromMSDTable("ccs_categories", "ccs_categoryid", "ccs_name", Category); 
-        }
-
-        public async Task<string> getSubCategoryId(string subCategory)
+        public async Task<JArray> getNLTRData(string Fullname)
         {
-            return await this.getIDfromMSDTable("ccs_subcategories", "ccs_subcategoryid", "ccs_name", subCategory);
+            try
+            {
+                string query_url = $"eqs_trnls()?$select=eqs_passports,eqs_pan,eqs_aadhaar,eqs_cin,eqs_dob&$filter=eqs_fullname eq '{Fullname}'";
+                var NLTRdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var NLTR_dtails = await this.getDataFromResponce(NLTRdtails);
+                return NLTR_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._loggers.LogError("getLeadData", ex.Message);
+                throw ex;
+            }
         }
 
-        public async Task<string> getCaseStatus(string CaseID)
+        public async Task<JArray> getNLData(string Fullname)
         {
-            return await this.getIDfromMSDTable("incidents", "statuscode", "ticketnumber", CaseID);
+            try
+            {
+                string query_url = $"eqs_nls()?$select=eqs_passport,eqs_pan,eqs_aadhaar,eqs_cin,eqs_doiordob&$filter=eqs_name eq '{Fullname}'";
+                var NLTRdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var NLTR_dtails = await this.getDataFromResponce(NLTRdtails);
+                return NLTR_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._loggers.LogError("getLeadData", ex.Message);
+                throw ex;
+            }
         }
 
 

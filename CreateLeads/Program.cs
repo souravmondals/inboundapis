@@ -12,6 +12,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IKeyVaultService, KeyVaultService>();
 builder.Services.AddScoped<IQueryParser, QueryParser>();
+builder.Services.AddScoped<ICreateLeadExecution,CreateLeadExecution>();
 builder.Services.AddSingleton<IMemoryCache,MemoryCache>();
 
 

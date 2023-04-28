@@ -7,17 +7,33 @@ using System.Xml.Linq;
 
 namespace CreateLeads
 {
-    public class CreateLeadExecution
+    public class CreateLeadExecution: ICreateLeadExecution
     {
 
-        public ILogger _logger;       
+        public ILoggers _logger;       
         public IQueryParser _queryParser;
+
+        public string API_Name
+        {
+            set
+            {
+                _logger.API_Name = value;
+            }
+        }
+        public string Input_payload
+        {
+            set
+            {
+                _logger.Input_payload = value;
+            }
+        }
+
         private readonly IKeyVaultService _keyVaultService;
         Dictionary<string, int> Channel = new Dictionary<string, int>();
         Dictionary<string, int> LeadStatus = new Dictionary<string, int>();
         private CommonFunction commonFunc;
 
-        public CreateLeadExecution(ILogger logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
+        public CreateLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
         {            
            
             this._logger = logger;
@@ -113,9 +129,10 @@ namespace CreateLeads
 
 
                         if (ValidationError == 1)
-                        {
-                            ldRtPrm.IsError = 1;
-                            ldRtPrm.ErrorMessage = Error.Incorrect_Input;
+                        {                           
+                            this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
                         }
 
 
@@ -125,14 +142,16 @@ namespace CreateLeads
                     }
                     else
                     {
-                        ldRtPrm.IsError = 1;
-                        ldRtPrm.ErrorMessage = Error.Incorrect_Input;
+                        this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                        ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
                     }
                 }
                 else
                 {
-                    ldRtPrm.IsError = 1;
-                    ldRtPrm.ErrorMessage = Error.Incorrect_Input;
+                    this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
 
                 return ldRtPrm;
@@ -175,8 +194,9 @@ namespace CreateLeads
 
                 if (ValidationError == 1)
                 {
-                    ldRtPrm.IsError = 1;
-                    ldRtPrm.ErrorMessage = Error.Incorrect_Input;
+                    this._logger.LogInformation("ValidateLeadeStatus", "Input parameters are incorrect");
+                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
 
                 ldRtPrm = await this.UpdateLead(LeadStatus);
@@ -251,8 +271,9 @@ namespace CreateLeads
                 }
                 else
                 {
-                    ldRtPrm.IsError = 1;
-                    ldRtPrm.ErrorMessage = Error.Resource_n_Found;
+                    this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
                 
             }
@@ -301,8 +322,9 @@ namespace CreateLeads
                 }
                 else
                 {
-                    ldRtPrm.IsError = 1;
-                    ldRtPrm.ErrorMessage = Error.Resource_n_Found;
+                    this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
             }
             else if (string.Equals(LeadData.ChannelType.ToString(), "ChatBot"))
@@ -448,23 +470,27 @@ namespace CreateLeads
                 if (respons_code.responsecode == 204)
                 {
                     ldRtPrm.LeadID = CommonFunction.GetIdFromPostRespons(respons_code.responsebody.ToString());
-                    ldRtPrm.InfoMessage = Error.Lead_Success;
+                    ldRtPrm.ReturnCode = "CRM - SUCCESS";
+                    ldRtPrm.Message = OutputMSG.Lead_Success;
                 }
                 else if (respons_code.responsecode == 201)
                 {
                     ldRtPrm.LeadID = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "eqs_crmleadid");
-                    ldRtPrm.InfoMessage = Error.Lead_Success;
+                    ldRtPrm.ReturnCode = "CRM - SUCCESS";
+                    ldRtPrm.Message = OutputMSG.Lead_Success;
                 }
                 else
                 {
-                    ldRtPrm.IsError = 1;
-                    ldRtPrm.ErrorMessage = Error.Resource_n_Found;
+                    this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
             }
             else
             {
-                ldRtPrm.IsError = 1;
-                ldRtPrm.ErrorMessage = Error.Resource_n_Found;
+                this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                ldRtPrm.Message = OutputMSG.Incorrect_Input;
             }
 
 

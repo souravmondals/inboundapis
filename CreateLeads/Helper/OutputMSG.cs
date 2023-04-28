@@ -1,6 +1,6 @@
 ﻿namespace CreateLeads
 {
-    public static class Error
+    public static class OutputMSG
     {
         public const string Incorrect_Input = "Incorrect input. Mandatory fields are required";
         public const string Resource_n_Found = "Resource not found";

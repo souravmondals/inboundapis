@@ -16,15 +16,14 @@ namespace CreateLeads.Controllers
     public class LeadController : ControllerBase
     {
 
-        private readonly ILogger<LeadController> _log;
+        private readonly ICreateLeadExecution _createLeadExecution;
         private readonly IQueryParser _queryp;
         private readonly IKeyVaultService _keyVaultService;
 
-        public LeadController(ILogger<LeadController> log, IQueryParser queryParser, IKeyVaultService keyVaultService) 
+        public LeadController(ICreateLeadExecution createLeadExecution) 
         {
-            this._log = log;
-            this._queryp = queryParser;
-            this._keyVaultService = keyVaultService;
+            this._createLeadExecution = createLeadExecution;
+           
         }
 
         [HttpPost("CreateLead")]        
@@ -33,8 +32,7 @@ namespace CreateLeads.Controllers
             try
             {
                 StreamReader requestReader = new StreamReader(Request.Body);
-                dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
-                CreateLeadExecution createleadEx = new CreateLeadExecution(this._log, this._queryp, this._keyVaultService);
+                dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());               
 
                 string Header_Value = string.Empty;
                 if (Request.Headers.TryGetValue("appkey", out var headerValues))
@@ -42,8 +40,9 @@ namespace CreateLeads.Controllers
                     Header_Value = headerValues;
                 }
 
-
-                LeadReturnParam Leadstatus = await createleadEx.ValidateLeade(request, Header_Value);
+                _createLeadExecution.API_Name = "CreateLead";
+                _createLeadExecution.Input_payload = request.ToString();
+                LeadReturnParam Leadstatus = await _createLeadExecution.ValidateLeade(request, Header_Value);
 
 
                 /*
@@ -80,6 +79,7 @@ namespace CreateLeads.Controllers
             }
         }
 
+        /*
         [HttpPost("UpdateLeadStatus")]
         public async Task<IActionResult> UpdateLeadStatus()
         {
@@ -99,6 +99,8 @@ namespace CreateLeads.Controllers
             }
 
         }
+
+        */
 
 
     }

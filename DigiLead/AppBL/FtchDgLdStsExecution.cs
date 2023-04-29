@@ -9,6 +9,7 @@
     using System.Net.Http;
     using System.Security.Cryptography;
     using System.Xml.Linq;
+    using CRMConnect;
 
     public class FtchDgLdStsExecution : IFtchDgLdStsExecution
     {

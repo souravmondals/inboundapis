@@ -1,0 +1,12 @@
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\bin\Debug\net6.0\CRMConnect.deps.json
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\bin\Debug\net6.0\CRMConnect.dll
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\bin\Debug\net6.0\CRMConnect.pdb
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\obj\Debug\net6.0\CRMConnect.csproj.AssemblyReference.cache
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\obj\Debug\net6.0\CRMConnect.GeneratedMSBuildEditorConfig.editorconfig
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\obj\Debug\net6.0\CRMConnect.AssemblyInfoInputs.cache
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\obj\Debug\net6.0\CRMConnect.AssemblyInfo.cs
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\obj\Debug\net6.0\CRMConnect.csproj.CoreCompileInputs.cache
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\obj\Debug\net6.0\CRMConnect.dll
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\obj\Debug\net6.0\refint\CRMConnect.dll
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\obj\Debug\net6.0\CRMConnect.pdb
+C:\Program D\Projects\Equitas\EquitasInboundAPI\TCreatelead\inboundapis\CRMConnect\obj\Debug\net6.0\ref\CRMConnect.dll

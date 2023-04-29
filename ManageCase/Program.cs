@@ -3,7 +3,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Azure.Identity;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
-
+using CRMConnect;
 
 var builder = WebApplication.CreateBuilder(args);
 

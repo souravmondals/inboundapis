@@ -3,7 +3,7 @@
     using System;
     using System.Runtime.CompilerServices;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.Configuration.AzureKeyVault;
+     using Microsoft.Extensions.Configuration.AzureKeyVault;
     using Microsoft.Extensions.Caching.Memory;
     using System.Threading;
 

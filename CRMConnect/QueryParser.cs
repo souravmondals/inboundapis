@@ -2,7 +2,6 @@
 {
     using Microsoft.Extensions.Caching.Memory;
     using Microsoft.Identity.Client;
-    using Microsoft.AspNetCore.Mvc;
     using Newtonsoft.Json;
     using System.Text;
     using System.Net.Http;
@@ -12,6 +11,7 @@
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.DependencyInjection;
 
 

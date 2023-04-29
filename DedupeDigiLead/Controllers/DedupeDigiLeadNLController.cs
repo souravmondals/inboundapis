@@ -9,6 +9,7 @@ using System.Reflection.PortableExecutable;
 using System.Linq;
 using Microsoft.VisualBasic;
 using Microsoft.Extensions.Caching.Memory;
+using CRMConnect;
 
 namespace DedupeDigiLead.Controllers
 {

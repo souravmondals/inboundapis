@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Xml.Linq;
 using System.Collections.Generic;
+using CRMConnect;
 
 namespace DedupeDigiLead
 {

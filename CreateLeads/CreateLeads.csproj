@@ -11,6 +11,13 @@
 
   <ItemGroup>
     <Compile Remove="Helper\ErrorLogger.cs" />
+    <Compile Remove="Helper\HttpInterceptor.cs" />
+    <Compile Remove="Helper\KeyVaultService.cs" />
+    <Compile Remove="Helper\Logger.cs" />
+    <Compile Remove="Helper\QueryParser.cs" />
+    <Compile Remove="Interface\IKeyVaultService.cs" />
+    <Compile Remove="Interface\ILoggers.cs" />
+    <Compile Remove="Interface\IQueryParser.cs" />
     <Compile Remove="Interface\LoggerExtension.cs" />
   </ItemGroup>
 
@@ -25,6 +32,10 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.17.0" />
     <PackageReference Include="Newtonsoft.Json.Bson" Version="1.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CRMConnect\CRMConnect.csproj" />
   </ItemGroup>
 
 </Project>

@@ -9,6 +9,7 @@ using System.Reflection.PortableExecutable;
 using System.Linq;
 using Microsoft.VisualBasic;
 using Microsoft.Extensions.Caching.Memory;
+using CRMConnect;
 
 namespace ManageCase.Controllers
 {
@@ -17,16 +18,14 @@ namespace ManageCase.Controllers
     public class CaseController : ControllerBase
     {
 
-        private readonly ILogger<CaseController> _log;
+        private readonly ICreateCaseExecution _createCaseExecution;
         private readonly IQueryParser _queryp;
         private readonly IKeyVaultService _keyVaultService;
 
 
-        public CaseController(ILogger<CaseController> log, IQueryParser queryParser, IKeyVaultService keyVaultService) 
+        public CaseController(ICreateCaseExecution createCaseExecution) 
         {
-            this._log = log;
-            this._queryp = queryParser;
-            this._keyVaultService = keyVaultService;
+            this._createCaseExecution = createCaseExecution;            
         }
 
         [HttpPost("CreateCase")]        
@@ -35,20 +34,18 @@ namespace ManageCase.Controllers
             try
             {
                 StreamReader requestReader = new StreamReader(Request.Body);
-                dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
-                CreateCaseExecution createleadEx = new CreateCaseExecution(this._log, this._queryp, this._keyVaultService);
+                dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());             
 
                 string Header_Value = string.Empty;
-                if (Request.Headers.TryGetValue("Sequeritykey", out var headerValues))
+                if (Request.Headers.TryGetValue("appkey", out var headerValues))
                 {
                     Header_Value = headerValues;
                 }
-
-
-                LeadReturnParam Leadstatus = await createleadEx.ValidateLeade(request, Header_Value);
-
+                _createCaseExecution.API_Name = "CreateCase";
+                _createCaseExecution.Input_payload= request.ToString();
+                CaseReturnParam Casetatus = await _createCaseExecution.ValidateCreateCase(request, Header_Value);
                 
-                return Ok(Leadstatus);
+                return Ok(Casetatus);
                 
                     
             }
@@ -60,16 +57,50 @@ namespace ManageCase.Controllers
             }
         }
 
-        [HttpPost("UpdateCaseStatus")]
-        public async Task<IActionResult> UpdateCaseStatus()
+        [HttpPost("getCaseStatus")]
+        public async Task<IActionResult> getCaseStatus()
         {
             try
             {
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
-                CreateCaseExecution createleadEx = new CreateCaseExecution(this._log, this._queryp, this._keyVaultService);
-                LeadReturnParam Leadstatus = await createleadEx.ValidateLeadeStatus(request);
-                return Ok(Leadstatus);
+              
+                string Header_Value = string.Empty;
+                if (Request.Headers.TryGetValue("appkey", out var headerValues))
+                {
+                    Header_Value = headerValues;
+                }
+                _createCaseExecution.API_Name = "getCaseStatus";
+                _createCaseExecution.Input_payload = request.ToString();
+                CaseStatusRtParam Casetatus = await _createCaseExecution.ValidategetCaseStatus(request, Header_Value);
+                return Ok(Casetatus);
+            }
+            catch (Exception ex)
+            {
+
+                return BadRequest();
+
+            }
+
+        }
+
+        [HttpPost("getCaseList")]
+        public async Task<IActionResult> getCaseList()
+        {
+            try
+            {
+                StreamReader requestReader = new StreamReader(Request.Body);
+                dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());               
+                
+                string Header_Value = string.Empty;
+                if (Request.Headers.TryGetValue("appkey", out var headerValues))
+                {
+                    Header_Value = headerValues;
+                }
+                _createCaseExecution.API_Name = "getCaseList";
+                _createCaseExecution.Input_payload = request.ToString();
+                CaseListParam CaseList = await _createCaseExecution.getCaseList(request, Header_Value);
+                return Ok(CaseList);
             }
             catch (Exception ex)
             {

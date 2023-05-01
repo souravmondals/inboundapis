@@ -79,11 +79,10 @@ namespace CreateLeads
     }
 
     public class LeadReturnParam
-    {
-        public int IsError { get; set; }
+    {      
         public string LeadID { get; set; }
-        public string ErrorMessage { get; set; }
-        public string InfoMessage { get; set; }
+        public string ReturnCode { get; set; }
+        public string Message { get; set; }
 
     }
 

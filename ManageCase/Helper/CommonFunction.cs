@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Diagnostics.Metrics;
+using CRMConnect;
 
 namespace ManageCase
 {
@@ -61,6 +62,12 @@ namespace ManageCase
             return Respons_Id;
         }
 
+        public static string GetIdFromPostRespons201(dynamic PResponseData, string datakey)
+        {
+            string Respons_Id = PResponseData[datakey];
+            return Respons_Id;
+        }
+
         public async Task<string> getIDFromGetResponce(string primaryField ,List<JObject> RsponsData)
         {
             string resourceID = "";
@@ -104,6 +111,43 @@ namespace ManageCase
                 return resourceID;
         }
 
+        public async Task<JArray> getDataFromResponce(List<JObject> RsponsData)
+        {
+            string resourceID = "";
+            foreach (JObject item in RsponsData)
+            {
+                if (Enum.TryParse(item["responsecode"].ToString(), out HttpStatusCode responseStatus) && responseStatus == HttpStatusCode.OK)
+                {
+                    dynamic responseValue = item["responsebody"];
+                    JArray resArray = new JArray();
+                    string urlMetaData = string.Empty;
+                    if (responseValue?.value != null)
+                    {
+                        resArray = (JArray)responseValue?.value;
+                        urlMetaData = responseValue["@odata.context"];
+                    }
+                    else if (responseValue is JArray)
+                    {
+                        resArray = responseValue;
+
+                    }
+                    else
+                    {
+                        resArray.Add(responseValue);
+                        urlMetaData = responseValue["@odata.context"];
+                    }
+
+                    if (resArray != null && resArray.Any())
+                    {
+
+                        return resArray;
+
+                    }
+                }
+            }
+            return new JArray();
+        }
+
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
             string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
@@ -112,37 +156,36 @@ namespace ManageCase
             return TableId;
         }
 
-        public async Task<string> getCustomerId(string CustomerCode)
+        public async Task<string> getclassificationId(string classification)
         {            
-            return await this.getIDfromMSDTable("contacts", "contactid", "ccs_customercode", CustomerCode);
+            return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_name", classification);
         }
 
-        public async Task<string> getCityId(string CityCode)
+        public async Task<string> getCustomerId(string uciccode)
         {           
-            return await this.getIDfromMSDTable("eqs_cities", "eqs_cityid", "eqs_name", CityCode);
+            return await this.getIDfromMSDTable("contacts", "contactid", "eqs_customerid", uciccode);
         }
 
-        public async Task<string> getBranchId(string BranchCode)
-        {            
-            return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchid", "eqs_branchidvalue", BranchCode); 
-        }
-
-        public async Task<Dictionary<string,string>> getProductId(string ProductCode)
+        public async Task<string> getAccountId(string AccountNumber)
         {
-            string query_url = $"eqs_products()?$select=eqs_productid,_eqs_businesscategoryid_value,_eqs_productcategory_value,eqs_crmproductcategorycode&$filter=eqs_productcode eq '{ProductCode}'";
-            var productdtails =  await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string ProductId = await this.getIDFromGetResponce("eqs_productid", productdtails);
-            string businesscategoryid = await this.getIDFromGetResponce("_eqs_businesscategoryid_value", productdtails);
-            string productcategory = await this.getIDFromGetResponce("_eqs_productcategory_value", productdtails);
-            string crmproductcategorycode = await this.getIDFromGetResponce("eqs_crmproductcategorycode", productdtails);
-            Dictionary<string, string> ProductData = new Dictionary<string, string>() { 
-                { "ProductId", ProductId },
-                { "businesscategoryid", businesscategoryid },
-                { "productcategory", productcategory },
-                { "crmproductcategorycode", crmproductcategorycode },
-            };
-            return ProductData; 
+            return await this.getIDfromMSDTable("eqs_accounts", "eqs_accountid", "eqs_accountno", AccountNumber);
         }
+
+        public async Task<string> getCategoryId(string Category)
+        {            
+            return await this.getIDfromMSDTable("ccs_categories", "ccs_categoryid", "ccs_name", Category); 
+        }
+
+        public async Task<string> getSubCategoryId(string subCategory)
+        {
+            return await this.getIDfromMSDTable("ccs_subcategories", "ccs_subcategoryid", "ccs_name", subCategory);
+        }
+
+        public async Task<string> getCaseStatus(string CaseID)
+        {
+            return await this.getIDfromMSDTable("incidents", "statuscode", "ticketnumber", CaseID);
+        }
+
 
         public async Task<string> MeargeJsonString(string json1, string json2)
         {

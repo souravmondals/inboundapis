@@ -14,7 +14,7 @@ using CRMConnect;
 
 namespace ManageCase
 {
-    public class CommonFunction
+    public class CommonFunction: ICommonFunction
     {
         public IQueryParser _queryParser;
         public CommonFunction(IQueryParser queryParser)

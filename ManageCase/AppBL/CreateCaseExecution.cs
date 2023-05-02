@@ -35,16 +35,16 @@ namespace ManageCase
         Dictionary<int, string> _Priority = new Dictionary<int, string>();
         Dictionary<string, string> StatusCodes = new Dictionary<string, string>();
         
-        private CommonFunction commonFunc;
+        private ICommonFunction _commonFunc;
 
-        public CreateCaseExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
+        public CreateCaseExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
         {
                     
             this._logger = logger;
             
             this._keyVaultService = keyVaultService;
             this._queryParser = queryParser;
-            this.commonFunc = new CommonFunction(queryParser);
+            this._commonFunc = commonFunction;
            
             this.Channel.Add("MobileBanking", "615290001");
             this.Channel.Add("InternetBanking", "615290001");
@@ -211,7 +211,7 @@ namespace ManageCase
                     }
                     else
                     {                       
-                        string statusCodeId = await this.commonFunc.getCaseStatus(CaseData.CaseID.ToString());
+                        string statusCodeId = await this._commonFunc.getCaseStatus(CaseData.CaseID.ToString());
                         if (statusCodeId == "" || statusCodeId == null)
                         {                          
                             CSRtPrm.ErrorMessage = OutputMSG.Incorrect_Input;
@@ -255,11 +255,11 @@ namespace ManageCase
             case_Property.description = CaseData.Description.ToString();
 
             csProperty.eqs_customerid = CaseData.UCIC.ToString();
-            csProperty.customerid = await this.commonFunc.getCustomerId(csProperty.eqs_customerid);
-            csProperty.Accountid = await this.commonFunc.getAccountId(CaseData.AccountNumber.ToString());
-            csProperty.ccs_classification = await this.commonFunc.getclassificationId(CaseData.Classification.ToString());
-            csProperty.CategoryId = await this.commonFunc.getCategoryId(CaseData.Category.ToString());
-            csProperty.SubCategoryId = await this.commonFunc.getSubCategoryId(CaseData.SubCategory.ToString());
+            csProperty.customerid = await this._commonFunc.getCustomerId(csProperty.eqs_customerid);
+            csProperty.Accountid = await this._commonFunc.getAccountId(CaseData.AccountNumber.ToString());
+            csProperty.ccs_classification = await this._commonFunc.getclassificationId(CaseData.Classification.ToString());
+            csProperty.CategoryId = await this._commonFunc.getCategoryId(CaseData.Category.ToString());
+            csProperty.SubCategoryId = await this._commonFunc.getSubCategoryId(CaseData.SubCategory.ToString());
 
             odatab.Add("customerid_contact@odata.bind", $"contacts({csProperty.customerid})");
             if (csProperty.Accountid.Length>4)
@@ -283,7 +283,7 @@ namespace ManageCase
             postDataParametr = JsonConvert.SerializeObject(case_Property);
             postDataParametr1 = JsonConvert.SerializeObject(odatab);
 
-            postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+            postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
             case_details = await this._queryParser.HttpApiCall("incidents?$select=ticketnumber", HttpMethod.Post, postDataParametr);
 
@@ -347,10 +347,10 @@ namespace ManageCase
                     }
                     else
                     {
-                        string customerid = await this.commonFunc.getCustomerId(CaseData.CustomerID.ToString());
+                        string customerid = await this._commonFunc.getCustomerId(CaseData.CustomerID.ToString());
                         string query_url = $"incidents()?$select=ticketnumber,statuscode,description,eqs_casetype,title,prioritycode&$filter=_customerid_value eq '{customerid}'";
                         var caseresponsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                        var CaseList = await this.commonFunc.getDataFromResponce(caseresponsdtails);
+                        var CaseList = await this._commonFunc.getDataFromResponce(caseresponsdtails);
                         foreach (var caseDetails in CaseList)
                         {
                             CaseDetails case_details = new CaseDetails();

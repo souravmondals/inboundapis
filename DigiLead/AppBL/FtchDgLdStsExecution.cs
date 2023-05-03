@@ -29,16 +29,16 @@
         private readonly IKeyVaultService _keyVaultService;
 
                 
-        private CommonFunction commonFunc;
+        private ICommonFunction _commonFunc;
 
-        public FtchDgLdStsExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
+        public FtchDgLdStsExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
         {
                     
             this._logger = logger;
             
             this._keyVaultService = keyVaultService;
             this._queryParser = queryParser;
-            this.commonFunc = new CommonFunction(queryParser);
+            this._commonFunc = commonFunction;
            
            
         }
@@ -131,18 +131,18 @@
                         // csRtPrm.individualDetails.reason = TBC;
                         if (LeadData._eqs_titleid_value != null)
                         {
-                            csRtPrm.individualDetails.title = await this.commonFunc.getTitle(LeadData._eqs_titleid_value.ToString());
+                            csRtPrm.individualDetails.title = await this._commonFunc.getTitle(LeadData._eqs_titleid_value.ToString());
                         }
                         if (LeadData._eqs_purposeofcreationid_value != null)
                         {
-                            csRtPrm.individualDetails.purposeOfCreation = await this.commonFunc.getPurposeOfCreation(Lead_data._eqs_purposeofcreationid_value.ToString());
+                            csRtPrm.individualDetails.purposeOfCreation = await this._commonFunc.getPurposeOfCreation(Lead_data._eqs_purposeofcreationid_value.ToString());
                         }
 
                         csRtPrm.ReturnCode = "CRM-SUCCESS";
                         csRtPrm.Message = OutputMSG.Case_Success;
                     }
 
-                    if (LeadData.eqs_companynamepart1.ToString().Length > 1)
+                    if (csRtPrm.ReturnCode == null && LeadData.eqs_companynamepart1.ToString().Length > 1)
                     {
                         csRtPrm.individualDetails = null;
                         csRtPrm.corporateDetails = new CorporateDetails();
@@ -167,14 +167,14 @@
                         //csRtPrm.corporateDetails.reason = TBC;
                         if (LeadData._eqs_purposeofcreationid_value != null)
                         {
-                            csRtPrm.corporateDetails.purposeOfCreation = await this.commonFunc.getPurposeOfCreation(Lead_data._eqs_purposeofcreationid_value.ToString());
+                            csRtPrm.corporateDetails.purposeOfCreation = await this._commonFunc.getPurposeOfCreation(Lead_data._eqs_purposeofcreationid_value.ToString());
                         }
 
 
                         csRtPrm.ReturnCode = "CRM-SUCCESS";
                         csRtPrm.Message = OutputMSG.Case_Success;
                     }
-                    else
+                    else if(csRtPrm.ReturnCode==null)
                     {
                         this._logger.LogInformation("getDigiLeadStatus", "Input parameters are incorrect");
                         csRtPrm.ReturnCode = "CRM-ERROR-102";
@@ -208,7 +208,7 @@
             {
                 string query_url = $"leads()?$filter=eqs_crmleadid eq '{LeadID}'";
                 var Leaddtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Lead_dtails = await this.commonFunc.getDataFromResponce(Leaddtails);
+                var Lead_dtails = await this._commonFunc.getDataFromResponce(Leaddtails);
                 return Lead_dtails;
             }
             catch(Exception ex) {

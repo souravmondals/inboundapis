@@ -32,15 +32,15 @@ namespace CreateLeads
         private readonly IKeyVaultService _keyVaultService;
         Dictionary<string, int> Channel = new Dictionary<string, int>();
         Dictionary<string, int> LeadStatus = new Dictionary<string, int>();
-        private CommonFunction commonFunc;
+        private ICommonFunction _commonFunc;
 
-        public CreateLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
+        public CreateLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
         {            
            
             this._logger = logger;
             this._keyVaultService = keyVaultService;
             this._queryParser = queryParser;
-            this.commonFunc = new CommonFunction(queryParser);
+            this._commonFunc = commonFunction;
 
             this.Channel.Add("ESFBWebsite", 6);
             this.Channel.Add("ChatBot", 8);
@@ -224,7 +224,7 @@ namespace CreateLeads
             {
                 if (string.Equals(LeadData.ChannelType.ToString(), "ESFBWebsite"))
                 {
-                    var productDetails = await this.commonFunc.getProductId(LeadData.ProductCode.ToString());
+                    var productDetails = await this._commonFunc.getProductId(LeadData.ProductCode.ToString());
                     ldProperty.ProductId = productDetails["ProductId"];
                     ldProperty.Businesscategoryid = productDetails["businesscategoryid"];
                     ldProperty.Productcategoryid = productDetails["productcategory"];
@@ -240,18 +240,18 @@ namespace CreateLeads
                         odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({ldProperty.Productcategoryid})");
                         odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({ldProperty.Businesscategoryid})");
 
-                        ldProperty.CityId = await this.commonFunc.getCityId(LeadData.CityName.ToString());
+                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityName.ToString());
                         if (ldProperty.CityId != null && ldProperty.CityId != "")
                             odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
 
-                        ldProperty.BranchId = await this.commonFunc.getBranchId(LeadData.BranchCode.ToString());
+                        ldProperty.BranchId = await this._commonFunc.getBranchId(LeadData.BranchCode.ToString());
                         if (ldProperty.BranchId != null && ldProperty.BranchId != "")
                             odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({ldProperty.BranchId})");
 
 
                         if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
                         {
-                            ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
+                            ldProperty.ETBCustomerID = await this._commonFunc.getCustomerId(LeadData.CustomerID.ToString());
                             if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
                                 odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
                         }
@@ -267,7 +267,7 @@ namespace CreateLeads
                         postDataParametr = JsonConvert.SerializeObject(lead_Property);
                         postDataParametr1 = JsonConvert.SerializeObject(odatab);
 
-                        postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+                        postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
                         Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
                     }
@@ -281,7 +281,7 @@ namespace CreateLeads
                 }
                 else if (string.Equals(LeadData.ChannelType.ToString(), "MobileBanking") || string.Equals(LeadData.ChannelType.ToString(), "InternetBanking"))
                 {
-                    var productDetails = await this.commonFunc.getProductId(LeadData.ProductCode.ToString());
+                    var productDetails = await this._commonFunc.getProductId(LeadData.ProductCode.ToString());
                     ldProperty.ProductId = productDetails["ProductId"];
                     ldProperty.Businesscategoryid = productDetails["businesscategoryid"];
                     ldProperty.Productcategoryid = productDetails["productcategory"];
@@ -297,15 +297,15 @@ namespace CreateLeads
                         odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({ldProperty.Productcategoryid})");
                         odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({ldProperty.Businesscategoryid})");
 
-                        ldProperty.CityId = await this.commonFunc.getCityId(LeadData.CityName.ToString());
+                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityName.ToString());
                         if (ldProperty.CityId != null && ldProperty.CityId != "")
                             odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
 
-                        ldProperty.BranchId = await this.commonFunc.getBranchId(LeadData.BranchCode.ToString());
+                        ldProperty.BranchId = await this._commonFunc.getBranchId(LeadData.BranchCode.ToString());
                         if (ldProperty.BranchId != null && ldProperty.BranchId != "")
                             odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({ldProperty.BranchId})");
 
-                        ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
+                        ldProperty.ETBCustomerID = await this._commonFunc.getCustomerId(LeadData.CustomerID.ToString());
                         if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
                             odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
 
@@ -318,7 +318,7 @@ namespace CreateLeads
                         postDataParametr = JsonConvert.SerializeObject(lead_Property);
                         postDataParametr1 = JsonConvert.SerializeObject(odatab);
 
-                        postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+                        postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
                         Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
                     }
@@ -339,7 +339,7 @@ namespace CreateLeads
 
                     if (LeadData.ProductCode != null && LeadData.ProductCode.ToString() != "")
                     {
-                        var productDetails = await this.commonFunc.getProductId(LeadData.ProductCode.ToString());
+                        var productDetails = await this._commonFunc.getProductId(LeadData.ProductCode.ToString());
                         ldProperty.ProductId = productDetails["ProductId"];
                         ldProperty.Businesscategoryid = productDetails["businesscategoryid"];
                         ldProperty.Productcategoryid = productDetails["productcategory"];
@@ -352,26 +352,26 @@ namespace CreateLeads
 
                     if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
                     {
-                        ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
+                        ldProperty.ETBCustomerID = await this._commonFunc.getCustomerId(LeadData.CustomerID.ToString());
                         if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
                             odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
                     }
 
                     if (LeadData.CityName != null && LeadData.CityName.ToString() != "")
                     {
-                        ldProperty.CityId = await this.commonFunc.getCityId(LeadData.CityName.ToString());
+                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityName.ToString());
                         if (ldProperty.CityId != null && ldProperty.CityId != "")
                             odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
                     }
                     if (LeadData.BranchCode != null && LeadData.BranchCode.ToString() != "")
                     {
-                        ldProperty.BranchId = await this.commonFunc.getBranchId(LeadData.BranchCode.ToString());
+                        ldProperty.BranchId = await this._commonFunc.getBranchId(LeadData.BranchCode.ToString());
                         if (ldProperty.BranchId != null && ldProperty.BranchId != "")
                             odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({ldProperty.BranchId})");
                     }
                     if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
                     {
-                        ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
+                        ldProperty.ETBCustomerID = await this._commonFunc.getCustomerId(LeadData.CustomerID.ToString());
                         if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
                             odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
                     }
@@ -389,7 +389,7 @@ namespace CreateLeads
                     postDataParametr = JsonConvert.SerializeObject(lead_Property);
                     postDataParametr1 = JsonConvert.SerializeObject(odatab);
 
-                    postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+                    postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
                     Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
 
@@ -410,7 +410,7 @@ namespace CreateLeads
 
                     if (LeadData.ProductCode != null && LeadData.ProductCode.ToString() != "")
                     {
-                        var productDetails = await this.commonFunc.getProductId(LeadData.ProductCode.ToString());
+                        var productDetails = await this._commonFunc.getProductId(LeadData.ProductCode.ToString());
                         ldProperty.ProductId = productDetails["ProductId"];
                         ldProperty.Businesscategoryid = productDetails["businesscategoryid"];
                         ldProperty.Productcategoryid = productDetails["productcategory"];
@@ -423,26 +423,26 @@ namespace CreateLeads
 
                     if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
                     {
-                        ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
+                        ldProperty.ETBCustomerID = await this._commonFunc.getCustomerId(LeadData.CustomerID.ToString());
                         if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
                             odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
                     }
 
                     if (LeadData.CityName != null && LeadData.CityName.ToString() != "")
                     {
-                        ldProperty.CityId = await this.commonFunc.getCityId(LeadData.CityName.ToString());
+                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityName.ToString());
                         if (ldProperty.CityId != null && ldProperty.CityId != "")
                             odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
                     }
                     if (LeadData.BranchCode != null && LeadData.BranchCode.ToString() != "")
                     {
-                        ldProperty.BranchId = await this.commonFunc.getBranchId(LeadData.BranchCode.ToString());
+                        ldProperty.BranchId = await this._commonFunc.getBranchId(LeadData.BranchCode.ToString());
                         if (ldProperty.BranchId != null && ldProperty.BranchId != "")
                             odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({ldProperty.BranchId})");
                     }
                     if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
                     {
-                        ldProperty.ETBCustomerID = await this.commonFunc.getCustomerId(LeadData.CustomerID.ToString());
+                        ldProperty.ETBCustomerID = await this._commonFunc.getCustomerId(LeadData.CustomerID.ToString());
                         if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
                             odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
                     }
@@ -456,7 +456,7 @@ namespace CreateLeads
                     postDataParametr = JsonConvert.SerializeObject(lead_Property);
                     postDataParametr1 = JsonConvert.SerializeObject(odatab);
 
-                    postDataParametr = await this.commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+                    postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
                     Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
                 }

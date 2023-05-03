@@ -14,7 +14,7 @@ using CRMConnect;
 
 namespace DedupeDigiLead
 {
-    public class CommonFunction
+    public class CommonFunction : ICommonFunction
     {
         public IQueryParser _queryParser;
         public ILoggers _loggers;

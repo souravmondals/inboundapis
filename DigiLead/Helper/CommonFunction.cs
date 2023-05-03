@@ -16,7 +16,7 @@ using System.Diagnostics.Metrics;
     using CRMConnect;
 
 
-    public class CommonFunction
+    public class CommonFunction : ICommonFunction
     {
         public IQueryParser _queryParser;
         public CommonFunction(IQueryParser queryParser)

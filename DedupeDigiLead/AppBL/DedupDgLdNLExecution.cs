@@ -29,18 +29,16 @@ namespace DedupeDigiLead
 
         private readonly IKeyVaultService _keyVaultService;        
         
-        private CommonFunction commonFunc;
+        private ICommonFunction _commonFunc;
 
-        public DedupDgLdNLExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService)
+        public DedupDgLdNLExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
         {
                     
             this._logger = logger;
             
             this._keyVaultService = keyVaultService;
             this._queryParser = queryParser;
-            this.commonFunc = new CommonFunction(queryParser, logger);
-           
-           
+            this._commonFunc = commonFunction;
 
         }
 
@@ -106,18 +104,18 @@ namespace DedupeDigiLead
             JArray NLTR_data;
             try
             {
-                var Lead_data = await this.commonFunc.getLeadData(RequestData.LeadID.ToString());
+                var Lead_data = await this._commonFunc.getLeadData(RequestData.LeadID.ToString());
                 if (Lead_data.Count > 0)
                 {
                     dynamic LeadData = Lead_data[0];
 
                     if (type == "NLTR")
                     {
-                        NLTR_data = await this.commonFunc.getNLTRData(LeadData.fullname.ToString());
+                        NLTR_data = await this._commonFunc.getNLTRData(LeadData.fullname.ToString());
                     }
                     else
                     {
-                        NLTR_data = await this.commonFunc.getNLData(LeadData.fullname.ToString());
+                        NLTR_data = await this._commonFunc.getNLData(LeadData.fullname.ToString());
                     }
 
                     if (NLTR_data.Count > 0)
@@ -127,46 +125,46 @@ namespace DedupeDigiLead
                         {                            
                             if (type == "NLTR")
                             {
-                                if (LeadData.eqs_passportnumber.ToString() == nld["eqs_passports"].ToString())
+                                if (dedup==0 && LeadData.eqs_passportnumber.ToString() == nld["eqs_passports"].ToString())
                                 {
                                     dedup = 1;
                                 }
-                                if (LeadData.eqs_internalpan.ToString() == nld["eqs_pan"].ToString())
+                                if (dedup == 0 && LeadData.eqs_internalpan.ToString() == nld["eqs_pan"].ToString())
                                 {
                                     dedup = 1;
                                 }
-                                if (LeadData.eqs_aadhar.ToString() == nld["eqs_aadhaar"].ToString())
+                                if (dedup == 0 && LeadData.eqs_aadhar.ToString() == nld["eqs_aadhaar"].ToString())
                                 {
                                     dedup = 1;
                                 }
-                                if (LeadData.eqs_cinnumber.ToString() == nld["eqs_cin"].ToString())
+                                if (dedup == 0 && LeadData.eqs_cinnumber.ToString() == nld["eqs_cin"].ToString())
                                 {
                                     dedup = 1;
                                 }
-                                if (LeadData.eqs_dob.ToString() == nld["eqs_dob"].ToString())
+                                if (dedup == 0 && LeadData.eqs_dob.ToString() == nld["eqs_dob"].ToString())
                                 {
                                     dedup = 1;
                                 }                                
                             }
                             else if (type == "NL")
                             {
-                                if (LeadData.eqs_passportnumber.ToString() == nld["eqs_passport"].ToString())
+                                if (dedup == 0 && LeadData.eqs_passportnumber.ToString() == nld["eqs_passport"].ToString())
                                 {
                                     dedup = 1;
                                 }
-                                if (LeadData.eqs_internalpan.ToString() == nld["eqs_pan"].ToString())
+                                if (dedup == 0 && LeadData.eqs_internalpan.ToString() == nld["eqs_pan"].ToString())
                                 {
                                     dedup = 1;
                                 }
-                                if (LeadData.eqs_aadhar.ToString() == nld["eqs_aadhaar"].ToString())
+                                if (dedup == 0 && LeadData.eqs_aadhar.ToString() == nld["eqs_aadhaar"].ToString())
                                 {
                                     dedup = 1;
                                 }
-                                if (LeadData.eqs_cinnumber.ToString() == nld["eqs_cin"].ToString())
+                                if (dedup == 0 && LeadData.eqs_cinnumber.ToString() == nld["eqs_cin"].ToString())
                                 {
                                     dedup = 1;
                                 }
-                                if (LeadData.eqs_dob.ToString() == nld["eqs_doiordob"].ToString())
+                                if (dedup == 0 && LeadData.eqs_dob.ToString() == nld["eqs_doiordob"].ToString())
                                 {
                                     dedup = 1;
                                 }

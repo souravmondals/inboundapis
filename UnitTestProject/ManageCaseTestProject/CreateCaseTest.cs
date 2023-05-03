@@ -39,7 +39,7 @@ namespace ManageCaseTestProject
         }
 
         [TestMethod]
-        public async Task CreateLeads_ESFBWebsite()
+        public async Task CreateCase_MobileBanking()
         {
             var request_body = _fixture.Create <RequestBody>();
             request_body.ChannelType = "MobileBanking";

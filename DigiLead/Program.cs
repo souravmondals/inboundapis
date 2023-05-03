@@ -18,6 +18,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IKeyVaultService, KeyVaultService>();
 builder.Services.AddScoped<IQueryParser, QueryParser>();
 builder.Services.AddScoped<ILoggers, Loggers>();
+builder.Services.AddScoped<ICommonFunction, CommonFunction>();
 builder.Services.AddScoped<IFtchDgLdStsExecution, FtchDgLdStsExecution>();
 builder.Services.AddSingleton<IMemoryCache,MemoryCache>();
 

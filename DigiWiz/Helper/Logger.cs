@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 
-namespace ManageCase
+namespace DigiLead
 {
     public class Loggers : ILoggers
     {
@@ -72,7 +72,7 @@ namespace ManageCase
             }
 
             requestmes += "\n SendAsync > Response " + ResponsMessage.Content.ReadAsStringAsync().Result;
-            //LogInformation($"SendAsync : {requestmes}");
+            LogInformation("requestPerser", $"SendAsync : {requestmes}");
         }
 
     }

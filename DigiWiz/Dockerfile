@@ -11,4 +11,4 @@ EXPOSE 8081
 ENV ASPNETCORE_URLS=http://*:8081
 COPY --from=builder /opt/app-root/src/bin /opt/app-root/src/bin
 WORKDIR /opt/app-root/src/bin/Release/net6.0/publish
-CMD ["dotnet", "DigiLead.dll"]
+CMD ["dotnet", "DigiWiz.dll"]

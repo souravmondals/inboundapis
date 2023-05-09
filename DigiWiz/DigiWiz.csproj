@@ -35,7 +35,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\CRMConnect\CRMConnect.csproj" />
+    <Reference Include="CRMConnect">
+      <HintPath>ref\CRMConnect.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

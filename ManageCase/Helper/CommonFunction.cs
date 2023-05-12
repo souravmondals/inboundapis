@@ -11,6 +11,8 @@ using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Diagnostics.Metrics;
 using CRMConnect;
+using Microsoft.AspNetCore.Components.Forms;
+using System.Collections.Immutable;
 
 namespace ManageCase
 {
@@ -161,6 +163,11 @@ namespace ManageCase
             return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_name", classification);
         }
 
+        public async Task<string> getChannelId(string channelName)
+        {
+            return await this.getIDfromMSDTable("eqs_casechannels", "eqs_casechannelid", "eqs_name", channelName);
+        }
+
         public async Task<string> getCustomerId(string uciccode)
         {           
             return await this.getIDfromMSDTable("contacts", "contactid", "eqs_customerid", uciccode);
@@ -176,14 +183,45 @@ namespace ManageCase
             return await this.getIDfromMSDTable("ccs_categories", "ccs_categoryid", "ccs_name", Category); 
         }
 
-        public async Task<string> getSubCategoryId(string subCategory)
+        public async Task<string> getSubCategoryId(string subCategory, string CategoryID)
         {
-            return await this.getIDfromMSDTable("ccs_subcategories", "ccs_subcategoryid", "ccs_name", subCategory);
+            string query_url = $"ccs_subcategories()?$select=ccs_subcategoryid&$filter=ccs_name eq '{subCategory}' and _ccs_category_value eq '{CategoryID}'";
+            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            string subCatId = await this.getIDFromGetResponce("ccs_subcategoryid", responsdtails);
+            return subCatId;
         }
 
         public async Task<string> getCaseStatus(string CaseID)
         {
             return await this.getIDfromMSDTable("incidents", "statuscode", "ticketnumber", CaseID);
+        }
+
+        public async Task<List<MandatoryField>> getMandatoryFields(string subCategoryID)
+        {
+            List<MandatoryField> mandatoryFields= new List<MandatoryField>();
+            string mandatory_fields = await this.getIDfromMSDTable("eqs_fieldvisibilitymetadataconfigurations", "eqs_apimandatoryfields", "_eqs_subcategory_value", subCategoryID);
+            foreach (string field in mandatory_fields.Split(','))
+            {
+                mandatoryFields.Add(new MandatoryField()
+                {
+                    InputField = "",
+                    CRMField = field,
+                    CRMValue = ""
+                });
+            }
+            string query_url = $"eqs_keyvaluerepositories()?$select=eqs_key,eqs_value&$filter=";
+            foreach (var CRMfield in mandatoryFields)
+            {
+                query_url += $"eqs_value eq '{CRMfield.CRMField}' or ";
+            }
+            query_url = query_url.Substring(0,query_url.Length - 4);
+            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var inputFields = await this.getDataFromResponce(responsdtails);
+            foreach (var field in inputFields)
+            {
+                mandatoryFields.Where(x => (x.CRMField == field["eqs_value"].ToString())).Single().InputField = field["eqs_key"].ToString();               
+            }
+            return mandatoryFields;
         }
 
 

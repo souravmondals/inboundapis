@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ref\**" />
+    <Content Remove="ref\**" />
+    <EmbeddedResource Remove="ref\**" />
+    <None Remove="ref\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Helper\HttpInterceptor.cs" />
     <Compile Remove="Helper\KeyVaultService.cs" />
     <Compile Remove="Helper\Logger.cs" />
@@ -36,12 +43,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CRMConnect\CRMConnect.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="CRMConnect">
-      <HintPath>ref\CRMConnect.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>

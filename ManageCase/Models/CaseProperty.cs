@@ -5,8 +5,8 @@ namespace ManageCase
 {
     
     public class LeadMsdProperty
-    {      
-        public string caseorigincode { get; set; }
+    {     
+       
         public string eqs_casetype { get; set; }
         public string title { get; set; }
         public int prioritycode { get; set; }
@@ -18,6 +18,7 @@ namespace ManageCase
 
     public class CaseProperty
     {
+        public string channelId { get; set; }
         public string ccs_classification { get; set; }
         public string eqs_customerid { get; set; }
         public string Accountid { get; set; }
@@ -33,6 +34,8 @@ namespace ManageCase
         public string ReturnCode { get; set; }      
         public string CaseID { get; set; }
         public string Message { get; set; }
+        public string ExecutionTime { get; set; }
+        public string TransactionID { get; set; }
 
     }
 
@@ -40,9 +43,9 @@ namespace ManageCase
     {
         public string ReturnCode { get; set; }
         public string CaseStatus { get; set; }       
-        public string ErrorMessage { get; set; }
-        public string InfoMessage { get; set; }
-        public int IsError { get; set; }
+        public string Message { get; set; }
+        public string ExecutionTime { get; set; }
+        public string TransactionID { get; set; }
 
     }
 
@@ -62,8 +65,17 @@ namespace ManageCase
     {
         public string ReturnCode { get; set; }
         public List<CaseDetails> AllCases { get; set; }
-        public string Message { get; set; }       
+        public string Message { get; set; }
+        public string ExecutionTime { get; set; }
+        public string TransactionID { get; set; }
 
+    }
+
+    public class MandatoryField
+    {
+        public string InputField { get; set; }
+        public string CRMField { get; set; }
+        public string CRMValue { get; set; }
     }
 
 }

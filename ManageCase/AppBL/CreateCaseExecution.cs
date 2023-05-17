@@ -333,6 +333,7 @@ namespace ManageCase
                     odatab.Add("ccs_subcategory@odata.bind", $"ccs_subcategories({csProperty.SubCategoryId})");
                 }
 
+                odatab.Add("eqs_casecreation", "615290000");
 
                 postDataParametr = JsonConvert.SerializeObject(case_Property);
                 postDataParametr1 = JsonConvert.SerializeObject(odatab);

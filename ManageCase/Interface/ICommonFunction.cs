@@ -15,6 +15,7 @@ namespace ManageCase
         public Task<JArray> getDataFromResponce(List<JObject> RsponsData);
         public Task<string> MeargeJsonString(string json1, string json2);
         public Task<List<MandatoryField>> getMandatoryFields(string subCategoryID);
+        public Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue);
 
     }
 }

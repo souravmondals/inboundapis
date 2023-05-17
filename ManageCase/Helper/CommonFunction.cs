@@ -199,28 +199,24 @@ namespace ManageCase
         public async Task<List<MandatoryField>> getMandatoryFields(string subCategoryID)
         {
             List<MandatoryField> mandatoryFields= new List<MandatoryField>();
-            string mandatory_fields = await this.getIDfromMSDTable("eqs_fieldvisibilitymetadataconfigurations", "eqs_apimandatoryfields", "_eqs_subcategory_value", subCategoryID);
-            foreach (string field in mandatory_fields.Split(','))
+            string query_url = $"eqs_keyvaluerepositories()?$select=eqs_key,eqs_value,eqs_datatype,eqs_referencefield,eqs_entityname,eqs_entityid&$filter=_eqs_subcategory_value eq '{subCategoryID}'";
+            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var inputFields = await this.getDataFromResponce(responsdtails);
+
+            foreach (var field in inputFields)
             {
                 mandatoryFields.Add(new MandatoryField()
                 {
-                    InputField = "",
-                    CRMField = field,
-                    CRMValue = ""
+                    InputField = field["eqs_key"].ToString(),
+                    CRMField = field["eqs_value"].ToString(),
+                    CRMValue = "",
+                    IDFieldName = field["eqs_entityid"].ToString(),
+                    CRMType = field["eqs_datatype"].ToString(),
+                    CRMTable = field["eqs_entityname"].ToString(),
+                    FilterField = field["eqs_referencefield"].ToString()
                 });
             }
-            string query_url = $"eqs_keyvaluerepositories()?$select=eqs_key,eqs_value&$filter=";
-            foreach (var CRMfield in mandatoryFields)
-            {
-                query_url += $"eqs_value eq '{CRMfield.CRMField}' or ";
-            }
-            query_url = query_url.Substring(0,query_url.Length - 4);
-            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var inputFields = await this.getDataFromResponce(responsdtails);
-            foreach (var field in inputFields)
-            {
-                mandatoryFields.Where(x => (x.CRMField == field["eqs_value"].ToString())).Single().InputField = field["eqs_key"].ToString();               
-            }
+            
             return mandatoryFields;
         }
 

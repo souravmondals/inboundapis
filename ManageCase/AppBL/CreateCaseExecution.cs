@@ -289,7 +289,16 @@ namespace ManageCase
                     {
                         if (field.CRMValue != "" || !string.IsNullOrEmpty(field.CRMValue))
                         {
-                            odatab.Add(field.CRMField, field.CRMValue);
+                            if (field.CRMType == "615290002")
+                            {
+                                string mandFieldID = await this._commonFunc.getIDfromMSDTable(field.CRMTable, field.IDFieldName, field.FilterField, field.CRMValue);
+                                odatab.Add(field.CRMField + "@odata.bind", $"{field.CRMTable}({mandFieldID})");
+                            }
+                            else
+                            {
+                                odatab.Add(field.CRMField, field.CRMValue);
+                            }
+                            
                         }
                         else
                         {
@@ -309,7 +318,7 @@ namespace ManageCase
                 }
                 if (csProperty.channelId.Length > 4)
                 {
-                    odatab.Add("eqs_casechannel@odata.bind", $"eqs_casechannels({csProperty.channelId})");
+                    odatab.Add("eqs_CaseChannel@odata.bind", $"eqs_casechannels({csProperty.channelId})");
                 }
                 if (csProperty.ccs_classification.Length > 4)
                 {

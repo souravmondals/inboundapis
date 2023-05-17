@@ -76,6 +76,10 @@ namespace ManageCase
         public string InputField { get; set; }
         public string CRMField { get; set; }
         public string CRMValue { get; set; }
+        public string CRMType { get; set; }
+        public string IDFieldName { get; set; }
+        public string CRMTable { get; set; }
+        public string FilterField { get; set; }
     }
 
 }

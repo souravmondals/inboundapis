@@ -13,7 +13,7 @@ namespace CreateLeads
 
         public ILoggers _logger;       
         public IQueryParser _queryParser;
-
+        public string _transactionID { set; get; }
         public string API_Name
         {
             set
@@ -135,9 +135,10 @@ namespace CreateLeads
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
                             ldRtPrm.Message = OutputMSG.Incorrect_Input;
                         }
-
-
-                        ldRtPrm = await this.CreateLead(LeadData);
+                        else
+                        {
+                            ldRtPrm = await this.CreateLead(LeadData);
+                        }                      
 
 
                     }
@@ -159,7 +160,10 @@ namespace CreateLeads
             }
             catch (Exception ex)
             {
-                throw ex;
+                this._logger.LogError("CreateLead", ex.Message);
+                ldRtPrm.ReturnCode = "CRM-ERROR-101";
+                ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                return ldRtPrm;
             }
             
         }
@@ -206,7 +210,10 @@ namespace CreateLeads
             }
             catch (Exception ex)
             {
-                throw ex;
+                this._logger.LogError("LeadeStatus", ex.Message);
+                ldRtPrm.ReturnCode = "CRM-ERROR-101";
+                ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                return ldRtPrm;
             }
         }
 
@@ -536,6 +543,11 @@ namespace CreateLeads
                 throw ex;
             }
             
+        }
+
+        public async Task<string> EncriptRespons(string ResponsData)
+        {
+            return await _queryParser.PayloadEncryption(ResponsData, _transactionID);
         }
     }
 }

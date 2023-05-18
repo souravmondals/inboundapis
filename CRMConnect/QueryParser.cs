@@ -8,6 +8,7 @@
     using System.Net.Http.Headers;
     using Newtonsoft.Json.Linq;
     using System.Globalization;
+    using System.Security.Cryptography;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
@@ -328,6 +329,72 @@
             {
                 _errorLogger.LogError("DeserializeToResponse", $"Error from DeserializeToResponse: {ex.Message}");
                 throw;
+            }
+        }
+
+
+
+        public async Task<string> PayloadEncryption(string V_requestData, string V_requestedID)
+        {
+            string V_AESSymmetricKey = this._keyVaultService.ReadSecret("VAESSymmetricKey");
+            string V_ChecksumKey = this._keyVaultService.ReadSecret("VChecksumKey");
+            string V_bankcode = this._keyVaultService.ReadSecret("Vbankcode");
+
+            string finalrequestdata = "";
+            V_requestData = V_requestData.Replace("\\", "");
+            string PIDBlock1 = "<?xml version=" + '"' + "1.0" + '"' + " encoding=" + '"' + "UTF-8" + '"' + "?>\n<PIDBlock>\n<payload>";
+            string CheckSumValue = await SHA512(V_requestData + V_ChecksumKey);
+            //CheckSumValue = HexStringToBinary(CheckSumValue);
+
+            string PIDBlock2 = "</payload>\n<checksum>";
+            string Payloadvalue = V_requestData;
+            string PIDBlock3 = "</checksum>\n</PIDBlock>";
+
+            string FinalEncryptionData = PIDBlock1 + Payloadvalue + PIDBlock2 + CheckSumValue + PIDBlock3;
+            //string FinalEncryptionData =   Payloadvalue;
+
+            string encryptedText = await EQEncryption(V_AESSymmetricKey, FinalEncryptionData);
+            DateTime CurrentDate = Convert.ToDateTime(Convert.ToString(DateTime.Now));
+            string Cdate = CurrentDate.ToString("yyyy-MM-ddTHH:MM:ss.214Z", CultureInfo.InvariantCulture);
+            string currentdatetime = Cdate;
+
+            string Frame1 = "{ " + '"' + "req_root" + '"' + ":{" + '"' + "header" + '"' + ":{" + '"' + "dateTime" + '"' + ":" + '"' + currentdatetime + '"' + "," + '"' + "cde" + '"' + ":" + '"' + V_bankcode + '"' + "," + '"' + "requestId" + '"' + ":" + '"' + V_requestedID + '"' + "," + '"' + "version" + '"' + ":" + '"' + "1.0" + '"' + "}," + '"' + "body" + '"' + ":{" + '"' + "payload" + '"' + ":" + '"';
+            string Frame2 = '"' + "}}}";
+
+            finalrequestdata = Frame1 + encryptedText + Frame2;
+            return finalrequestdata;
+        }
+
+        public async Task<string> EQEncryption(string V_AESSymmetricKey, string V_requestData)
+        {
+            string encryptedText = "";
+
+            // Encrypting code
+            AesManaged tdes = new AesManaged();
+            //tdes.Key = Encoding.UTF8.GetBytes(V_AESSymmetricKey);
+            tdes.Key = Convert.FromBase64String(V_AESSymmetricKey);
+            tdes.Mode = CipherMode.ECB;
+            tdes.Padding = PaddingMode.PKCS7; // The default is AES/ECB/PKCS5Padding
+            ICryptoTransform encrypt = tdes.CreateEncryptor();
+            byte[] encryptFinaldata = Encoding.UTF8.GetBytes(V_requestData);
+            byte[] cipherencrypt = encrypt.TransformFinalBlock(encryptFinaldata, 0, encryptFinaldata.Length);
+            encryptedText = Convert.ToBase64String(cipherencrypt);
+            return encryptedText;
+        }
+
+        public async Task<string> SHA512(string input)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(input);
+            using (var hash = System.Security.Cryptography.SHA512.Create())
+            {
+                var hashedInputBytes = hash.ComputeHash(bytes);
+
+                // Convert to text
+                // StringBuilder Capacity is 128, because 512 bits / 8 bits in byte * 2 symbols for byte 
+                var hashedInputStringBuilder = new System.Text.StringBuilder(128);
+                foreach (var b in hashedInputBytes)
+                    hashedInputStringBuilder.Append(b.ToString("X2"));
+                return hashedInputStringBuilder.ToString();
             }
         }
 

@@ -9,6 +9,7 @@ using System.Reflection.PortableExecutable;
 using System.Linq;
 using Microsoft.VisualBasic;
 using CRMConnect;
+using System.Diagnostics;
 
 namespace CreateLeads.Controllers
 {
@@ -20,11 +21,14 @@ namespace CreateLeads.Controllers
         private readonly ICreateLeadExecution _createLeadExecution;
         private readonly IQueryParser _queryp;
         private readonly IKeyVaultService _keyVaultService;
+        private Stopwatch watch;
 
         public LeadController(ICreateLeadExecution createLeadExecution) 
         {
+            watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
             this._createLeadExecution = createLeadExecution;
-           
+            this._createLeadExecution._transactionID = "Case-" + Guid.NewGuid().ToString("N");
         }
 
         [HttpPost("CreateLead")]        
@@ -45,6 +49,10 @@ namespace CreateLeads.Controllers
                 _createLeadExecution.Input_payload = request.ToString();
                 LeadReturnParam Leadstatus = await _createLeadExecution.ValidateLeade(request, Header_Value);
 
+                watch.Stop();
+                Leadstatus.TransactionID = this._createLeadExecution._transactionID;
+                Leadstatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
+                string response = await _createLeadExecution.EncriptRespons(JsonConvert.SerializeObject(Leadstatus));
 
                 /*
                 CommonFunction commObj = new CommonFunction();
@@ -67,8 +75,8 @@ namespace CreateLeads.Controllers
                 */
 
 
-                
-                return Ok(Leadstatus);
+
+                return Ok(response);
                 
                     
             }

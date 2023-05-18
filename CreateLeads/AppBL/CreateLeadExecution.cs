@@ -14,6 +14,28 @@ namespace CreateLeads
         public ILoggers _logger;       
         public IQueryParser _queryParser;
         public string _transactionID { set; get; }
+        public string Channel_ID
+        {
+            set
+            {
+                _logger.Channel_ID = value;
+            }
+            get
+            {
+                return _logger.Channel_ID;
+            }
+        }
+        public string Transaction_ID
+        {
+            set
+            {
+                _logger.Transaction_ID = value;
+            }
+            get
+            {
+                return _logger.Transaction_ID;
+            }
+        }
         public string API_Name
         {
             set
@@ -63,7 +85,7 @@ namespace CreateLeads
             {
                 string channel = LeadData.ChannelType;
 
-                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey))
+                if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID) && !string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey))
                 {
                     if (!string.IsNullOrEmpty(channel) && channel != "")
                     {
@@ -547,7 +569,7 @@ namespace CreateLeads
 
         public async Task<string> EncriptRespons(string ResponsData)
         {
-            return await _queryParser.PayloadEncryption(ResponsData, _transactionID);
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
         }
     }
 }

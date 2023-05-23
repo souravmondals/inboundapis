@@ -13,7 +13,7 @@ namespace CreateLeads
 
         public ILoggers _logger;       
         public IQueryParser _queryParser;
-        public string _transactionID { set; get; }
+        
         public string Channel_ID
         {
             set

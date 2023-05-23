@@ -163,9 +163,9 @@ namespace ManageCase
             return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_name", classification);
         }
 
-        public async Task<string> getChannelId(string channelName)
+        public async Task<string> getChannelId(string channelCode)
         {
-            return await this.getIDfromMSDTable("eqs_casechannels", "eqs_casechannelid", "eqs_name", channelName);
+            return await this.getIDfromMSDTable("eqs_casechannels", "eqs_casechannelid", "ccs_code", channelCode);
         }
 
         public async Task<string> getCustomerId(string uciccode)
@@ -178,14 +178,14 @@ namespace ManageCase
             return await this.getIDfromMSDTable("eqs_accounts", "eqs_accountid", "eqs_accountno", AccountNumber);
         }
 
-        public async Task<string> getCategoryId(string Category)
+        public async Task<string> getCategoryId(string CategoryCode)
         {            
-            return await this.getIDfromMSDTable("ccs_categories", "ccs_categoryid", "ccs_name", Category); 
+            return await this.getIDfromMSDTable("ccs_categories", "ccs_categoryid", "ccs_code", CategoryCode); 
         }
 
-        public async Task<string> getSubCategoryId(string subCategory, string CategoryID)
+        public async Task<string> getSubCategoryId(string subCategoryCode, string CategoryID)
         {
-            string query_url = $"ccs_subcategories()?$select=ccs_subcategoryid&$filter=ccs_name eq '{subCategory}' and _ccs_category_value eq '{CategoryID}'";
+            string query_url = $"ccs_subcategories()?$select=ccs_subcategoryid&$filter=ccs_code eq '{subCategoryCode}' and _ccs_category_value eq '{CategoryID}'";
             var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
             string subCatId = await this.getIDFromGetResponce("ccs_subcategoryid", responsdtails);
             return subCatId;

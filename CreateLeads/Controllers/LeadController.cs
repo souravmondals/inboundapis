@@ -64,7 +64,7 @@ namespace CreateLeads.Controllers
                 LeadReturnParam Leadstatus = await _createLeadExecution.ValidateLeade(request, Header_Value);
 
                 watch.Stop();
-                Leadstatus.TransactionID = this._createLeadExecution._transactionID;
+                Leadstatus.TransactionID = this._createLeadExecution.Transaction_ID;
                 Leadstatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
                 string response = await _createLeadExecution.EncriptRespons(JsonConvert.SerializeObject(Leadstatus));
 

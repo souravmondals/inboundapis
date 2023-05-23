@@ -17,7 +17,30 @@ namespace ManageCase
 
         private ILoggers _logger;
         private IQueryParser _queryParser;
-        public string _transactionID { set; get; }
+        
+        public string Channel_ID
+        {
+            set
+            {
+                _logger.Channel_ID = value;
+            }
+            get
+            {
+                return _logger.Channel_ID;
+            }
+        }
+        public string Transaction_ID
+        {
+            set
+            {
+                _logger.Transaction_ID = value;
+            }
+            get
+            {
+                return _logger.Transaction_ID;
+            }
+        }
+
         public string API_Name { set
             {
                 _logger.API_Name = value;
@@ -84,13 +107,13 @@ namespace ManageCase
         {
            
             CaseReturnParam ldRtPrm = new CaseReturnParam();
-            ldRtPrm.TransactionID = _transactionID;
+            ldRtPrm.TransactionID = Transaction_ID;
             try
             {
                 string channel = CaseData.ChannelType;
                 if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "CreateCaseappkey"))
                 {
-                    if (!string.IsNullOrEmpty(channel) && channel != "")
+                    if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID) && !string.IsNullOrEmpty(channel) && channel != "")
                     {
                         int ValidationError = 0;
 
@@ -202,7 +225,7 @@ namespace ManageCase
             int ValidationError = 0;
             try
             {
-                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "GetCaseStatusappkey"))
+                if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID) && !string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "GetCaseStatusappkey"))
                 {
                     if (CaseData.CaseID == null || string.IsNullOrEmpty(CaseData.CaseID.ToString()) || CaseData.CaseID.ToString() == "")
                     {
@@ -333,7 +356,7 @@ namespace ManageCase
                     odatab.Add("ccs_subcategory@odata.bind", $"ccs_subcategories({csProperty.SubCategoryId})");
                 }
 
-                odatab.Add("eqs_casecreation", "615290000");
+                odatab.Add("caseorigincode", "3");
 
                 postDataParametr = JsonConvert.SerializeObject(case_Property);
                 postDataParametr1 = JsonConvert.SerializeObject(odatab);
@@ -451,12 +474,18 @@ namespace ManageCase
             }
             catch (Exception ex)
             {
-                this._logger.LogError("CreateCase", ex.Message);
+                this._logger.LogError("getCaseList", ex.Message);
                 CSRtPrm.ReturnCode = "CRM-ERROR-101";
                 CSRtPrm.Message = OutputMSG.Resource_n_Found;
                 return CSRtPrm;
             }
 
         }
+
+        public async Task<string> EncriptRespons(string ResponsData)
+        {
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
+        }
+
     }
 }

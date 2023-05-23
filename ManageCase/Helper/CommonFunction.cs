@@ -160,12 +160,12 @@ namespace ManageCase
 
         public async Task<string> getclassificationId(string classification)
         {            
-            return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_name", classification);
+            return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_code", classification);
         }
 
         public async Task<string> getChannelId(string channelCode)
         {
-            return await this.getIDfromMSDTable("eqs_casechannels", "eqs_casechannelid", "ccs_code", channelCode);
+            return await this.getIDfromMSDTable("eqs_casechannels", "eqs_casechannelid", "eqs_channelid", channelCode);
         }
 
         public async Task<string> getCustomerId(string uciccode)
@@ -181,6 +181,11 @@ namespace ManageCase
         public async Task<string> getCategoryId(string CategoryCode)
         {            
             return await this.getIDfromMSDTable("ccs_categories", "ccs_categoryid", "ccs_code", CategoryCode); 
+        }
+
+        public async Task<string> getSourceId(string SourceCode)
+        {
+            return await this.getIDfromMSDTable("eqs_casesources", "eqs_casesourceid", "eqs_sourceid", SourceCode);
         }
 
         public async Task<string> getSubCategoryId(string subCategoryCode, string CategoryID)

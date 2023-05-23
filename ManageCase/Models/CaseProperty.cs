@@ -25,7 +25,7 @@ namespace ManageCase
         public string customerid { get; set; }
         public string CategoryId { get; set; }
         public string SubCategoryId { get; set; }
-
+        public string SourceId { get; set; }
 
     }
 

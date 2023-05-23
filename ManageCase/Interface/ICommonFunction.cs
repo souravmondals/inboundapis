@@ -12,6 +12,7 @@ namespace ManageCase
         public Task<string> getCategoryId(string CustomerCode);
         public Task<string> getclassificationId(string CustomerCode);
         public Task<string> getSubCategoryId(string CustomerCode, string CategoryId);
+        public Task<string> getSourceId(string SourceCode);
         public Task<JArray> getDataFromResponce(List<JObject> RsponsData);
         public Task<string> MeargeJsonString(string json1, string json2);
         public Task<List<MandatoryField>> getMandatoryFields(string subCategoryID);

@@ -110,14 +110,14 @@ namespace ManageCase
             ldRtPrm.TransactionID = Transaction_ID;
             try
             {
-                string channel = CaseData.ChannelType;
+                string channel = CaseData.Channel;
                 if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "CreateCaseappkey"))
                 {
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID) && !string.IsNullOrEmpty(channel) && channel != "")
                     {
                         int ValidationError = 0;
 
-                        if (string.Equals(CaseData.ChannelType.ToString(), "InternetBanking") || string.Equals(CaseData.ChannelType.ToString(), "MobileBanking") || string.Equals(CaseData.ChannelType.ToString(), "IVR"))
+                        if (string.Equals(CaseData.Channel.ToString(), "InternetBanking") || string.Equals(CaseData.Channel.ToString(), "MobileBanking") || string.Equals(CaseData.Channel.ToString(), "IVR"))
                         {
                             if (CaseData.UCIC == null || string.IsNullOrEmpty(CaseData.UCIC.ToString()) || CaseData.UCIC.ToString() == "")
                             {
@@ -131,7 +131,11 @@ namespace ManageCase
                             {
                                 ValidationError = 1;
                             }
-                           
+                            if (CaseData.Source == null || string.IsNullOrEmpty(CaseData.Source.ToString()) || CaseData.Source.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+
 
                             if (string.Equals(CaseData.CaseType.ToString(), "Request"))
                             {
@@ -283,12 +287,13 @@ namespace ManageCase
                 case_Property.description = CaseData.Description.ToString();
 
                 csProperty.eqs_customerid = CaseData.UCIC.ToString();
-                csProperty.channelId = await this._commonFunc.getChannelId(CaseData.ChannelType.ToString());
+                csProperty.channelId = await this._commonFunc.getChannelId(CaseData.Channel.ToString());
                 csProperty.customerid = await this._commonFunc.getCustomerId(csProperty.eqs_customerid);
                 csProperty.Accountid = await this._commonFunc.getAccountId(CaseData.AccountNumber.ToString());
                 csProperty.ccs_classification = await this._commonFunc.getclassificationId(CaseData.Classification.ToString());
                 csProperty.CategoryId = await this._commonFunc.getCategoryId(CaseData.Category.ToString());
                 csProperty.SubCategoryId = await this._commonFunc.getSubCategoryId(CaseData.SubCategory.ToString(), csProperty.CategoryId);
+                csProperty.SourceId = await this._commonFunc.getSourceId(CaseData.Source.ToString());
 
                 if (csProperty.SubCategoryId == "" || csProperty.SubCategoryId.Length < 4)
                 {
@@ -355,8 +360,14 @@ namespace ManageCase
                 {
                     odatab.Add("ccs_subcategory@odata.bind", $"ccs_subcategories({csProperty.SubCategoryId})");
                 }
+                
+                if (csProperty.SourceId.Length > 4)
+                {
+                    odatab.Add("eqs_CaseSource@odata.bind", $"eqs_casesources({csProperty.SourceId})");
+                }
 
                 odatab.Add("caseorigincode", "3");
+                odatab.Add("eqs_customercode", csProperty.eqs_customerid);
 
                 postDataParametr = JsonConvert.SerializeObject(case_Property);
                 postDataParametr1 = JsonConvert.SerializeObject(odatab);

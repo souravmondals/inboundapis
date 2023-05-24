@@ -12,5 +12,6 @@
         public Task<CaseListParam> getCaseList(dynamic CaseData, string appkey);
         public Task<CaseStatusRtParam> ValidategetCaseStatus(dynamic CaseData, string appkey);
         public Task<string> EncriptRespons(string ResponsData);
+        public Task CRMLog(string InputRequest, string OutputRespons, string CallStatus);
     }
 }

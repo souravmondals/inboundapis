@@ -498,5 +498,16 @@ namespace ManageCase
             return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
         }
 
+        public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
+        {
+            Dictionary<string, string> CRMProp = new Dictionary<string, string>();
+            CRMProp.Add("eqs_name", this.Transaction_ID);
+            CRMProp.Add("eqs_requestbody", InputRequest);
+            CRMProp.Add("eqs_responsebody", OutputRespons);
+            CRMProp.Add("eqs_requeststatus", (CallStatus.Contains("ERROR")) ? "615290001" : "615290000");
+            string postDataParametr = JsonConvert.SerializeObject(CRMProp);
+            await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
+        }
+
     }
 }

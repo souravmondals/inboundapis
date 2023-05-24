@@ -64,7 +64,7 @@ namespace ManageCase.Controllers
                 Casetatus.TransactionID = this._createCaseExecution.Transaction_ID;
                 Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
                 string response = await _createCaseExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
-
+                this._createCaseExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
                 return Ok(response);
                 
                     

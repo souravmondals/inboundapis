@@ -117,55 +117,55 @@ namespace ManageCase
                     {
                         int ValidationError = 0;
 
-                        if (string.Equals(CaseData.Channel.ToString(), "InternetBanking") || string.Equals(CaseData.Channel.ToString(), "MobileBanking") || string.Equals(CaseData.Channel.ToString(), "IVR"))
+                        
+                        
+                        if (CaseData.UCIC == null || string.IsNullOrEmpty(CaseData.UCIC.ToString()) || CaseData.UCIC.ToString() == "")
                         {
-                            if (CaseData.UCIC == null || string.IsNullOrEmpty(CaseData.UCIC.ToString()) || CaseData.UCIC.ToString() == "")
-                            {
-                                ValidationError = 1;                                
-                            }
-                            if (CaseData.Classification == null || string.IsNullOrEmpty(CaseData.Classification.ToString()) || CaseData.Classification.ToString() == "")
-                            {
-                                ValidationError = 1;
-                            }
-                            if (CaseData.CaseType == null || string.IsNullOrEmpty(CaseData.CaseType.ToString()) || CaseData.CaseType.ToString() == "")
-                            {
-                                ValidationError = 1;
-                            }
-                            if (CaseData.Source == null || string.IsNullOrEmpty(CaseData.Source.ToString()) || CaseData.Source.ToString() == "")
-                            {
-                                ValidationError = 1;
-                            }
-
-
-                            if (string.Equals(CaseData.CaseType.ToString(), "Request"))
-                            {
-                                if (CaseData.AccountNumber == null || string.IsNullOrEmpty(CaseData.AccountNumber.ToString()) || CaseData.AccountNumber.ToString() == "")
-                                {
-                                    ValidationError = 1;
-                                }
-                                if (CaseData.Category == null || string.IsNullOrEmpty(CaseData.Category.ToString()) || CaseData.Category.ToString() == "")
-                                {
-                                    ValidationError = 1;
-                                }
-                                if (CaseData.SubCategory == null || string.IsNullOrEmpty(CaseData.SubCategory.ToString()) || CaseData.SubCategory.ToString() == "")
-                                {
-                                    ValidationError = 1;
-                                }
-                            }
-
-                            if (string.Equals(CaseData.CaseType.ToString(), "Query"))
-                            {
-                                if (CaseData.Category == null || string.IsNullOrEmpty(CaseData.Category.ToString()) || CaseData.Category.ToString() == "")
-                                {
-                                    ValidationError = 1;
-                                }
-                                if (CaseData.SubCategory == null || string.IsNullOrEmpty(CaseData.SubCategory.ToString()) || CaseData.SubCategory.ToString() == "")
-                                {
-                                    ValidationError = 1;
-                                }
-                            }                            
-
+                            ValidationError = 1;                                
                         }
+                        if (CaseData.Classification == null || string.IsNullOrEmpty(CaseData.Classification.ToString()) || CaseData.Classification.ToString() == "")
+                        {
+                            ValidationError = 1;
+                        }
+                        if (CaseData.CaseType == null || string.IsNullOrEmpty(CaseData.CaseType.ToString()) || CaseData.CaseType.ToString() == "")
+                        {
+                            ValidationError = 1;
+                        }
+                        if (CaseData.Source == null || string.IsNullOrEmpty(CaseData.Source.ToString()) || CaseData.Source.ToString() == "")
+                        {
+                            ValidationError = 1;
+                        }
+                        if (CaseData.AccountNumber == null || string.IsNullOrEmpty(CaseData.AccountNumber.ToString()) || CaseData.AccountNumber.ToString() == "")
+                        {
+                            ValidationError = 1;
+                        }
+
+
+                        if (string.Equals(CaseData.CaseType.ToString(), "Request"))
+                        {                               
+                            if (CaseData.Category == null || string.IsNullOrEmpty(CaseData.Category.ToString()) || CaseData.Category.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                            if (CaseData.SubCategory == null || string.IsNullOrEmpty(CaseData.SubCategory.ToString()) || CaseData.SubCategory.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                        }
+
+                        if (string.Equals(CaseData.CaseType.ToString(), "Query"))
+                        {
+                            if (CaseData.Category == null || string.IsNullOrEmpty(CaseData.Category.ToString()) || CaseData.Category.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                            if (CaseData.SubCategory == null || string.IsNullOrEmpty(CaseData.SubCategory.ToString()) || CaseData.SubCategory.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                        }                            
+
+                        
                         
 
 
@@ -343,6 +343,13 @@ namespace ManageCase
                 if (csProperty.Accountid.Length > 4)
                 {
                     odatab.Add("eqs_account@odata.bind", $"eqs_accounts({csProperty.Accountid})");
+                }
+                else
+                {
+                    this._logger.LogError("CreateCase", "Mandatory fields are required " + case_details.ToString());
+                    csRtPrm.ReturnCode = "CRM-ERROR-102";
+                    csRtPrm.Message = OutputMSG.Incorrect_Input;
+                    return csRtPrm;
                 }
                 if (csProperty.channelId.Length > 4)
                 {

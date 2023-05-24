@@ -239,6 +239,7 @@ namespace ManageCase
                     if (ValidationError == 1)
                     {                       
                         CSRtPrm.Message = OutputMSG.Incorrect_Input;
+                        CSRtPrm.ReturnCode = "CRM-ERROR-102";
                     }
                     else
                     {                       
@@ -246,10 +247,12 @@ namespace ManageCase
                         if (statusCodeId == "" || statusCodeId == null)
                         {                          
                             CSRtPrm.Message = OutputMSG.Incorrect_Input;
+                            CSRtPrm.ReturnCode = "CRM-ERROR-102";
                         }
                         else
                         {
                             CSRtPrm.CaseStatus = this.StatusCodes[statusCodeId];
+                            CSRtPrm.ReturnCode = "CRM-SUCCESS";
                         }
                         
                     }
@@ -478,6 +481,7 @@ namespace ManageCase
 
                             CSRtPrm.AllCases.Add(case_details);
                         }
+                        CSRtPrm.ReturnCode = "CRM-SUCCESS";
                     }
                 }
                 else

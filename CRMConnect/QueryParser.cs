@@ -398,5 +398,33 @@
             }
         }
 
+        public async Task<string> PayloadDecryption(string V_requestData)
+        {
+            try
+            {
+                string decryptedText = "";
+                // Decrypting code
+                AesManaged des = new AesManaged();
+                string V_AESSymmetricKey = this._keyVaultService.ReadSecret("VAESSymmetricKey");
+                //des.Key = Encoding.UTF8.GetBytes(V_AESSymmetricKey);
+                des.Key = Convert.FromBase64String(V_AESSymmetricKey);
+                des.Mode = CipherMode.ECB;
+                des.Padding = PaddingMode.PKCS7; // The default is AES/ECB/PKCS5Padding
+                ICryptoTransform decrypt = des.CreateDecryptor();
+                byte[] decryptFinaldata = Convert.FromBase64String(V_requestData);
+                byte[] cipherdecrypt = decrypt.TransformFinalBlock(decryptFinaldata, 0, decryptFinaldata.Length);
+                decryptedText = Encoding.UTF8.GetString(cipherdecrypt);
+                decryptedText = decryptedText.Replace("\\", "");
+                //var json = JsonConvert.DeserializeObject(decryptedText);
+                //decryptedText = JsonConvert.SerializeObject(json);
+                return decryptedText;
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+
+        }
+
     }
 }

@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Xml.Linq;
 using CRMConnect;
+using System.Xml;
 
 namespace CreateLeads
 {
@@ -80,6 +81,7 @@ namespace CreateLeads
 
         public async Task<LeadReturnParam> ValidateLeade(dynamic LeadData,string appkey)
         {
+            LeadData = await this.getRequestData(LeadData);
             LeadReturnParam ldRtPrm = new LeadReturnParam();
             try
             {
@@ -571,5 +573,23 @@ namespace CreateLeads
         {
             return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
         }
+
+        private async Task<dynamic> getRequestData(dynamic inputData)
+        {
+            var EncryptedData = inputData.req_root.body.payload;
+            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlData);
+            string xpath = "PIDBlock/payload";
+            var nodes = xmlDoc.SelectSingleNode(xpath);
+            foreach (XmlNode childrenNode in nodes)
+            {
+                dynamic rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
+                return rejusetJson;
+            }
+
+            return "";
+        }
+
     }
 }

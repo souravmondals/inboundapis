@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Xml.Linq;
 using CRMConnect;
 using System.Threading.Channels;
+using System.Xml;
 
 namespace ManageCase
 {
@@ -105,7 +106,7 @@ namespace ManageCase
 
         public async Task<CaseReturnParam> ValidateCreateCase(dynamic CaseData, string appkey)
         {
-           
+            CaseData = await this.getRequestData(CaseData);
             CaseReturnParam ldRtPrm = new CaseReturnParam();
             ldRtPrm.TransactionID = Transaction_ID;
             try
@@ -224,7 +225,7 @@ namespace ManageCase
         public async Task<CaseStatusRtParam> ValidategetCaseStatus(dynamic CaseData, string appkey)
         {
             CaseStatusRtParam CSRtPrm = new CaseStatusRtParam();
-                   
+            CaseData = await this.getRequestData(CaseData);
 
             int ValidationError = 0;
             try
@@ -435,7 +436,7 @@ namespace ManageCase
         {
             CaseListParam CSRtPrm = new CaseListParam();
             CSRtPrm.AllCases = new List<CaseDetails>();
-
+            CaseData = await this.getRequestData(CaseData);
 
             int ValidationError = 0;
             try
@@ -518,6 +519,23 @@ namespace ManageCase
             CRMProp.Add("eqs_requeststatus", (CallStatus.Contains("ERROR")) ? "615290001" : "615290000");
             string postDataParametr = JsonConvert.SerializeObject(CRMProp);
             await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
+        }
+
+        private async Task<dynamic> getRequestData(dynamic inputData)
+        {
+            var EncryptedData = inputData.req_root.body.payload;
+            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlData);
+            string xpath = "PIDBlock/payload";
+            var nodes = xmlDoc.SelectSingleNode(xpath);
+            foreach (XmlNode childrenNode in nodes)
+            {
+                dynamic rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
+                return rejusetJson;
+            }
+                
+            return "";
         }
 
     }

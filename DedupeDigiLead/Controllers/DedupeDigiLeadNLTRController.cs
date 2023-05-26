@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.VisualBasic;
 using Microsoft.Extensions.Caching.Memory;
 using CRMConnect;
+using System.Diagnostics;
 
 namespace DedupeDigiLead.Controllers
 {
@@ -19,9 +20,12 @@ namespace DedupeDigiLead.Controllers
     {
 
         private readonly IDedupDgLdNLExecution _dedupDgLdNLExecution;
+        private Stopwatch watch;
 
         public DedupeDigiLeadNLTRController(IDedupDgLdNLExecution dedupDgLdNLExecution)
         {
+            watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
             this._dedupDgLdNLExecution = dedupDgLdNLExecution;
         }
 
@@ -40,11 +44,25 @@ namespace DedupeDigiLead.Controllers
                 {
                     Header_Value = headerValues;
                 }
+                if (Request.Headers.TryGetValue("ChannelID", out var ChannelID))
+                {
+                    _dedupDgLdNLExecution.Channel_ID = ChannelID;
+                }
+                if (Request.Headers.TryGetValue("communicationID", out var communicationID))
+                {
+                    _dedupDgLdNLExecution.Transaction_ID = communicationID;
+                }
+
                 _dedupDgLdNLExecution.API_Name = "DedupeDigiLeadNLTR";
                 _dedupDgLdNLExecution.Input_payload = request.ToString();
                 DedupDgLdNLTRReturn Casetatus = await _dedupDgLdNLExecution.ValidateDedupDgLdNL(request, Header_Value,"NLTR");
 
-                return Ok(Casetatus);
+                watch.Stop();
+                Casetatus.TransactionID = this._dedupDgLdNLExecution.Transaction_ID;
+                Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
+                string response = await _dedupDgLdNLExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
+
+                return Ok(response);
 
 
             }

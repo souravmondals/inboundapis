@@ -163,11 +163,11 @@ namespace DedupeDigiLead
             return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_name", classification);
         }
 
-        public async Task<JArray> getLeadData(string LeadID)
+        public async Task<JArray> getLeadData(string ApplicantId)
         {
             try
             {
-                string query_url = $"leads()?$select=eqs_internalpan,eqs_aadhar,eqs_passportnumber,fullname,eqs_dob,eqs_cinnumber,eqs_dateofregistration,eqs_entitytypeid&$filter=eqs_crmleadid eq '{LeadID}'";
+                string query_url = $"eqs_accountapplicants()?$select=eqs_internalpan,eqs_aadhar,eqs_passportnumber,eqs_name,eqs_dob,eqs_cinnumber,eqs_dateofregistration,_eqs_entitytypeid_value&$filter=eqs_applicantid eq '{ApplicantId}'";
                 var Leaddtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                 var Lead_dtails = await this.getDataFromResponce(Leaddtails);
                 return Lead_dtails;

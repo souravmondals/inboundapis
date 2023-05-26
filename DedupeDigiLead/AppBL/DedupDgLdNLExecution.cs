@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.Xml.Linq;
 using System.Collections.Generic;
 using CRMConnect;
+using System.Xml;
 
 namespace DedupeDigiLead
 {
@@ -17,6 +18,30 @@ namespace DedupeDigiLead
 
         private ILoggers _logger;
         private IQueryParser _queryParser;
+
+        public string Channel_ID
+        {
+            set
+            {
+                _logger.Channel_ID = value;
+            }
+            get
+            {
+                return _logger.Channel_ID;
+            }
+        }
+        public string Transaction_ID
+        {
+            set
+            {
+                _logger.Transaction_ID = value;
+            }
+            get
+            {
+                return _logger.Transaction_ID;
+            }
+        }
+
         public string API_Name { set
             {
                 _logger.API_Name = value;
@@ -49,10 +74,12 @@ namespace DedupeDigiLead
             dynamic ldRtPrm = (type == "NLTR") ? new DedupDgLdNLTRReturn() : new DedupDgLdNLReturn();
             try
             {
-                string LeadID = RequestData.LeadID;
+                RequestData = await this.getRequestData(RequestData);
+
+                string ApplicantId = RequestData.ApplicantId;
                 if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "DedupDgLdNLappkey"))
                 {
-                    if (!string.IsNullOrEmpty(LeadID) && LeadID != "")
+                    if (!string.IsNullOrEmpty(ApplicantId) && ApplicantId != "")
                     {
 
                         ldRtPrm = await this.getDedupDgLdNLStatus(RequestData, type);
@@ -76,8 +103,10 @@ namespace DedupeDigiLead
             }
             catch (Exception ex)
             {
-                this._logger.LogError("ValidateFtchDgLdSts", ex.Message);
-                throw ex;
+                this._logger.LogError("ValidateFtchDgLdSts", ex.Message);               
+                ldRtPrm.ReturnCode = "CRM-ERROR-101";
+                ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                return ldRtPrm;
             }
 
         }
@@ -104,7 +133,7 @@ namespace DedupeDigiLead
             JArray NLTR_data;
             try
             {
-                var Lead_data = await this._commonFunc.getLeadData(RequestData.LeadID.ToString());
+                var Lead_data = await this._commonFunc.getLeadData(RequestData.ApplicantId.ToString());
                 if (Lead_data.Count > 0)
                 {
                     dynamic LeadData = Lead_data[0];
@@ -158,6 +187,28 @@ namespace DedupeDigiLead
             }
             
                 return ldRtPrm;
+        }
+
+        public async Task<string> EncriptRespons(string ResponsData)
+        {
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
+        }
+
+        private async Task<dynamic> getRequestData(dynamic inputData)
+        {
+            var EncryptedData = inputData.req_root.body.payload;
+            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlData);
+            string xpath = "PIDBlock/payload";
+            var nodes = xmlDoc.SelectSingleNode(xpath);
+            foreach (XmlNode childrenNode in nodes)
+            {
+                dynamic rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
+                return rejusetJson;
+            }
+
+            return "";
         }
 
 

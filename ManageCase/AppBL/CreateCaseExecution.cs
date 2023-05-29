@@ -10,6 +10,8 @@ using System.Xml.Linq;
 using CRMConnect;
 using System.Threading.Channels;
 using System.Xml;
+using System.Threading.Tasks;
+using System;
 
 namespace ManageCase
 {
@@ -244,15 +246,26 @@ namespace ManageCase
                     }
                     else
                     {                       
-                        string statusCodeId = await this._commonFunc.getCaseStatus(CaseData.CaseID.ToString());
-                        if (statusCodeId == "" || statusCodeId == null)
+                        var statusCodeId = await this._commonFunc.getCaseStatus(CaseData.CaseID.ToString());
+                        
+                        if (statusCodeId == null || statusCodeId.Count<1)
                         {                          
                             CSRtPrm.Message = OutputMSG.Incorrect_Input;
                             CSRtPrm.ReturnCode = "CRM-ERROR-102";
                         }
                         else
                         {
-                            CSRtPrm.CaseStatus = this.StatusCodes[statusCodeId];
+                            CSRtPrm.CaseID = statusCodeId[0]["ticketnumber"];
+                            CSRtPrm.CaseStatus = this.StatusCodes[statusCodeId[0]["statuscode"].ToString()];
+                            CSRtPrm.Casetype = this._CaseType[statusCodeId[0]["eqs_casetype"].ToString()];
+                            CSRtPrm.Subject = statusCodeId[0]["title"];
+                            CSRtPrm.openDate = statusCodeId[0]["createdon"];
+                            CSRtPrm.modifiedDate = statusCodeId[0]["modifiedon"];
+                            CSRtPrm.closeDate = statusCodeId[0]["ccs_resolveddate"];
+                            CSRtPrm.Classification = await this._commonFunc.getClassificationName(statusCodeId[0]["_ccs_classification_value"].ToString());
+                            CSRtPrm.category = await this._commonFunc.getCategoryName(statusCodeId[0]["_ccs_category_value"].ToString());
+                            CSRtPrm.subcategory = await this._commonFunc.getSubCategoryName(statusCodeId[0]["_ccs_subcategory_value"].ToString());
+
                             CSRtPrm.ReturnCode = "CRM-SUCCESS";
                         }
                         
@@ -456,7 +469,7 @@ namespace ManageCase
                     else
                     {
                         string customerid = await this._commonFunc.getCustomerId(CaseData.CustomerID.ToString());
-                        string query_url = $"incidents()?$select=ticketnumber,statuscode,description,eqs_casetype,title,prioritycode&$filter=_customerid_value eq '{customerid}'";
+                        string query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value&$filter=_customerid_value eq '{customerid}'";
                         var caseresponsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                         var CaseList = await this._commonFunc.getDataFromResponce(caseresponsdtails);
                         foreach (var caseDetails in CaseList)
@@ -464,21 +477,19 @@ namespace ManageCase
                             CaseDetails case_details = new CaseDetails();
                             case_details.CaseID = caseDetails["ticketnumber"].ToString();
                             case_details.CaseStatus = this.StatusCodes[caseDetails["statuscode"].ToString()];
-                            case_details.Description = caseDetails["description"].ToString();
+                            case_details.Subject = caseDetails["title"].ToString();
+                            case_details.openDate = caseDetails["createdon"].ToString();
+                            case_details.modifiedDate = caseDetails["modifiedon"].ToString();
+                            case_details.closeDate = caseDetails["ccs_resolveddate"].ToString();
 
                             if (!string.IsNullOrEmpty(caseDetails["eqs_casetype"].ToString()))
                             {
                                 case_details.Casetype = this._CaseType[caseDetails["eqs_casetype"].ToString()];
                             }
-                                
 
-                            case_details.Subject = caseDetails["title"].ToString();
-
-                            if (!string.IsNullOrEmpty(caseDetails["prioritycode"].ToString()))
-                            {
-                                case_details.Priority = this._Priority[Convert.ToInt32(caseDetails["prioritycode"].ToString())];
-                            }
-                                
+                            case_details.Classification = await this._commonFunc.getClassificationName(caseDetails["_ccs_classification_value"].ToString());
+                            case_details.category = await this._commonFunc.getCategoryName(caseDetails["_ccs_category_value"].ToString());
+                            case_details.subcategory = await this._commonFunc.getSubCategoryName(caseDetails["_ccs_subcategory_value"].ToString());
 
                             CSRtPrm.AllCases.Add(case_details);
                         }

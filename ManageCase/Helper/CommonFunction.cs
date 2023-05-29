@@ -163,6 +163,11 @@ namespace ManageCase
             return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_code", classification);
         }
 
+        public async Task<string> getClassificationName(string classificationId)
+        {
+            return await this.getIDfromMSDTable("ccs_classifications", "ccs_name", "ccs_classificationid", classificationId);
+        }
+
         public async Task<string> getChannelId(string channelCode)
         {
             return await this.getIDfromMSDTable("eqs_casechannels", "eqs_casechannelid", "eqs_channelid", channelCode);
@@ -183,6 +188,11 @@ namespace ManageCase
             return await this.getIDfromMSDTable("ccs_categories", "ccs_categoryid", "ccs_code", CategoryCode); 
         }
 
+        public async Task<string> getCategoryName(string CategoryId)
+        {
+            return await this.getIDfromMSDTable("ccs_categories", "ccs_name", "ccs_categoryid", CategoryId);
+        }
+
         public async Task<string> getSourceId(string SourceCode)
         {
             return await this.getIDfromMSDTable("eqs_casesources", "eqs_casesourceid", "eqs_sourceid", SourceCode);
@@ -196,9 +206,17 @@ namespace ManageCase
             return subCatId;
         }
 
-        public async Task<string> getCaseStatus(string CaseID)
+        public async Task<string> getSubCategoryName(string SubCategoryId)
         {
-            return await this.getIDfromMSDTable("incidents", "statuscode", "ticketnumber", CaseID);
+            return await this.getIDfromMSDTable("ccs_subcategories", "ccs_name", "ccs_subcategoryid", SubCategoryId);
+        }
+
+        public async Task<JArray> getCaseStatus(string CaseID)
+        {
+            string query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value&$filter=ticketnumber eq '{CaseID}'";
+            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var inputFields = await this.getDataFromResponce(responsdtails);
+            return inputFields;
         }
 
         public async Task<List<MandatoryField>> getMandatoryFields(string subCategoryID)

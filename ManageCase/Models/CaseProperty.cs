@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Text.Json.Serialization;
 
 namespace ManageCase
@@ -51,6 +52,7 @@ namespace ManageCase
         public string openDate { get; set; }
         public string modifiedDate { get; set; }
         public string closeDate { get; set; }
+        public JObject AdditionalField { get; set; }
         public string ReturnCode { get; set; }               
         public string Message { get; set; }
         public string ExecutionTime { get; set; }
@@ -70,6 +72,7 @@ namespace ManageCase
         public string openDate { get; set; }
         public string modifiedDate { get; set; }
         public string closeDate { get; set; }
+        public JObject AdditionalField { get; set; }
 
     }
 

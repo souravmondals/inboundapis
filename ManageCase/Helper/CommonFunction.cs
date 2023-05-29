@@ -213,7 +213,7 @@ namespace ManageCase
 
         public async Task<JArray> getCaseStatus(string CaseID)
         {
-            string query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value&$filter=ticketnumber eq '{CaseID}'";
+            string query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value,eqs_casepayload&$filter=ticketnumber eq '{CaseID}'";
             var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
             var inputFields = await this.getDataFromResponce(responsdtails);
             return inputFields;

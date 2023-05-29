@@ -13,6 +13,7 @@
     using Microsoft.VisualBasic;
     using Microsoft.Extensions.Caching.Memory;
     using CRMConnect;
+    using System.Diagnostics;
 
 
 
@@ -22,9 +23,12 @@
     {
 
         private readonly IGetDigiWizAcEntyDetlsExecution _getDigiWizAcEntyDetlsExecution;
-        
+        private Stopwatch watch;
+
         public GetDigiWizAccountEntityDetailsController(IGetDigiWizAcEntyDetlsExecution getDigiWizAcEntyDetlsExecution)
         {
+            watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
             this._getDigiWizAcEntyDetlsExecution = getDigiWizAcEntyDetlsExecution;
         }
 
@@ -47,7 +51,14 @@
                 _getDigiWizAcEntyDetlsExecution.Input_payload = request.ToString();
                 WizAcEntyReturn Casetatus = await _getDigiWizAcEntyDetlsExecution.ValidateWizAcEntyDetls(request, Header_Value);
 
-                return Ok(Casetatus);
+                watch.Stop();
+                Casetatus.TransactionID = this._getDigiWizAcEntyDetlsExecution.Transaction_ID;
+                Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
+
+                string response = await _getDigiWizAcEntyDetlsExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
+                this._getDigiWizAcEntyDetlsExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
+
+                return Ok(response);
 
 
             }

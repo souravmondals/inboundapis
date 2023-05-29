@@ -265,6 +265,7 @@ namespace ManageCase
                             CSRtPrm.Classification = await this._commonFunc.getClassificationName(statusCodeId[0]["_ccs_classification_value"].ToString());
                             CSRtPrm.category = await this._commonFunc.getCategoryName(statusCodeId[0]["_ccs_category_value"].ToString());
                             CSRtPrm.subcategory = await this._commonFunc.getSubCategoryName(statusCodeId[0]["_ccs_subcategory_value"].ToString());
+                            CSRtPrm.AdditionalField = JsonConvert.DeserializeObject(statusCodeId[0]["eqs_casepayload"].ToString());
 
                             CSRtPrm.ReturnCode = "CRM-SUCCESS";
                         }
@@ -324,12 +325,16 @@ namespace ManageCase
                     JObject items_J_Arr = (JObject)CaseData.AdditionalField;
                     int no_Itemes = (items_J_Arr.Count) / 2;
                     var mandatoryFields = await this._commonFunc.getMandatoryFields(csProperty.SubCategoryId);
-                    for (int i = 1; i <= no_Itemes; i++)
+                    if (mandatoryFields.Count>0)
                     {
-                        string keyName = CaseData.AdditionalField["Field" + i];
-                        string ValName = CaseData.AdditionalField["value" + i];
-                        mandatoryFields.Where(x => (x.InputField == keyName)).Single().CRMValue = ValName;
+                        for (int i = 1; i <= no_Itemes; i++)
+                        {
+                            string keyName = CaseData.AdditionalField["Field" + i];
+                            string ValName = CaseData.AdditionalField["value" + i];
+                            mandatoryFields.Where(x => (x.InputField == keyName)).Single().CRMValue = ValName;
+                        }
                     }
+                    
                     foreach (var field in mandatoryFields)
                     {
                         if (field.CRMValue != "" || !string.IsNullOrEmpty(field.CRMValue))
@@ -389,6 +394,8 @@ namespace ManageCase
                 {
                     odatab.Add("eqs_CaseSource@odata.bind", $"eqs_casesources({csProperty.SourceId})");
                 }
+
+                odatab.Add("eqs_casepayload", JsonConvert.SerializeObject(CaseData.AdditionalField));
 
                 odatab.Add("caseorigincode", "3");
                 odatab.Add("eqs_customercode", csProperty.eqs_customerid);
@@ -469,7 +476,7 @@ namespace ManageCase
                     else
                     {
                         string customerid = await this._commonFunc.getCustomerId(CaseData.CustomerID.ToString());
-                        string query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value&$filter=_customerid_value eq '{customerid}'";
+                        string query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value,eqs_casepayload&$filter=_customerid_value eq '{customerid}'";
                         var caseresponsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                         var CaseList = await this._commonFunc.getDataFromResponce(caseresponsdtails);
                         foreach (var caseDetails in CaseList)
@@ -490,6 +497,7 @@ namespace ManageCase
                             case_details.Classification = await this._commonFunc.getClassificationName(caseDetails["_ccs_classification_value"].ToString());
                             case_details.category = await this._commonFunc.getCategoryName(caseDetails["_ccs_category_value"].ToString());
                             case_details.subcategory = await this._commonFunc.getSubCategoryName(caseDetails["_ccs_subcategory_value"].ToString());
+                            case_details.AdditionalField = (JObject)JsonConvert.DeserializeObject(caseDetails["eqs_casepayload"].ToString());
 
                             CSRtPrm.AllCases.Add(case_details);
                         }

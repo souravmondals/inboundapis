@@ -73,6 +73,7 @@
         public async Task<WizAcEntyReturn> ValidateWizAcEntyDetls(dynamic RequestData, string appkey)
         {
             WizAcEntyReturn ldRtPrm = new WizAcEntyReturn();
+            RequestData = await this.getRequestData(RequestData);
             try
             {
                 string AccountNumber = RequestData.AccountNumber;

@@ -12,17 +12,18 @@ using Microsoft.Extensions.Caching.Memory;
 using CRMConnect;
 using System.Diagnostics;
 
+
 namespace DedupeDigiLead.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class DedupeDigiLeadNLTRController : ControllerBase
+    public class DedupeDigiCustomerNLController : ControllerBase
     {
 
         private readonly IDedupDgLdNLExecution _dedupDgLdNLExecution;
         private Stopwatch watch;
 
-        public DedupeDigiLeadNLTRController(IDedupDgLdNLExecution dedupDgLdNLExecution)
+        public DedupeDigiCustomerNLController(IDedupDgLdNLExecution dedupDgLdNLExecution)
         {
             watch = new System.Diagnostics.Stopwatch();
             watch.Start();
@@ -48,14 +49,15 @@ namespace DedupeDigiLead.Controllers
                 {
                     _dedupDgLdNLExecution.Channel_ID = ChannelID;
                 }
+
                 if (Request.Headers.TryGetValue("communicationID", out var communicationID))
                 {
                     _dedupDgLdNLExecution.Transaction_ID = communicationID;
                 }
 
-                _dedupDgLdNLExecution.API_Name = "DedupeDigiLeadNLTR";
+                _dedupDgLdNLExecution.API_Name = "DedupeDigiLeadNL";
                 _dedupDgLdNLExecution.Input_payload = request.ToString();
-                DedupDgLdNLTRReturn Casetatus = await _dedupDgLdNLExecution.ValidateDedupDgLdNL(request, Header_Value,"NLTR");
+                DedupDgLdNLReturn Casetatus = await _dedupDgLdNLExecution.ValidateDedupDgLdNL(request, Header_Value,"NL");
 
                 watch.Stop();
                 Casetatus.TransactionID = this._dedupDgLdNLExecution.Transaction_ID;

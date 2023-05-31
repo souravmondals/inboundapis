@@ -1,4 +1,4 @@
-﻿namespace DigiLead.Controllers
+﻿namespace DigiWiz.Controllers
 {
 
     using Microsoft.AspNetCore.Http;
@@ -19,17 +19,17 @@
 
     [Route("[controller]")]
     [ApiController]
-    public class FetchDigiLeadStatusController : ControllerBase
+    public class GetDigiWizAccountEntityDetailsController : ControllerBase
     {
 
-        private readonly IFtchDgLdStsExecution _ftchDgLdStsExecution;
+        private readonly IGetDigiWizAcEntyDetlsExecution _getDigiWizAcEntyDetlsExecution;
         private Stopwatch watch;
 
-        public FetchDigiLeadStatusController(IFtchDgLdStsExecution ftchDgLdStsExecution)
+        public GetDigiWizAccountEntityDetailsController(IGetDigiWizAcEntyDetlsExecution getDigiWizAcEntyDetlsExecution)
         {
             watch = new System.Diagnostics.Stopwatch();
             watch.Start();
-            this._ftchDgLdStsExecution = ftchDgLdStsExecution;
+            this._getDigiWizAcEntyDetlsExecution = getDigiWizAcEntyDetlsExecution;
         }
 
 
@@ -50,24 +50,24 @@
 
                 if (Request.Headers.TryGetValue("ChannelID", out var ChannelID))
                 {
-                    _ftchDgLdStsExecution.Channel_ID = ChannelID;
+                    _getDigiWizAcEntyDetlsExecution.Channel_ID = ChannelID;
                 }
 
                 if (Request.Headers.TryGetValue("communicationID", out var communicationID))
                 {
-                    _ftchDgLdStsExecution.Transaction_ID = communicationID;
+                    _getDigiWizAcEntyDetlsExecution.Transaction_ID = communicationID;
                 }
 
-                _ftchDgLdStsExecution.API_Name = "FetchDigiLeadStatus";
-                _ftchDgLdStsExecution.Input_payload = request.ToString();
-                FtchDgLdStsReturn LeadStatus = await _ftchDgLdStsExecution.ValidateFtchDgLdSts(request, Header_Value);
+                _getDigiWizAcEntyDetlsExecution.API_Name = "GetDigiWizAccountEntityDetails";
+                _getDigiWizAcEntyDetlsExecution.Input_payload = request.ToString();
+                WizAcEntyReturn Casetatus = await _getDigiWizAcEntyDetlsExecution.ValidateWizAcEntyDetls(request, Header_Value);
 
                 watch.Stop();
-                LeadStatus.TransactionID = this._ftchDgLdStsExecution.Transaction_ID;
-                LeadStatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
+                Casetatus.TransactionID = this._getDigiWizAcEntyDetlsExecution.Transaction_ID;
+                Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
-                string response = await _ftchDgLdStsExecution.EncriptRespons(JsonConvert.SerializeObject(LeadStatus));
-                this._ftchDgLdStsExecution.CRMLog(JsonConvert.SerializeObject(request), response, LeadStatus.ReturnCode);
+                string response = await _getDigiWizAcEntyDetlsExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
+                this._getDigiWizAcEntyDetlsExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
 
                 return Ok(response);
 

@@ -1,12 +1,15 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace DigiLead
+namespace DigiWiz
 {
     public interface ICommonFunction
     {
-        public Task<string> getTitle(string TitleId);
-        public Task<string> getPurposeOfCreation(string PurposeOfCreatioId);
-        public Task<JArray> getDataFromResponce(List<JObject> RsponsData);
+        public Task<JArray> getAccountData(string AccountNumber);
+        public Task<string> getProductCatName(string product_Cat_Id);
+        public Task<JArray> getContactData(string contact_id);
+
+
+       
 
     }
 }

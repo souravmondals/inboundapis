@@ -1,4 +1,4 @@
-﻿namespace DigiLead
+﻿namespace DigiWiz
 {
 
 using Microsoft.Extensions.Caching.Memory;
@@ -19,9 +19,11 @@ using System.Diagnostics.Metrics;
     public class CommonFunction : ICommonFunction
     {
         public IQueryParser _queryParser;
-        public CommonFunction(IQueryParser queryParser)
+        private ILoggers _logger;
+        public CommonFunction(ILoggers logger, IQueryParser queryParser)
         {
             this._queryParser = queryParser;
+            this._logger = logger;
         }
         public async Task<string> AcquireNewTokenAsync()
         {
@@ -158,9 +160,9 @@ using System.Diagnostics.Metrics;
             return TableId;
         }
 
-        public async Task<string> getTitle(string TitleId)
+        public async Task<string> getProductCatName(string product_Cat_Id)
         {            
-            return await this.getIDfromMSDTable("eqs_titles", "eqs_name", "eqs_titleid", TitleId);
+            return await this.getIDfromMSDTable("eqs_productcategories", "eqs_name", "eqs_productcategoryid", product_Cat_Id);
         }
         
         public async Task<string> getPurposeOfCreation(string PurposeOfCreatioId)
@@ -168,7 +170,37 @@ using System.Diagnostics.Metrics;
             return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_name", "eqs_purposeofcreationid", PurposeOfCreatioId);
         }
 
-       
+        public async Task<JArray> getAccountData(string AccountNumber)
+        {
+            try
+            {
+                string query_url = $"eqs_accounts()?$filter=eqs_accountno eq '{AccountNumber}'";
+                var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Account_dtails = await this.getDataFromResponce(Accountdtails);
+                return Account_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getLeadData", ex.Message);
+                throw ex;
+            }
+        }
+
+        public async Task<JArray> getContactData(string contact_id)
+        {
+            try
+            {
+                string query_url = $"contacts({contact_id})?$select=createdon,eqs_entityflag,eqs_subentitytypeid,mobilephone,eqs_customerid";
+                var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Account_dtails = await this.getDataFromResponce(Accountdtails);
+                return Account_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getLeadData", ex.Message);
+                throw ex;
+            }
+        }
 
         public async Task<string> MeargeJsonString(string json1, string json2)
         {

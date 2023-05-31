@@ -10,12 +10,37 @@
     using System.Security.Cryptography;
     using System.Xml.Linq;
     using CRMConnect;
+    using System.Xml;
 
     public class FtchDgLdStsExecution : IFtchDgLdStsExecution
     {
 
         private ILoggers _logger;
         private IQueryParser _queryParser;
+
+        public string Channel_ID
+        {
+            set
+            {
+                _logger.Channel_ID = value;
+            }
+            get
+            {
+                return _logger.Channel_ID;
+            }
+        }
+        public string Transaction_ID
+        {
+            set
+            {
+                _logger.Transaction_ID = value;
+            }
+            get
+            {
+                return _logger.Transaction_ID;
+            }
+        }
+
         public string API_Name { set
             {
                 _logger.API_Name = value;
@@ -47,12 +72,13 @@
         public async Task<FtchDgLdStsReturn> ValidateFtchDgLdSts(dynamic RequestData, string appkey)
         {
             FtchDgLdStsReturn ldRtPrm = new FtchDgLdStsReturn();
+            RequestData = await this.getRequestData(RequestData);
             try
             {
                 string LeadID = RequestData.LeadID;
                 if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "FetchDigiLeadStatusappkey"))
                 {
-                    if (!string.IsNullOrEmpty(LeadID) && LeadID != "")
+                    if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID) && !string.IsNullOrEmpty(LeadID) && LeadID != "")
                     {                       
                         
                        ldRtPrm = await this.getDigiLeadStatus(RequestData);
@@ -216,6 +242,39 @@
                 throw ex; 
             }
         }
-        
+
+        public async Task<string> EncriptRespons(string ResponsData)
+        {
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
+        }
+
+        public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
+        {
+            Dictionary<string, string> CRMProp = new Dictionary<string, string>();
+            CRMProp.Add("eqs_name", this.Transaction_ID);
+            CRMProp.Add("eqs_requestbody", InputRequest);
+            CRMProp.Add("eqs_responsebody", OutputRespons);
+            CRMProp.Add("eqs_requeststatus", (CallStatus.Contains("ERROR")) ? "615290001" : "615290000");
+            string postDataParametr = JsonConvert.SerializeObject(CRMProp);
+            await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
+        }
+
+        private async Task<dynamic> getRequestData(dynamic inputData)
+        {
+            var EncryptedData = inputData.req_root.body.payload;
+            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlData);
+            string xpath = "PIDBlock/payload";
+            var nodes = xmlDoc.SelectSingleNode(xpath);
+            foreach (XmlNode childrenNode in nodes)
+            {
+                dynamic rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
+                return rejusetJson;
+            }
+
+            return "";
+        }
+
     }
 }

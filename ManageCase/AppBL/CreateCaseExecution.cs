@@ -12,6 +12,7 @@ using System.Threading.Channels;
 using System.Xml;
 using System.Threading.Tasks;
 using System;
+using Microsoft.Identity.Client;
 
 namespace ManageCase
 {
@@ -267,6 +268,13 @@ namespace ManageCase
                             CSRtPrm.subcategory = await this._commonFunc.getSubCategoryName(statusCodeId[0]["_ccs_subcategory_value"].ToString());
                             CSRtPrm.AdditionalField = JsonConvert.DeserializeObject(statusCodeId[0]["eqs_casepayload"].ToString());
 
+                            CSRtPrm.Description = statusCodeId[0]["description"];
+                            CSRtPrm.Priority = this._Priority[Convert.ToInt32(statusCodeId[0]["prioritycode"])];
+                            CSRtPrm.Channel = await this._commonFunc.getChannelCode(statusCodeId[0]["_eqs_casechannel_value"].ToString());
+                            CSRtPrm.Source = await this._commonFunc.getSourceCode(statusCodeId[0]["_eqs_casesource_value"].ToString());
+                            CSRtPrm.Accountid = await this._commonFunc.getAccountNumber(statusCodeId[0]["_eqs_account_value"].ToString());
+                            CSRtPrm.customerid = await this._commonFunc.getCustomerCode(statusCodeId[0]["_customerid_value"].ToString());
+
                             CSRtPrm.ReturnCode = "CRM-SUCCESS";
                         }
                         
@@ -329,8 +337,8 @@ namespace ManageCase
                     {
                         for (int i = 1; i <= no_Itemes; i++)
                         {
-                            string keyName = CaseData.AdditionalField["Field" + i];
-                            string ValName = CaseData.AdditionalField["value" + i];
+                            string keyName = CaseData.AdditionalField["FieldName" + i];
+                            string ValName = CaseData.AdditionalField["FieldValue" + i];
                             mandatoryFields.Where(x => (x.InputField == keyName)).Single().CRMValue = ValName;
                         }
                     }
@@ -459,11 +467,22 @@ namespace ManageCase
             CaseData = await this.getRequestData(CaseData);
 
             int ValidationError = 0;
+            int custId =0 , AccId = 0;
             try
             {
                 if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "GetCaseListappkey"))
                 {
-                    if (CaseData.CustomerID == null || string.IsNullOrEmpty(CaseData.CustomerID.ToString()) || CaseData.CustomerID.ToString() == "")
+                    if (CaseData.CustomerID != null && !string.IsNullOrEmpty(CaseData.CustomerID.ToString()) && CaseData.CustomerID.ToString() != "")
+                    {
+                        custId = 1;
+                    }
+
+                    if (CaseData.AccountID != null && !string.IsNullOrEmpty(CaseData.AccountID.ToString()) && CaseData.AccountID.ToString() != "")
+                    {
+                        AccId = 1;
+                    }
+
+                    if (custId==0 && AccId==0)
                     {
                         ValidationError = 1;
                     }
@@ -475,8 +494,18 @@ namespace ManageCase
                     }
                     else
                     {
-                        string customerid = await this._commonFunc.getCustomerId(CaseData.CustomerID.ToString());
-                        string query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value,eqs_casepayload&$filter=_customerid_value eq '{customerid}'";
+                        string query_url = "";
+                        if (custId==1)
+                        {
+                            string customerid = await this._commonFunc.getCustomerId(CaseData.CustomerID.ToString());
+                            query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value,eqs_casepayload,description,prioritycode,_eqs_casechannel_value,_eqs_casesource_value,_eqs_account_value,_customerid_value&$filter=_customerid_value eq '{customerid}'";
+                        }
+                        if (AccId == 1)
+                        {
+                            string Accountid = await this._commonFunc.getAccountId(CaseData.AccountID.ToString());
+                            query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value,eqs_casepayload,description,prioritycode,_eqs_casechannel_value,_eqs_casesource_value,_eqs_account_value,_customerid_value&$filter=_eqs_account_value eq '{Accountid}'";
+                        }
+
                         var caseresponsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                         var CaseList = await this._commonFunc.getDataFromResponce(caseresponsdtails);
                         foreach (var caseDetails in CaseList)
@@ -498,6 +527,13 @@ namespace ManageCase
                             case_details.category = await this._commonFunc.getCategoryName(caseDetails["_ccs_category_value"].ToString());
                             case_details.subcategory = await this._commonFunc.getSubCategoryName(caseDetails["_ccs_subcategory_value"].ToString());
                             case_details.AdditionalField = (JObject)JsonConvert.DeserializeObject(caseDetails["eqs_casepayload"].ToString());
+
+                            case_details.Description = caseDetails["description"].ToString();
+                            case_details.Priority = this._Priority[Convert.ToInt32(caseDetails["prioritycode"])];
+                            case_details.Channel = await this._commonFunc.getChannelCode(caseDetails["_eqs_casechannel_value"].ToString());
+                            case_details.Source = await this._commonFunc.getSourceCode(caseDetails["_eqs_casesource_value"].ToString());
+                            case_details.Accountid = await this._commonFunc.getAccountNumber(caseDetails["_eqs_account_value"].ToString());
+                            case_details.customerid = await this._commonFunc.getCustomerCode(caseDetails["_customerid_value"].ToString());
 
                             CSRtPrm.AllCases.Add(case_details);
                         }

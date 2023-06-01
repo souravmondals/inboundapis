@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigiWiz", "DigiWiz\DigiWiz.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DigiWizTestProject", "UnitTestProject\DigiWizTestProject\DigiWizTestProject.csproj", "{3C75152D-A4B9-44A1-96FE-2DB58351D03B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateDigiCustLead", "CreateDigiCustLead\CreateDigiCustLead.csproj", "{AF176847-1F67-4D75-A631-9A9B6011467F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{3C75152D-A4B9-44A1-96FE-2DB58351D03B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C75152D-A4B9-44A1-96FE-2DB58351D03B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C75152D-A4B9-44A1-96FE-2DB58351D03B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF176847-1F67-4D75-A631-9A9B6011467F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF176847-1F67-4D75-A631-9A9B6011467F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF176847-1F67-4D75-A631-9A9B6011467F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF176847-1F67-4D75-A631-9A9B6011467F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿namespace DigiWiz
+{
+
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,18 +13,17 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Diagnostics.Metrics;
-using CRMConnect;
-using Microsoft.AspNetCore.Components.Forms;
-using System.Collections.Immutable;
+    using CRMConnect;
 
-namespace ManageCase
-{
-    public class CommonFunction: ICommonFunction
+
+    public class CommonFunction : ICommonFunction
     {
         public IQueryParser _queryParser;
-        public CommonFunction(IQueryParser queryParser)
+        private ILoggers _logger;
+        public CommonFunction(ILoggers logger, IQueryParser queryParser)
         {
             this._queryParser = queryParser;
+            this._logger = logger;
         }
         public async Task<string> AcquireNewTokenAsync()
         {
@@ -158,113 +160,47 @@ namespace ManageCase
             return TableId;
         }
 
-        public async Task<string> getclassificationId(string classification)
+        public async Task<string> getProductCatName(string product_Cat_Id)
         {            
-            return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_code", classification);
+            return await this.getIDfromMSDTable("eqs_productcategories", "eqs_name", "eqs_productcategoryid", product_Cat_Id);
         }
-
-        public async Task<string> getClassificationName(string classificationId)
-        {
-            return await this.getIDfromMSDTable("ccs_classifications", "ccs_name", "ccs_classificationid", classificationId);
-        }
-
-        public async Task<string> getChannelId(string channelCode)
-        {
-            return await this.getIDfromMSDTable("eqs_casechannels", "eqs_casechannelid", "eqs_channelid", channelCode);
-        }
-
-        public async Task<string> getChannelCode(string channelId)
-        {
-            return await this.getIDfromMSDTable("eqs_casechannels", "eqs_channelid", "eqs_casechannelid", channelId);
-        }
-
-        public async Task<string> getCustomerId(string uciccode)
-        {           
-            return await this.getIDfromMSDTable("contacts", "contactid", "eqs_customerid", uciccode);
-        }
-
-        public async Task<string> getCustomerCode(string CustomerId)
-        {
-            return await this.getIDfromMSDTable("contacts", "eqs_customerid", "contactid", CustomerId);
-        }
-
-        public async Task<string> getAccountId(string AccountNumber)
-        {
-            return await this.getIDfromMSDTable("eqs_accounts", "eqs_accountid", "eqs_accountno", AccountNumber);
-        }
-
-        public async Task<string> getAccountNumber(string AccountId)
-        {
-            return await this.getIDfromMSDTable("eqs_accounts", "eqs_accountno", "eqs_accountid", AccountId);
-        }
-
-        public async Task<string> getSourceId(string SourceCode)
-        {
-            return await this.getIDfromMSDTable("eqs_casesources", "eqs_casesourceid", "eqs_sourceid", SourceCode);
-        }
-
-        public async Task<string> getSourceCode(string SourceId)
-        {
-            return await this.getIDfromMSDTable("eqs_casesources", "eqs_sourceid", "eqs_casesourceid", SourceId);
-        }
-
-        public async Task<string> getCategoryId(string CategoryCode)
-        {            
-            return await this.getIDfromMSDTable("ccs_categories", "ccs_categoryid", "ccs_code", CategoryCode); 
-        }
-
-        public async Task<string> getCategoryName(string CategoryId)
-        {
-            return await this.getIDfromMSDTable("ccs_categories", "ccs_name", "ccs_categoryid", CategoryId);
-        }
-
         
-
-        public async Task<string> getSubCategoryId(string subCategoryCode, string CategoryID)
-        {
-            string query_url = $"ccs_subcategories()?$select=ccs_subcategoryid&$filter=ccs_code eq '{subCategoryCode}' and _ccs_category_value eq '{CategoryID}'";
-            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string subCatId = await this.getIDFromGetResponce("ccs_subcategoryid", responsdtails);
-            return subCatId;
+        public async Task<string> getPurposeOfCreation(string PurposeOfCreatioId)
+        {            
+            return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_name", "eqs_purposeofcreationid", PurposeOfCreatioId);
         }
 
-        public async Task<string> getSubCategoryName(string SubCategoryId)
+        public async Task<JArray> getAccountData(string AccountNumber)
         {
-            return await this.getIDfromMSDTable("ccs_subcategories", "ccs_name", "ccs_subcategoryid", SubCategoryId);
-        }
-
-        public async Task<JArray> getCaseStatus(string CaseID)
-        {
-            string query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value,eqs_casepayload,description,prioritycode,_eqs_casechannel_value,_eqs_casesource_value,_eqs_account_value,_customerid_value&$filter=ticketnumber eq '{CaseID}'";
-            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var inputFields = await this.getDataFromResponce(responsdtails);
-            return inputFields;
-        }
-
-        public async Task<List<MandatoryField>> getMandatoryFields(string subCategoryID)
-        {
-            List<MandatoryField> mandatoryFields= new List<MandatoryField>();
-            string query_url = $"eqs_keyvaluerepositories()?$select=eqs_key,eqs_value,eqs_datatype,eqs_referencefield,eqs_entityname,eqs_entityid&$filter=_eqs_subcategory_value eq '{subCategoryID}'";
-            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var inputFields = await this.getDataFromResponce(responsdtails);
-
-            foreach (var field in inputFields)
+            try
             {
-                mandatoryFields.Add(new MandatoryField()
-                {
-                    InputField = field["eqs_key"].ToString(),
-                    CRMField = field["eqs_value"].ToString(),
-                    CRMValue = "",
-                    IDFieldName = field["eqs_entityid"].ToString(),
-                    CRMType = field["eqs_datatype"].ToString(),
-                    CRMTable = field["eqs_entityname"].ToString(),
-                    FilterField = field["eqs_referencefield"].ToString()
-                });
+                string query_url = $"eqs_accounts()?$filter=eqs_accountno eq '{AccountNumber}'";
+                var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Account_dtails = await this.getDataFromResponce(Accountdtails);
+                return Account_dtails;
             }
-            
-            return mandatoryFields;
+            catch (Exception ex)
+            {
+                this._logger.LogError("getLeadData", ex.Message);
+                throw ex;
+            }
         }
 
+        public async Task<JArray> getContactData(string contact_id)
+        {
+            try
+            {
+                string query_url = $"contacts({contact_id})?$select=createdon,eqs_entityflag,eqs_subentitytypeid,mobilephone,eqs_customerid";
+                var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Account_dtails = await this.getDataFromResponce(Accountdtails);
+                return Account_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getLeadData", ex.Message);
+                throw ex;
+            }
+        }
 
         public async Task<string> MeargeJsonString(string json1, string json2)
         {

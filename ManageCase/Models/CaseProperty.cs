@@ -43,6 +43,9 @@ namespace ManageCase
     public class CaseStatusRtParam
     {
         public string CaseID { get; set; }
+        public string Accountid { get; set; }
+        public string customerid { get; set; }
+        public string Description { get; set; }
         public string CaseStatus { get; set; }
         public string Casetype { get; set; }
         public string Subject { get; set; }
@@ -52,6 +55,9 @@ namespace ManageCase
         public string openDate { get; set; }
         public string modifiedDate { get; set; }
         public string closeDate { get; set; }
+        public string Channel { get; set; }
+        public string Source { get; set; }
+        public string Priority { get; set; }
         public JObject AdditionalField { get; set; }
         public string ReturnCode { get; set; }               
         public string Message { get; set; }
@@ -63,6 +69,9 @@ namespace ManageCase
     public class CaseDetails
     {
         public string CaseID { get; set; }
+        public string Accountid { get; set; }
+        public string customerid { get; set; }
+        public string Description { get; set; }
         public string CaseStatus { get; set; }
         public string Casetype { get; set; }
         public string Subject { get; set; }
@@ -72,6 +81,9 @@ namespace ManageCase
         public string openDate { get; set; }
         public string modifiedDate { get; set; }
         public string closeDate { get; set; }
+        public string Channel { get; set; }
+        public string Source { get; set; }
+        public string Priority { get; set; }
         public JObject AdditionalField { get; set; }
 
     }

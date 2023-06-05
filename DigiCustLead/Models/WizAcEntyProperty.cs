@@ -1,13 +1,13 @@
 ﻿using Newtonsoft.Json;
 using System.Text.Json.Serialization;
 
-namespace DigiWiz
+namespace DigiCustLead
 {
     
    
 
    
-    public class WizAcEntyReturn
+    public class CreateCustLeadReturn
     {
         public string accountNumber { get; set; }
         public string accountCreatedOn { get; set; }

@@ -1,4 +1,4 @@
-﻿namespace DigiWiz
+﻿namespace DigiCustLead
 {
     public static class OutputMSG
     {

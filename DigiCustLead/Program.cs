@@ -1,4 +1,4 @@
-using DigiWiz;
+using DigiCustLead;
 using Microsoft.Extensions.Caching.Memory;
 using Azure.Identity;
 using Microsoft.Azure.KeyVault;

@@ -70,7 +70,7 @@ namespace CreateLeads
             this.Channel.Add("Email", 3);
             this.Channel.Add("MobileBanking", 4);
             this.Channel.Add("InternetBanking", 5);
-            this.Channel.Add("Selfie", 15);
+           // this.Channel.Add("Selfie", 15);
 
             this.LeadStatus.Add("Open", 0);
             this.LeadStatus.Add("Onboarded", 1);

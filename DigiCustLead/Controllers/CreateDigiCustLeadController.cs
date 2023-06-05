@@ -1,4 +1,4 @@
-﻿namespace DigiWiz.Controllers
+﻿namespace DigiCustLead.Controllers
 {
 
     using Microsoft.AspNetCore.Http;
@@ -19,17 +19,17 @@
 
     [Route("[controller]")]
     [ApiController]
-    public class GetDigiWizAccountEntityDetailsController : ControllerBase
+    public class CreateDigiCustLeadController : ControllerBase
     {
 
-        private readonly IGetDigiWizAcEntyDetlsExecution _getDigiWizAcEntyDetlsExecution;
+        private readonly ICrDgCustLeadExecution _crDgCustLeadExecution;
         private Stopwatch watch;
 
-        public GetDigiWizAccountEntityDetailsController(IGetDigiWizAcEntyDetlsExecution getDigiWizAcEntyDetlsExecution)
+        public CreateDigiCustLeadController(ICrDgCustLeadExecution crDgCustLeadExecution)
         {
             watch = new System.Diagnostics.Stopwatch();
             watch.Start();
-            this._getDigiWizAcEntyDetlsExecution = getDigiWizAcEntyDetlsExecution;
+            this._crDgCustLeadExecution = crDgCustLeadExecution;
         }
 
 
@@ -50,24 +50,24 @@
 
                 if (Request.Headers.TryGetValue("ChannelID", out var ChannelID))
                 {
-                    _getDigiWizAcEntyDetlsExecution.Channel_ID = ChannelID;
+                    _crDgCustLeadExecution.Channel_ID = ChannelID;
                 }
 
                 if (Request.Headers.TryGetValue("communicationID", out var communicationID))
                 {
-                    _getDigiWizAcEntyDetlsExecution.Transaction_ID = communicationID;
+                    _crDgCustLeadExecution.Transaction_ID = communicationID;
                 }
 
-                _getDigiWizAcEntyDetlsExecution.API_Name = "GetDigiWizAccountEntityDetails";
-                _getDigiWizAcEntyDetlsExecution.Input_payload = request.ToString();
-                WizAcEntyReturn Casetatus = await _getDigiWizAcEntyDetlsExecution.ValidateWizAcEntyDetls(request, Header_Value);
+                _crDgCustLeadExecution.API_Name = "CreateDigiCustLead";
+                _crDgCustLeadExecution.Input_payload = request.ToString();
+                WizAcEntyReturn Casetatus = await _crDgCustLeadExecution.ValidateCustLeadDetls(request, Header_Value);
 
                 watch.Stop();
-                Casetatus.TransactionID = this._getDigiWizAcEntyDetlsExecution.Transaction_ID;
+                Casetatus.TransactionID = this._crDgCustLeadExecution.Transaction_ID;
                 Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
-                string response = await _getDigiWizAcEntyDetlsExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
-                this._getDigiWizAcEntyDetlsExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
+                string response = await _crDgCustLeadExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
+                this._crDgCustLeadExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
 
                 return Ok(response);
 

@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace DigiWiz
+namespace DigiCustLead
 {
     public interface ICommonFunction
     {

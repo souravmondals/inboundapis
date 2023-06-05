@@ -1,4 +1,4 @@
-﻿namespace DigiWiz
+﻿namespace DigiCustLead
 {
 
 using Microsoft.Extensions.Caching.Memory;

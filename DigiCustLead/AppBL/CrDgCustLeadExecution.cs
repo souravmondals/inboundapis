@@ -1,4 +1,4 @@
-﻿namespace DigiWiz
+﻿namespace DigiCustLead
 {
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Caching.Memory;
@@ -13,7 +13,7 @@
     using System.Xml;
     using System.Threading.Channels;
 
-    public class GetDigiWizAcEntyDetlsExecution : IGetDigiWizAcEntyDetlsExecution
+    public class CrDgCustLeadExecution : ICrDgCustLeadExecution
     {
 
         private ILoggers _logger;
@@ -57,7 +57,7 @@
                 
         private ICommonFunction _commonFunc;
 
-        public GetDigiWizAcEntyDetlsExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
+        public CrDgCustLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
         {
                     
             this._logger = logger;
@@ -70,29 +70,61 @@
         }
 
 
-        public async Task<WizAcEntyReturn> ValidateWizAcEntyDetls(dynamic RequestData, string appkey)
+        public async Task<WizAcEntyReturn> ValidateCustLeadDetls(dynamic RequestData, string appkey)
         {
             WizAcEntyReturn ldRtPrm = new WizAcEntyReturn();
-            RequestData = await this.getRequestData(RequestData);
+           // RequestData = await this.getRequestData(RequestData);
             try
             {
                 string AccountNumber = RequestData.AccountNumber;
-                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "GetDigiWizAcEntyDetlsappkey"))
+                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "CreateDigiCustLeadappkey"))
                 {
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID))
                     {
-                        if (!string.IsNullOrEmpty(AccountNumber) && AccountNumber != "")
+                        int ValidationError = 0;
+                        if (string.Equals(RequestData.EntityType.ToString(), "Individual") && string.Equals(RequestData.EntityFlagType.ToString(), "I"))
                         {
-
-                            ldRtPrm = await this.getWizAcEntyDetls(AccountNumber);
+                            if (RequestData.Title == null || string.IsNullOrEmpty(RequestData.Title.ToString()) || RequestData.Title.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                            if (RequestData.FirstName == null || string.IsNullOrEmpty(RequestData.FirstName.ToString()) || RequestData.FirstName.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                            if (RequestData.LastName == null || string.IsNullOrEmpty(RequestData.LastName.ToString()) || RequestData.LastName.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                            if (RequestData.PAN == null || string.IsNullOrEmpty(RequestData.PAN.ToString()) || RequestData.PAN.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                        }
+                        else if (string.Equals(RequestData.EntityType.ToString(), "Corporate") && string.Equals(RequestData.EntityFlagType.ToString(), "C"))
+                        {
 
                         }
                         else
                         {
-                            this._logger.LogInformation("ValidateFtchDgLdSts", "Input parameters are incorrect");
+                            this._logger.LogInformation("ValidateCustLeadDetls", "Input parameters are incorrect");
+                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                            return ldRtPrm;
+                        }
+
+                        
+                        if (ValidationError == 1)
+                        {
+                            this._logger.LogInformation("ValidateCustLeadDetls", "Input parameters are incorrect");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
                             ldRtPrm.Message = OutputMSG.Incorrect_Input;
                         }
+                        else
+                        {
+                            ldRtPrm = await this.createDigiCustLead(AccountNumber);
+                        }
+
                     }
                 }
                 else
@@ -127,7 +159,7 @@
 
         
 
-        public async Task<WizAcEntyReturn> getWizAcEntyDetls(string AccountNumber)
+        public async Task<WizAcEntyReturn> createDigiCustLead(string AccountNumber)
         {
             WizAcEntyReturn csRtPrm = new WizAcEntyReturn();
             try

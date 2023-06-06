@@ -13,6 +13,7 @@
     using Microsoft.VisualBasic;
     using Microsoft.Extensions.Caching.Memory;
     using CRMConnect;
+    using System.Diagnostics;
 
 
 
@@ -22,9 +23,12 @@
     {
 
         private readonly IFtchDgLdStsExecution _ftchDgLdStsExecution;
-        
+        private Stopwatch watch;
+
         public FetchDigiLeadStatusController(IFtchDgLdStsExecution ftchDgLdStsExecution)
         {
+            watch = new System.Diagnostics.Stopwatch();
+            watch.Start();
             this._ftchDgLdStsExecution = ftchDgLdStsExecution;
         }
 
@@ -43,11 +47,29 @@
                 {
                     Header_Value = headerValues;
                 }
+
+                if (Request.Headers.TryGetValue("ChannelID", out var ChannelID))
+                {
+                    _ftchDgLdStsExecution.Channel_ID = ChannelID;
+                }
+
+                if (Request.Headers.TryGetValue("communicationID", out var communicationID))
+                {
+                    _ftchDgLdStsExecution.Transaction_ID = communicationID;
+                }
+
                 _ftchDgLdStsExecution.API_Name = "FetchDigiLeadStatus";
                 _ftchDgLdStsExecution.Input_payload = request.ToString();
-                FtchDgLdStsReturn Casetatus = await _ftchDgLdStsExecution.ValidateFtchDgLdSts(request, Header_Value);
+                FtchDgLdStsReturn LeadStatus = await _ftchDgLdStsExecution.ValidateFtchDgLdSts(request, Header_Value);
 
-                return Ok(Casetatus);
+                watch.Stop();
+                LeadStatus.TransactionID = this._ftchDgLdStsExecution.Transaction_ID;
+                LeadStatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
+
+                string response = await _ftchDgLdStsExecution.EncriptRespons(JsonConvert.SerializeObject(LeadStatus));
+                this._ftchDgLdStsExecution.CRMLog(JsonConvert.SerializeObject(request), response, LeadStatus.ReturnCode);
+
+                return Ok(response);
 
 
             }

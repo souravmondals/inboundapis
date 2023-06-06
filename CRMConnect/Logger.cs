@@ -13,6 +13,8 @@ namespace CRMConnect
         private TelemetryClient teleClient;
         public string API_Name { get; set; }        
         public string Input_payload { get; set; }
+        public string Channel_ID { get; set; }
+        public string Transaction_ID { get; set; }
         public Loggers(IKeyVaultService keyVaultService)
         {
             _keyVaultService = keyVaultService;
@@ -26,6 +28,8 @@ namespace CRMConnect
             message["FunctionName"] = FunctionName;
             message["Messages"] = InfoMessage;
             message["InputPayload"] = this.Input_payload;
+            message["ChannelID"] = Channel_ID;
+            message["TransactionID"] = Transaction_ID;
 
             var eventTrigger = new EventTelemetry("Validation Error");
             foreach (var d in message)
@@ -42,6 +46,8 @@ namespace CRMConnect
             message["FunctionName"] = FunctionName;
             message["Messages"] = ErrorMessage;
             message["InputPayload"] = this.Input_payload;
+            message["ChannelID"] = Channel_ID;
+            message["TransactionID"] = Transaction_ID;
 
             var eventTrigger = new ExceptionTelemetry();
             foreach (var d in message)

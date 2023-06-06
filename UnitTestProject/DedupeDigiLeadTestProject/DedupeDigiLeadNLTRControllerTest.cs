@@ -21,13 +21,13 @@ namespace DedupeDigiLeadTestProject
     {
         private Mock<IDedupDgLdNLExecution> _IDedupDgLdNLExecution;
         private Fixture _fixture;
-        private DedupeDigiLeadNLTRController _controller;
+        private DedupeDigiCustomerNLTRController _controller;
 
         public DedupeDigiLeadNLTRControllerTest()
         {
             _fixture = new Fixture();
             _IDedupDgLdNLExecution = new Mock<IDedupDgLdNLExecution>();
-            _controller = new DedupeDigiLeadNLTRController(_IDedupDgLdNLExecution.Object);
+            _controller = new DedupeDigiCustomerNLTRController(_IDedupDgLdNLExecution.Object);
         }
 
         [TestMethod]

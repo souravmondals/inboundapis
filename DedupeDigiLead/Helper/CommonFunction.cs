@@ -163,11 +163,11 @@ namespace DedupeDigiLead
             return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_name", classification);
         }
 
-        public async Task<JArray> getLeadData(string LeadID)
+        public async Task<JArray> getLeadData(string ApplicantId)
         {
             try
             {
-                string query_url = $"leads()?$select=eqs_internalpan,eqs_aadhar,eqs_passportnumber,fullname,eqs_dob,eqs_cinnumber,eqs_dateofregistration,eqs_entitytypeid&$filter=eqs_crmleadid eq '{LeadID}'";
+                string query_url = $"eqs_accountapplicants()?$select=eqs_internalpan,eqs_aadhar,eqs_passportnumber,eqs_name,eqs_dob,eqs_cinnumber,eqs_dateofregistration,_eqs_entitytypeid_value&$filter=eqs_applicantid eq '{ApplicantId}'";
                 var Leaddtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                 var Lead_dtails = await this.getDataFromResponce(Leaddtails);
                 return Lead_dtails;
@@ -179,14 +179,64 @@ namespace DedupeDigiLead
             }
         }
 
-        public async Task<JArray> getNLTRData(string Fullname)
+        public async Task<JArray> getNLTRData(string Pan, string aadhar, string passport, string cin)
         {
             try
             {
-                string query_url = $"eqs_trnls()?$select=eqs_passports,eqs_pan,eqs_aadhaar,eqs_cin,eqs_dob&$filter=eqs_fullname eq '{Fullname}'";
-                var NLTRdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var NLTR_dtails = await this.getDataFromResponce(NLTRdtails);
-                return NLTR_dtails;
+                int filter = 0;
+                string query_url = $"eqs_trnls()?$select=eqs_passports,eqs_pan,eqs_aadhaar,eqs_cin,eqs_dob&$filter=";
+                if (!string.IsNullOrEmpty(Pan))
+                {
+                    query_url += $"eqs_pan eq '{Pan}' ";
+                    filter++;
+                }
+                if (!string.IsNullOrEmpty(aadhar))
+                {
+                    if (filter > 0)
+                    {
+                        query_url += $"or eqs_aadhaar eq '{aadhar}' ";
+                    }
+                    else
+                    {
+                        query_url += $"eqs_aadhaar eq '{aadhar}' ";
+                    }
+                    filter++;
+                }
+                if (!string.IsNullOrEmpty(passport))
+                {
+                    if (filter > 0)
+                    {
+                        query_url += $"or eqs_passports eq '{passport}' ";
+                    }
+                    else
+                    {
+                        query_url += $"eqs_passports eq '{passport}' ";
+                    }
+                    filter++;
+                }
+                if (!string.IsNullOrEmpty(cin))
+                {
+                    if (filter > 0)
+                    {
+                        query_url += $"or eqs_cin eq '{cin}' ";
+                    }
+                    else
+                    {
+                        query_url += $"eqs_cin eq '{cin}' ";
+                    }
+                    filter++;
+                }
+                if (filter > 0)
+                {
+                    var NLTRdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                    var NLTR_dtails = await this.getDataFromResponce(NLTRdtails);
+                    return NLTR_dtails;
+                }
+                else
+                {
+                    return new JArray();
+                }
+                
             }
             catch (Exception ex)
             {
@@ -195,15 +245,64 @@ namespace DedupeDigiLead
             }
         }
 
-        public async Task<JArray> getNLData(string Fullname)
+        public async Task<JArray> getNLData(string Pan, string aadhar, string passport, string cin)
         {
             try
             {
-                string query_url = $"eqs_nls()?$select=eqs_passport,eqs_pan,eqs_aadhaar,eqs_cin,eqs_doiordob&$filter=eqs_name eq '{Fullname}'";
-                var NLTRdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var NLTR_dtails = await this.getDataFromResponce(NLTRdtails);
-                return NLTR_dtails;
-            }
+                int filter = 0;
+                string query_url = $"eqs_nls()?$select=eqs_passport,eqs_pan,eqs_aadhaar,eqs_cin,eqs_doiordob&$filter=";
+                if (!string.IsNullOrEmpty(Pan))
+                {
+                    query_url += $"eqs_pan eq '{Pan}' ";
+                    filter++;
+                }
+                if (!string.IsNullOrEmpty(aadhar))
+                {
+                    if (filter > 0)
+                    {
+                        query_url += $"or eqs_aadhaar eq '{aadhar}' ";
+                    }
+                    else
+                    {
+                        query_url += $"eqs_aadhaar eq '{aadhar}' ";
+                    }
+                    filter++;
+                }
+                if (!string.IsNullOrEmpty(passport))
+                {
+                    if (filter > 0)
+                    {
+                        query_url += $"or eqs_passport eq '{passport}' ";
+                    }
+                    else
+                    {
+                        query_url += $"eqs_passport eq '{passport}' ";
+                    }
+                    filter++;
+                }
+                if (!string.IsNullOrEmpty(cin))
+                {
+                    if (filter > 0)
+                    {
+                        query_url += $"or eqs_cin eq '{cin}' ";
+                    }
+                    else
+                    {
+                        query_url += $"eqs_cin eq '{cin}' ";
+                    }
+                    filter++;
+                }
+                if (filter > 0)
+                {
+                    var NLTRdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                    var NLTR_dtails = await this.getDataFromResponce(NLTRdtails);
+                    return NLTR_dtails;
+                }
+                    else
+                {
+                    return new JArray();
+                }
+        }
             catch (Exception ex)
             {
                 this._loggers.LogError("getLeadData", ex.Message);

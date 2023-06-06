@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Xml.Linq;
 using CRMConnect;
+using System.Xml;
 
 namespace CreateLeads
 {
@@ -13,7 +14,29 @@ namespace CreateLeads
 
         public ILoggers _logger;       
         public IQueryParser _queryParser;
-
+        
+        public string Channel_ID
+        {
+            set
+            {
+                _logger.Channel_ID = value;
+            }
+            get
+            {
+                return _logger.Channel_ID;
+            }
+        }
+        public string Transaction_ID
+        {
+            set
+            {
+                _logger.Transaction_ID = value;
+            }
+            get
+            {
+                return _logger.Transaction_ID;
+            }
+        }
         public string API_Name
         {
             set
@@ -47,7 +70,7 @@ namespace CreateLeads
             this.Channel.Add("Email", 3);
             this.Channel.Add("MobileBanking", 4);
             this.Channel.Add("InternetBanking", 5);
-            this.Channel.Add("Selfie", 15);
+           // this.Channel.Add("Selfie", 15);
 
             this.LeadStatus.Add("Open", 0);
             this.LeadStatus.Add("Onboarded", 1);
@@ -58,12 +81,13 @@ namespace CreateLeads
 
         public async Task<LeadReturnParam> ValidateLeade(dynamic LeadData,string appkey)
         {
+            LeadData = await this.getRequestData(LeadData);
             LeadReturnParam ldRtPrm = new LeadReturnParam();
             try
             {
                 string channel = LeadData.ChannelType;
 
-                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey))
+                if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID) && !string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey))
                 {
                     if (!string.IsNullOrEmpty(channel) && channel != "")
                     {
@@ -135,9 +159,10 @@ namespace CreateLeads
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
                             ldRtPrm.Message = OutputMSG.Incorrect_Input;
                         }
-
-
-                        ldRtPrm = await this.CreateLead(LeadData);
+                        else
+                        {
+                            ldRtPrm = await this.CreateLead(LeadData);
+                        }                      
 
 
                     }
@@ -159,7 +184,10 @@ namespace CreateLeads
             }
             catch (Exception ex)
             {
-                throw ex;
+                this._logger.LogError("CreateLead", ex.Message);
+                ldRtPrm.ReturnCode = "CRM-ERROR-101";
+                ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                return ldRtPrm;
             }
             
         }
@@ -206,7 +234,10 @@ namespace CreateLeads
             }
             catch (Exception ex)
             {
-                throw ex;
+                this._logger.LogError("LeadeStatus", ex.Message);
+                ldRtPrm.ReturnCode = "CRM-ERROR-101";
+                ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                return ldRtPrm;
             }
         }
 
@@ -537,5 +568,28 @@ namespace CreateLeads
             }
             
         }
+
+        public async Task<string> EncriptRespons(string ResponsData)
+        {
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
+        }
+
+        private async Task<dynamic> getRequestData(dynamic inputData)
+        {
+            var EncryptedData = inputData.req_root.body.payload;
+            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlData);
+            string xpath = "PIDBlock/payload";
+            var nodes = xmlDoc.SelectSingleNode(xpath);
+            foreach (XmlNode childrenNode in nodes)
+            {
+                dynamic rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
+                return rejusetJson;
+            }
+
+            return "";
+        }
+
     }
 }

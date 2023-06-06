@@ -33,8 +33,9 @@ namespace DigiCustLead
 
     public class CreateCustLeadReturn
     {
-        public string AccountapplicantID { get; set; }      
-       
+        public string AccountapplicantID { get; set; }
+        public string LeadID { get; set; }
+
         public string ReturnCode { get; set; } 
         public string Message { get; set; }
         public string TransactionID { get; set; }

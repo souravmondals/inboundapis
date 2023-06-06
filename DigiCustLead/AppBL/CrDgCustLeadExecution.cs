@@ -179,6 +179,7 @@
 
                 if (ProductId != "")
                 {
+                    string EntityID = await this._commonFunc.getEntityID(CustLeadData.EntityType.ToString());
                     string TitleId = await this._commonFunc.getTitleId(CustLeadData.Title.ToString());
                     custLeadElement.leadsourcecode = 15;
                     custLeadElement.firstname = CustLeadData.FirstName;
@@ -188,10 +189,15 @@
                     custLeadElement.eqs_dob = CustLeadData.Dob;
                     custLeadElement.eqs_internalpan = CustLeadData.PAN;
 
-                    CRMLeadmappingFields.Add("eqs_titleid@odata.bind", $"eqs_titles({ProductId})");
+                    CRMLeadmappingFields.Add("eqs_panform60code", "615290000");
+                    CRMLeadmappingFields.Add("eqs_pan", "**********");
+                    CRMLeadmappingFields.Add("eqs_titleid@odata.bind", $"eqs_titles({TitleId})");
                     CRMLeadmappingFields.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
                     CRMLeadmappingFields.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({Productcategoryid})");
                     CRMLeadmappingFields.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({Businesscategoryid})");
+                    CRMLeadmappingFields.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({EntityID})");
+                    CRMLeadmappingFields.Add("eqs_aadhaarreference", CustLeadData.AadharReference.ToString());
+
 
                     if (CustLeadData.Pincode != null && CustLeadData.Pincode.ToString() != "")
                         custLeadElement.eqs_pincode = CustLeadData.Pincode;
@@ -222,18 +228,57 @@
 
                     List<JObject> Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
 
-                    CRMCustomermappingFields.Add("eqs_titleid@odata.bind", $"eqs_titles({ProductId})");
-                    CRMCustomermappingFields.Add("firstname", custLeadElement.firstname);
-                    CRMCustomermappingFields.Add("middlename", custLeadElement.middlename);
-                    CRMCustomermappingFields.Add("lastname", custLeadElement.lastname);
-                    CRMCustomermappingFields.Add("mobilephone", custLeadElement.mobilephone);
-                    CRMCustomermappingFields.Add("birthdate", custLeadElement.eqs_dob);
-                    CRMCustomermappingFields.Add("eqs_pan", custLeadElement.eqs_internalpan);
-                    CRMCustomermappingFields.Add("eqs_customerleadid", Lead_details[0]["eqs_crmleadid"].ToString());
+                    string purpose = await this._commonFunc.getPurposeID(CustLeadData.PurposeOfCreation.ToString());
 
-                    postDataParametr = JsonConvert.SerializeObject(CRMCustomermappingFields);
+                    CRMCustomermappingFields.Add("eqs_titleid@odata.bind", $"eqs_titles({TitleId})");
+                    CRMCustomermappingFields.Add("eqs_firstname", custLeadElement.firstname);
+                    CRMCustomermappingFields.Add("eqs_middlename", custLeadElement.middlename);
+                    CRMCustomermappingFields.Add("eqs_lastname", custLeadElement.lastname);
+                    CRMCustomermappingFields.Add("eqs_name", custLeadElement.firstname + " " + custLeadElement.middlename + " " + custLeadElement.lastname);
+                    CRMCustomermappingFields.Add("eqs_mobilenumber", custLeadElement.mobilephone);
+                    CRMCustomermappingFields.Add("eqs_dob", custLeadElement.eqs_dob);
+                    CRMCustomermappingFields.Add("eqs_panform60code", "615290000");
+                    CRMCustomermappingFields.Add("eqs_pan", "**********");
+                    CRMCustomermappingFields.Add("eqs_internalpan", custLeadElement.eqs_internalpan);
+                    CRMCustomermappingFields.Add("eqs_passportnumber", custLeadElement.eqs_passportnumber);
+                    CRMCustomermappingFields.Add("eqs_voterid", custLeadElement.eqs_voterid);
+                    CRMCustomermappingFields.Add("eqs_dlnumber", custLeadElement.eqs_ckycnumber);
+                    CRMCustomermappingFields.Add("eqs_ckycnumber", custLeadElement.eqs_dob);
+                    CRMCustomermappingFields.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({EntityID})");
+                    CRMCustomermappingFields.Add("eqs_aadhaarreference", CustLeadData.AadharReference.ToString());
+                    CRMCustomermappingFields.Add("eqs_purposeofcreationid@odata.bind", $"eqs_purposeofcreations({purpose})");
 
-                    List<JObject> Customer_details = await this._queryParser.HttpApiCall("contacts", HttpMethod.Post, postDataParametr);
+                    if (Lead_details.Count > 0)
+                    {
+                        dynamic respons_code = Lead_details[0];
+                        if (respons_code.responsecode == 201)
+                        {
+                            string LeadID = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "eqs_crmleadid");
+                            string Lead_ID = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "leadid");
+                            CRMCustomermappingFields.Add("eqs_leadid@odata.bind", $"leads({Lead_ID})");
+                            postDataParametr = JsonConvert.SerializeObject(CRMCustomermappingFields);
+                            List<JObject> Customer_details = await this._queryParser.HttpApiCall("eqs_accountapplicants?$select=eqs_applicantid", HttpMethod.Post, postDataParametr);
+                            
+                            if (Customer_details.Count > 0)
+                            {
+                                respons_code = Customer_details[0];
+                                if (respons_code.responsecode == 201)
+                                {
+                                    string applicantID = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "eqs_applicantid");
+                                    csRtPrm.ReturnCode = "CRM-SUCCESS";
+                                    csRtPrm.AccountapplicantID = applicantID;
+                                    csRtPrm.LeadID = LeadID;
+                                }
+                            }
+                        }
+                           
+                    }
+                    else
+                    {
+                        this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                        csRtPrm.ReturnCode = "CRM-ERROR-102";
+                        csRtPrm.Message = OutputMSG.Incorrect_Input;
+                    }
 
                 }
                 else

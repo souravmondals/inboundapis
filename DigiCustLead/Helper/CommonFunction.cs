@@ -186,8 +186,16 @@ using System.Diagnostics.Metrics;
         {
             return await this.getIDfromMSDTable("eqs_titles", "eqs_titleid", "eqs_name", Title);
         }
+        public async Task<string> getEntityID(string Entity)
+        {
+            return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_entitytypeid", "eqs_name", Entity);
+        } 
+        public async Task<string> getPurposeID(string Purpose)
+        {
+            return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_purposeofcreationid", "eqs_name", Purpose);
+        }
 
-       
+
         public async Task<JArray> getAccountData(string AccountNumber)
         {
             try
@@ -226,6 +234,7 @@ using System.Diagnostics.Metrics;
             string second = json2.Substring(1);
             return first + ", " + second;
         }
+        
 
     }
 }

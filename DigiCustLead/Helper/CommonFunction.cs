@@ -160,16 +160,34 @@ using System.Diagnostics.Metrics;
             return TableId;
         }
 
-        public async Task<string> getProductCatName(string product_Cat_Id)
-        {            
-            return await this.getIDfromMSDTable("eqs_productcategories", "eqs_name", "eqs_productcategoryid", product_Cat_Id);
-        }
-        
-        public async Task<string> getPurposeOfCreation(string PurposeOfCreatioId)
-        {            
-            return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_name", "eqs_purposeofcreationid", PurposeOfCreatioId);
+        public async Task<Dictionary<string, string>> getProductId(string ProductCode)
+        {
+            string query_url = $"eqs_products()?$select=eqs_productid,_eqs_businesscategoryid_value,_eqs_productcategory_value,eqs_crmproductcategorycode&$filter=eqs_productcode eq '{ProductCode}'";
+            var productdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            string ProductId = await this.getIDFromGetResponce("eqs_productid", productdtails);
+            string businesscategoryid = await this.getIDFromGetResponce("_eqs_businesscategoryid_value", productdtails);
+            string productcategory = await this.getIDFromGetResponce("_eqs_productcategory_value", productdtails);
+            string crmproductcategorycode = await this.getIDFromGetResponce("eqs_crmproductcategorycode", productdtails);
+            Dictionary<string, string> ProductData = new Dictionary<string, string>() {
+                { "ProductId", ProductId },
+                { "businesscategoryid", businesscategoryid },
+                { "productcategory", productcategory },
+                { "crmproductcategorycode", crmproductcategorycode },
+            };
+            return ProductData;
         }
 
+        public async Task<string> getBranchId(string BranchCode)
+        {
+            return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchid", "eqs_branchidvalue", BranchCode);
+        } 
+        
+        public async Task<string> getTitleId(string Title)
+        {
+            return await this.getIDfromMSDTable("eqs_titles", "eqs_titleid", "eqs_name", Title);
+        }
+
+       
         public async Task<JArray> getAccountData(string AccountNumber)
         {
             try

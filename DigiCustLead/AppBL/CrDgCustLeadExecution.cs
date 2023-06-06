@@ -70,13 +70,13 @@
         }
 
 
-        public async Task<WizAcEntyReturn> ValidateCustLeadDetls(dynamic RequestData, string appkey)
+        public async Task<CreateCustLeadReturn> ValidateCustLeadDetls(dynamic RequestData, string appkey)
         {
-            WizAcEntyReturn ldRtPrm = new WizAcEntyReturn();
+            CreateCustLeadReturn ldRtPrm = new CreateCustLeadReturn();
            // RequestData = await this.getRequestData(RequestData);
             try
             {
-                string AccountNumber = RequestData.AccountNumber;
+               
                 if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "CreateDigiCustLeadappkey"))
                 {
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID))
@@ -97,6 +97,10 @@
                                 ValidationError = 1;
                             }
                             if (RequestData.PAN == null || string.IsNullOrEmpty(RequestData.PAN.ToString()) || RequestData.PAN.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                            if (RequestData.ProductCode == null || string.IsNullOrEmpty(RequestData.ProductCode.ToString()) || RequestData.ProductCode.ToString() == "")
                             {
                                 ValidationError = 1;
                             }
@@ -122,7 +126,7 @@
                         }
                         else
                         {
-                            ldRtPrm = await this.createDigiCustLead(AccountNumber);
+                            ldRtPrm = await this.createDigiCustLead(RequestData);
                         }
 
                     }
@@ -159,54 +163,87 @@
 
         
 
-        public async Task<WizAcEntyReturn> createDigiCustLead(string AccountNumber)
+        public async Task<CreateCustLeadReturn> createDigiCustLead(dynamic CustLeadData)
         {
-            WizAcEntyReturn csRtPrm = new WizAcEntyReturn();
+            CreateCustLeadReturn csRtPrm = new CreateCustLeadReturn();
+            CustLeadElement custLeadElement = new CustLeadElement();
+            Dictionary<string, string> CRMLeadmappingFields = new Dictionary<string, string>();
+            Dictionary<string, string> CRMCustomermappingFields = new Dictionary<string, string>();
             try
             {
-                var Account_data = await this._commonFunc.getAccountData(AccountNumber);
-                if (Account_data.Count > 0)
+                var productDetails = await this._commonFunc.getProductId(CustLeadData.ProductCode.ToString());
+                string ProductId = productDetails["ProductId"];
+                string Businesscategoryid = productDetails["businesscategoryid"];
+                string Productcategoryid = productDetails["productcategory"];
+                custLeadElement.eqs_crmproductcategorycode = productDetails["crmproductcategorycode"];
+
+                if (ProductId != "")
                 {
-                    dynamic AccountData = Account_data[0];
-                    csRtPrm.accountNumber = AccountNumber;
+                    string TitleId = await this._commonFunc.getTitleId(CustLeadData.Title.ToString());
+                    custLeadElement.leadsourcecode = 15;
+                    custLeadElement.firstname = CustLeadData.FirstName;
+                    custLeadElement.middlename = CustLeadData.MiddleName;
+                    custLeadElement.lastname = CustLeadData.LastName;
+                    custLeadElement.mobilephone = CustLeadData.MobilePhone;
+                    custLeadElement.eqs_dob = CustLeadData.Dob;
+                    custLeadElement.eqs_internalpan = CustLeadData.PAN;
 
-                    if (AccountData.createdon.ToString().Length > 1)
+                    CRMLeadmappingFields.Add("eqs_titleid@odata.bind", $"eqs_titles({ProductId})");
+                    CRMLeadmappingFields.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
+                    CRMLeadmappingFields.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({Productcategoryid})");
+                    CRMLeadmappingFields.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({Businesscategoryid})");
+
+                    if (CustLeadData.Pincode != null && CustLeadData.Pincode.ToString() != "")
+                        custLeadElement.eqs_pincode = CustLeadData.Pincode;
+
+                    if (CustLeadData.Voterid != null && CustLeadData.Voterid.ToString() != "")
+                        custLeadElement.eqs_voterid = CustLeadData.Voterid;
+
+                    if (CustLeadData.Drivinglicense != null && CustLeadData.Drivinglicense.ToString() != "")
+                        custLeadElement.eqs_dlnumber = CustLeadData.Drivinglicense;
+
+                    if (CustLeadData.Passport != null && CustLeadData.Passport.ToString() != "")
+                        custLeadElement.eqs_passportnumber = CustLeadData.Passport;
+
+                    if (CustLeadData.CKYCNumber != null && CustLeadData.CKYCNumber.ToString() != "")
+                        custLeadElement.eqs_ckycnumber = CustLeadData.CKYCNumber;
+
+                    string BranchId = await this._commonFunc.getBranchId(CustLeadData.BranchCode.ToString());
+                    if (BranchId != null && BranchId != "")
                     {
-                        csRtPrm.accountCreatedOn = AccountData.createdon;
-                        csRtPrm.productVariant = AccountData.eqs_productcode;
-
-                        string product_Cat_Id = AccountData._eqs_productcategoryid_value;
-                        csRtPrm.productCategory = await this._commonFunc.getProductCatName(product_Cat_Id);
-
-                        string product_customer_Id = AccountData._eqs_customeridvalue_value;
-
-                        csRtPrm.customerInfo = new CustomerInfo();
-                        csRtPrm.customerInfo.accountTitle = AccountData.eqs_name;
-                        var Contact_data = await this._commonFunc.getContactData(product_customer_Id);
-
-                        foreach (var cu_Data in Contact_data)
-                        {
-                            csRtPrm.customerInfo.UCICCreatedOn = (cu_Data["createdon"].ToString()==null)? "" : cu_Data["createdon"].ToString();
-                            csRtPrm.customerInfo.entityFlag = (cu_Data["eqs_entityflag"].ToString() == null)? "" : cu_Data["eqs_entityflag"].ToString(); 
-                            csRtPrm.customerInfo.entityType = (AccountData["eqs_subentitytypeid"] == null)? "" : AccountData["eqs_subentitytypeid"].ToString();                           
-                            csRtPrm.customerInfo.phoneNumber = (cu_Data["mobilephone"].ToString() == null)? "" : cu_Data["mobilephone"].ToString();
-                            csRtPrm.customerInfo.ucic = (cu_Data["eqs_customerid"].ToString() == null) ? "" : cu_Data["eqs_customerid"].ToString();
-                        }                        
-
-                        csRtPrm.ReturnCode = "CRM-SUCCESS";
-                        csRtPrm.Message = OutputMSG.Case_Success;
+                        CRMLeadmappingFields.Add("eqs_branchid@odata.bind", $"eqs_branchs({BranchId})");
+                        CRMCustomermappingFields.Add("eqs_branchid@odata.bind", $"eqs_branchs({BranchId})");
                     }
 
-                    
-                    
+                    string postDataParametr = JsonConvert.SerializeObject(custLeadElement);
+                    string postDataParametr1 = JsonConvert.SerializeObject(CRMLeadmappingFields);
+
+                    postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+
+                    List<JObject> Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
+
+                    CRMCustomermappingFields.Add("eqs_titleid@odata.bind", $"eqs_titles({ProductId})");
+                    CRMCustomermappingFields.Add("firstname", custLeadElement.firstname);
+                    CRMCustomermappingFields.Add("middlename", custLeadElement.middlename);
+                    CRMCustomermappingFields.Add("lastname", custLeadElement.lastname);
+                    CRMCustomermappingFields.Add("mobilephone", custLeadElement.mobilephone);
+                    CRMCustomermappingFields.Add("birthdate", custLeadElement.eqs_dob);
+                    CRMCustomermappingFields.Add("eqs_pan", custLeadElement.eqs_internalpan);
+                    CRMCustomermappingFields.Add("eqs_customerleadid", Lead_details[0]["eqs_crmleadid"].ToString());
+
+                    postDataParametr = JsonConvert.SerializeObject(CRMCustomermappingFields);
+
+                    List<JObject> Customer_details = await this._queryParser.HttpApiCall("contacts", HttpMethod.Post, postDataParametr);
 
                 }
                 else
                 {
-                    this._logger.LogInformation("getDigiLeadStatus", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
                     csRtPrm.ReturnCode = "CRM-ERROR-102";
                     csRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
+
+                
             }
             catch(Exception ex)
             {

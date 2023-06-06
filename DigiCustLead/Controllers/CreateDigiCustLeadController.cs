@@ -60,7 +60,7 @@
 
                 _crDgCustLeadExecution.API_Name = "CreateDigiCustLead";
                 _crDgCustLeadExecution.Input_payload = request.ToString();
-                WizAcEntyReturn Casetatus = await _crDgCustLeadExecution.ValidateCustLeadDetls(request, Header_Value);
+                CreateCustLeadReturn Casetatus = await _crDgCustLeadExecution.ValidateCustLeadDetls(request, Header_Value);
 
                 watch.Stop();
                 Casetatus.TransactionID = this._crDgCustLeadExecution.Transaction_ID;

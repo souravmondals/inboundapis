@@ -69,7 +69,7 @@
                 string response = await _crDgCustLeadExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
                 this._crDgCustLeadExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
 
-                return Ok(response);
+                return Ok(Casetatus);
 
 
             }

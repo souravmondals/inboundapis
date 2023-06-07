@@ -31,6 +31,23 @@ namespace DigiCustLead
 
     }
 
+    public class CustLeadElementCorp
+    {
+        public string eqs_crmproductcategorycode { get; set; }
+        public int leadsourcecode { get; set; }
+        public string eqs_companynamepart1 { get; set; }
+        public string eqs_companynamepart2 { get; set; }
+        public string eqs_companynamepart3 { get; set; }
+        public string eqs_contactmobile { get; set; }
+        public string eqs_contactperson { get; set; }
+        public string eqs_cinnumber { get; set; }
+        public string eqs_tannumber { get; set; }
+        public string eqs_gstnumber { get; set; }
+        public string eqs_cstvatnumber { get; set; }
+ 
+        public string eqs_internalpan { get; set; }
+    }
+
     public class CreateCustLeadReturn
     {
         public string AccountapplicantID { get; set; }

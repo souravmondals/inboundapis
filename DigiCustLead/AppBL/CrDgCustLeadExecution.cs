@@ -107,7 +107,18 @@
                         }
                         else if (string.Equals(RequestData.EntityType.ToString(), "Corporate") && string.Equals(RequestData.EntityFlagType.ToString(), "C"))
                         {
-
+                            if (RequestData.CompanyName == null || string.IsNullOrEmpty(RequestData.CompanyName.ToString()) || RequestData.CompanyName.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                            if (RequestData.PAN == null || string.IsNullOrEmpty(RequestData.PAN.ToString()) || RequestData.PAN.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
+                            if (RequestData.ProductCode == null || string.IsNullOrEmpty(RequestData.ProductCode.ToString()) || RequestData.ProductCode.ToString() == "")
+                            {
+                                ValidationError = 1;
+                            }
                         }
                         else
                         {
@@ -126,7 +137,8 @@
                         }
                         else
                         {
-                            ldRtPrm = await this.createDigiCustLead(RequestData);
+                            
+                            ldRtPrm = (string.Equals(RequestData.EntityType.ToString(), "Corporate")) ? await this.createDigiCustLeadCorp(RequestData) : await this.createDigiCustLeadIndv(RequestData);
                         }
 
                     }
@@ -163,7 +175,7 @@
 
         
 
-        public async Task<CreateCustLeadReturn> createDigiCustLead(dynamic CustLeadData)
+        public async Task<CreateCustLeadReturn> createDigiCustLeadIndv(dynamic CustLeadData)
         {
             CreateCustLeadReturn csRtPrm = new CreateCustLeadReturn();
             CustLeadElement custLeadElement = new CustLeadElement();
@@ -242,8 +254,8 @@
                     CRMCustomermappingFields.Add("eqs_internalpan", custLeadElement.eqs_internalpan);
                     CRMCustomermappingFields.Add("eqs_passportnumber", custLeadElement.eqs_passportnumber);
                     CRMCustomermappingFields.Add("eqs_voterid", custLeadElement.eqs_voterid);
-                    CRMCustomermappingFields.Add("eqs_dlnumber", custLeadElement.eqs_ckycnumber);
-                    CRMCustomermappingFields.Add("eqs_ckycnumber", custLeadElement.eqs_dob);
+                    CRMCustomermappingFields.Add("eqs_dlnumber", custLeadElement.eqs_dlnumber);
+                    CRMCustomermappingFields.Add("eqs_ckycnumber", custLeadElement.eqs_ckycnumber);
                     CRMCustomermappingFields.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({EntityID})");
                     CRMCustomermappingFields.Add("eqs_aadhaarreference", CustLeadData.AadharReference.ToString());
                     CRMCustomermappingFields.Add("eqs_purposeofcreationid@odata.bind", $"eqs_purposeofcreations({purpose})");
@@ -275,7 +287,7 @@
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                        this._logger.LogInformation("createDigiCustLeadIndv", "Input parameters are incorrect");
                         csRtPrm.ReturnCode = "CRM-ERROR-102";
                         csRtPrm.Message = OutputMSG.Incorrect_Input;
                     }
@@ -283,7 +295,7 @@
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                    this._logger.LogInformation("createDigiCustLeadIndv", "Input parameters are incorrect");
                     csRtPrm.ReturnCode = "CRM-ERROR-102";
                     csRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
@@ -292,12 +304,133 @@
             }
             catch(Exception ex)
             {
-                this._logger.LogError("getDigiLeadStatus", ex.Message);
+                this._logger.LogError("createDigiCustLeadIndv", ex.Message);
                 csRtPrm.ReturnCode = "CRM-ERROR-102";
                 csRtPrm.Message = OutputMSG.Incorrect_Input;
             }
             
             
+
+            return csRtPrm;
+        }
+
+        public async Task<CreateCustLeadReturn> createDigiCustLeadCorp(dynamic CustLeadData)
+        {
+            CreateCustLeadReturn csRtPrm = new CreateCustLeadReturn();
+            CustLeadElementCorp custLeadElement = new CustLeadElementCorp();
+            Dictionary<string, string> CRMLeadmappingFields = new Dictionary<string, string>();
+            Dictionary<string, string> CRMCustomermappingFields = new Dictionary<string, string>();
+            try 
+            {
+                var productDetails = await this._commonFunc.getProductId(CustLeadData.ProductCode.ToString());
+                string ProductId = productDetails["ProductId"];
+                string Businesscategoryid = productDetails["businesscategoryid"];
+                string Productcategoryid = productDetails["productcategory"];
+                custLeadElement.eqs_crmproductcategorycode = productDetails["crmproductcategorycode"];
+
+                if (ProductId != "")
+                {
+                    string EntityID = await this._commonFunc.getEntityID(CustLeadData.EntityType.ToString());
+                    custLeadElement.leadsourcecode = 15;
+                    custLeadElement.eqs_companynamepart1 = CustLeadData.CompanyName;
+                    custLeadElement.eqs_companynamepart2 = CustLeadData.CompanyName2;
+                    custLeadElement.eqs_companynamepart3 = CustLeadData.CompanyName3;
+                    custLeadElement.eqs_contactmobile = CustLeadData.PocNumber;
+                    custLeadElement.eqs_contactperson = CustLeadData.PocName;
+
+                    custLeadElement.eqs_cinnumber = CustLeadData.CinNumber;
+                    custLeadElement.eqs_tannumber = CustLeadData.TanNumber;
+                    custLeadElement.eqs_gstnumber = CustLeadData.GstNumber;
+                    custLeadElement.eqs_cstvatnumber = CustLeadData.CstNumber;
+                    custLeadElement.eqs_internalpan = CustLeadData.PAN;
+
+                    CRMLeadmappingFields.Add("eqs_panform60code", "615290000");
+                    CRMLeadmappingFields.Add("eqs_pan", "**********");
+                    CRMLeadmappingFields.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
+                    CRMLeadmappingFields.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({Productcategoryid})");
+                    CRMLeadmappingFields.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({Businesscategoryid})");
+                    CRMLeadmappingFields.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({EntityID})");
+
+                    string BranchId = await this._commonFunc.getBranchId(CustLeadData.BranchCode.ToString());
+                    if (BranchId != null && BranchId != "")
+                    {
+                        CRMLeadmappingFields.Add("eqs_branchid@odata.bind", $"eqs_branchs({BranchId})");
+                        CRMCustomermappingFields.Add("eqs_branchid@odata.bind", $"eqs_branchs({BranchId})");
+                    }
+
+                    string postDataParametr = JsonConvert.SerializeObject(custLeadElement);
+                    string postDataParametr1 = JsonConvert.SerializeObject(CRMLeadmappingFields);
+
+                    postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+
+                    List<JObject> Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
+
+                    string purpose = await this._commonFunc.getPurposeID(CustLeadData.PurposeOfCreation.ToString());
+
+                    CRMCustomermappingFields.Add("eqs_companynamepart1", CustLeadData.eqs_companynamepart1);
+                    CRMCustomermappingFields.Add("eqs_companynamepart2", CustLeadData.eqs_companynamepart2);
+                    CRMCustomermappingFields.Add("eqs_companynamepart3", CustLeadData.eqs_companynamepart3);
+                    CRMCustomermappingFields.Add("eqs_contactperson", CustLeadData.eqs_contactperson);
+                    CRMCustomermappingFields.Add("eqs_contactmobilenumber", CustLeadData.eqs_contactmobile);
+
+                    CRMCustomermappingFields.Add("eqs_cinnumber", CustLeadData.eqs_cinnumber);
+                    CRMCustomermappingFields.Add("eqs_tannumber", CustLeadData.eqs_tannumber);
+                    CRMCustomermappingFields.Add("eqs_gstnumber", CustLeadData.eqs_gstnumber);
+                    CRMCustomermappingFields.Add("eqs_cstvatnumber", CustLeadData.eqs_cstvatnumber);
+
+                    CRMCustomermappingFields.Add("eqs_dateofincorporation", CustLeadData.DateOfIncorporation.ToString());
+                    CRMCustomermappingFields.Add("eqs_panform60code", "615290000");
+                    CRMCustomermappingFields.Add("eqs_pan", "**********");
+                    CRMCustomermappingFields.Add("eqs_internalpan", custLeadElement.eqs_internalpan);
+                    CRMCustomermappingFields.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({EntityID})");                  
+                    CRMCustomermappingFields.Add("eqs_purposeofcreationid@odata.bind", $"eqs_purposeofcreations({purpose})");
+
+                    if (Lead_details.Count > 0)
+                    {
+                        dynamic respons_code = Lead_details[0];
+                        if (respons_code.responsecode == 201)
+                        {
+                            string LeadID = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "eqs_crmleadid");
+                            string Lead_ID = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "leadid");
+                            CRMCustomermappingFields.Add("eqs_leadid@odata.bind", $"leads({Lead_ID})");
+                            postDataParametr = JsonConvert.SerializeObject(CRMCustomermappingFields);
+                            List<JObject> Customer_details = await this._queryParser.HttpApiCall("eqs_accountapplicants?$select=eqs_applicantid", HttpMethod.Post, postDataParametr);
+
+                            if (Customer_details.Count > 0)
+                            {
+                                respons_code = Customer_details[0];
+                                if (respons_code.responsecode == 201)
+                                {
+                                    string applicantID = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "eqs_applicantid");
+                                    csRtPrm.ReturnCode = "CRM-SUCCESS";
+                                    csRtPrm.AccountapplicantID = applicantID;
+                                    csRtPrm.LeadID = LeadID;
+                                }
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        this._logger.LogInformation("createDigiCustLeadIndv", "Input parameters are incorrect");
+                        csRtPrm.ReturnCode = "CRM-ERROR-102";
+                        csRtPrm.Message = OutputMSG.Incorrect_Input;
+                    }
+                }
+                else
+                {
+                    this._logger.LogInformation("createDigiCustLeadIndv", "Input parameters are incorrect");
+                    csRtPrm.ReturnCode = "CRM-ERROR-102";
+                    csRtPrm.Message = OutputMSG.Incorrect_Input;
+                }
+
+            }
+            catch(Exception ex)
+            {
+                this._logger.LogError("createDigiCustLeadCorp", ex.Message);
+                csRtPrm.ReturnCode = "CRM-ERROR-102";
+                csRtPrm.Message = OutputMSG.Incorrect_Input;
+            }
 
             return csRtPrm;
         }

@@ -45,6 +45,8 @@ namespace ManageCase
             }
         }
 
+        public string appkey { get; set; }
+
         public string API_Name { set
             {
                 _logger.API_Name = value;
@@ -109,7 +111,7 @@ namespace ManageCase
 
         public async Task<CaseReturnParam> ValidateCreateCase(dynamic CaseData, string appkey)
         {
-            CaseData = await this.getRequestData(CaseData);
+            CaseData = await this.getRequestData(CaseData, "CreateCase");
             CaseReturnParam ldRtPrm = new CaseReturnParam();
             ldRtPrm.TransactionID = Transaction_ID;
             try
@@ -228,7 +230,7 @@ namespace ManageCase
         public async Task<CaseStatusRtParam> ValidategetCaseStatus(dynamic CaseData, string appkey)
         {
             CaseStatusRtParam CSRtPrm = new CaseStatusRtParam();
-            CaseData = await this.getRequestData(CaseData);
+            CaseData = await this.getRequestData(CaseData, "getCaseStatus");
 
             int ValidationError = 0;
             try
@@ -464,7 +466,7 @@ namespace ManageCase
         {
             CaseListParam CSRtPrm = new CaseListParam();
             CSRtPrm.AllCases = new List<CaseDetails>();
-            CaseData = await this.getRequestData(CaseData);
+            CaseData = await this.getRequestData(CaseData, "getCaseList");
 
             int ValidationError = 0;
             int custId =0 , AccId = 0;
@@ -576,8 +578,11 @@ namespace ManageCase
             await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
         }
 
-        private async Task<dynamic> getRequestData(dynamic inputData)
+        private async Task<dynamic> getRequestData(dynamic inputData,string APIname)
         {
+
+            dynamic rejusetJson;
+
             var EncryptedData = inputData.req_root.body.payload;
             string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
             XmlDocument xmlDoc = new XmlDocument();
@@ -586,11 +591,22 @@ namespace ManageCase
             var nodes = xmlDoc.SelectSingleNode(xpath);
             foreach (XmlNode childrenNode in nodes)
             {
-                dynamic rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
-                return rejusetJson;
-            }
+                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+
+                dynamic payload = rejusetJson1[APIname];
                 
+                this.appkey = payload.msgHdr.authInfo.token.ToString();
+                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                this.Channel_ID = payload.msgHdr.channelID.ToString();
+
+                rejusetJson = payload.msgBdy;
+                
+                return rejusetJson;
+                
+            }
+
             return "";
+
         }
 
     }

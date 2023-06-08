@@ -6,7 +6,8 @@
         public string Input_payload { set; }
         public string Channel_ID { set; get; }
         public string Transaction_ID { set; get; }
-        
+        public string appkey { get; set; }
+
         public Task<CaseReturnParam> CreateCase(dynamic CaseData);
         public Task<CaseReturnParam> ValidateCreateCase(dynamic CaseData, string appkey);
         public Task<CaseListParam> getCaseList(dynamic CaseData, string appkey);

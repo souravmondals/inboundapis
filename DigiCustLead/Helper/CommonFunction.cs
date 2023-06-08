@@ -190,6 +190,12 @@ using System.Diagnostics.Metrics;
         {
             return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_entitytypeid", "eqs_name", Entity);
         } 
+        
+        public async Task<string> getSubentitytypeID(string Subentitytype)
+        {
+            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_subentitytypeid", "eqs_key", Subentitytype);
+        } 
+
         public async Task<string> getPurposeID(string Purpose)
         {
             return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_purposeofcreationid", "eqs_name", Purpose);

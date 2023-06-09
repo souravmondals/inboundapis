@@ -40,24 +40,11 @@ namespace DedupeDigiLead.Controllers
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
 
-                string Header_Value = string.Empty;
-                if (Request.Headers.TryGetValue("appkey", out var headerValues))
-                {
-                    Header_Value = headerValues;
-                }
-                if (Request.Headers.TryGetValue("ChannelID", out var ChannelID))
-                {
-                    _dedupDgLdNLExecution.Channel_ID = ChannelID;
-                }
-
-                if (Request.Headers.TryGetValue("communicationID", out var communicationID))
-                {
-                    _dedupDgLdNLExecution.Transaction_ID = communicationID;
-                }
+                
 
                 _dedupDgLdNLExecution.API_Name = "DedupeDigiLeadNL";
                 _dedupDgLdNLExecution.Input_payload = request.ToString();
-                DedupDgLdNLReturn Casetatus = await _dedupDgLdNLExecution.ValidateDedupDgLdNL(request, Header_Value,"NL");
+                DedupDgLdNLReturn Casetatus = await _dedupDgLdNLExecution.ValidateDedupDgLdNL(request,"NL");
 
                 watch.Stop();
                 Casetatus.TransactionID = this._dedupDgLdNLExecution.Transaction_ID;

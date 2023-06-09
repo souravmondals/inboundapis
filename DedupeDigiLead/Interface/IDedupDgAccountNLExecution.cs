@@ -1,6 +1,6 @@
 ﻿namespace DedupeDigiLead
 {
-    public interface IDedupDgLdNLExecution
+    public interface IDedupDgAccountNLExecution
     {
         public string API_Name { set; }
         public string Input_payload { set; }

@@ -13,7 +13,7 @@ using System.Xml;
 
 namespace DedupeDigiLead
 {
-    public class DedupDgLdNLExecution : IDedupDgLdNLExecution
+    public class DedupDgAccountNLExecution : IDedupDgAccountNLExecution
     {
 
         private ILoggers _logger;
@@ -56,7 +56,7 @@ namespace DedupeDigiLead
         
         private ICommonFunction _commonFunc;
 
-        public DedupDgLdNLExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
+        public DedupDgAccountNLExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
         {
                     
             this._logger = logger;

@@ -17,13 +17,13 @@ namespace DedupeDigiLead.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    public class DedupeDigiCustomerNLController : ControllerBase
+    public class DedupeDigiAccountNLTRController : ControllerBase
     {
 
         private readonly IDedupDgLdNLExecution _dedupDgLdNLExecution;
         private Stopwatch watch;
 
-        public DedupeDigiCustomerNLController(IDedupDgLdNLExecution dedupDgLdNLExecution)
+        public DedupeDigiAccountNLTRController(IDedupDgLdNLExecution dedupDgLdNLExecution)
         {
             watch = new System.Diagnostics.Stopwatch();
             watch.Start();
@@ -57,7 +57,7 @@ namespace DedupeDigiLead.Controllers
 
                 _dedupDgLdNLExecution.API_Name = "DedupeDigiLeadNL";
                 _dedupDgLdNLExecution.Input_payload = request.ToString();
-                DedupDgLdNLReturn Casetatus = await _dedupDgLdNLExecution.ValidateDedupDgLdNL(request, Header_Value,"NL");
+                DedupDgLdNLReturn Casetatus = await _dedupDgLdNLExecution.ValidateDedupDgLdNL(request,"NL");
 
                 watch.Stop();
                 Casetatus.TransactionID = this._dedupDgLdNLExecution.Transaction_ID;

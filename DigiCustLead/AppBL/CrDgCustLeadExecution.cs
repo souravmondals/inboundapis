@@ -341,9 +341,9 @@
                     string EntityID = await this._commonFunc.getEntityID(CustLeadData.EntityType.ToString());
                     string SubEntityID = await this._commonFunc.getSubentitytypeID(CustLeadData.EntityFlagType.ToString());
                     custLeadElement.leadsourcecode = 15;
-                   // custLeadElement.eqs_companynamepart1 = CustLeadData.CorporateEntry.CompanyName;
-                   // custLeadElement.eqs_companynamepart2 = CustLeadData.CorporateEntry.CompanyName2;
-                   // custLeadElement.eqs_companynamepart3 = CustLeadData.CorporateEntry.CompanyName3;
+                    custLeadElement.eqs_companynamepart1 = CustLeadData.CorporateEntry.CompanyName;
+                    custLeadElement.eqs_companynamepart2 = CustLeadData.CorporateEntry.CompanyName2;
+                    custLeadElement.eqs_companynamepart3 = CustLeadData.CorporateEntry.CompanyName3;
                     custLeadElement.eqs_contactmobile = CustLeadData.CorporateEntry.PocNumber;
                     custLeadElement.eqs_contactperson = CustLeadData.CorporateEntry.PocName;
 

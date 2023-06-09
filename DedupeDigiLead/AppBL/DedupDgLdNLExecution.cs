@@ -42,6 +42,8 @@ namespace DedupeDigiLead
             }
         }
 
+        public string appkey { get; set; }
+
         public string API_Name { set
             {
                 _logger.API_Name = value;
@@ -68,13 +70,13 @@ namespace DedupeDigiLead
         }
 
 
-        public async Task<dynamic> ValidateDedupDgLdNL(dynamic RequestData, string appkey, string type)
+        public async Task<dynamic> ValidateDedupDgLdNL(dynamic RequestData, string type)
         {
 
             dynamic ldRtPrm = (type == "NLTR") ? new DedupDgLdNLTRReturn() : new DedupDgLdNLReturn();
             try
             {
-                RequestData = await this.getRequestData(RequestData);
+                RequestData = await this.getRequestData(RequestData,"DedupeDigiCustomer" + type);
 
                 string ApplicantId = RequestData.ApplicantId;
                 if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "DedupDgLdNLappkey"))
@@ -194,8 +196,11 @@ namespace DedupeDigiLead
             return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
         }
 
-        private async Task<dynamic> getRequestData(dynamic inputData)
+        private async Task<dynamic> getRequestData(dynamic inputData, string APIname)
         {
+
+            dynamic rejusetJson;
+
             var EncryptedData = inputData.req_root.body.payload;
             string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
             XmlDocument xmlDoc = new XmlDocument();
@@ -204,11 +209,22 @@ namespace DedupeDigiLead
             var nodes = xmlDoc.SelectSingleNode(xpath);
             foreach (XmlNode childrenNode in nodes)
             {
-                dynamic rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
+                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+
+                dynamic payload = rejusetJson1[APIname];
+
+                this.appkey = payload.msgHdr.authInfo.token.ToString();
+                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                this.Channel_ID = payload.msgHdr.channelID.ToString();
+
+                rejusetJson = payload.msgBdy;
+
                 return rejusetJson;
+
             }
 
             return "";
+
         }
 
 

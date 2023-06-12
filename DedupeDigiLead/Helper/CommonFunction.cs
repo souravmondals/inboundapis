@@ -163,6 +163,20 @@ namespace DedupeDigiLead
             return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_name", classification);
         }
 
+        public async Task<List<string>> getLeadAccData(string LeadAccId)
+        {
+            List<string> Accounts = new List<string>();
+            string lead_accountid =  await this.getIDfromMSDTable("eqs_leadaccounts", "eqs_leadaccountid", "eqs_crmleadaccountid", LeadAccId);
+            string query_url = $"eqs_accountapplicants()?$select=eqs_applicantid&$filter=_eqs_leadaccountid_value eq '{lead_accountid}'";
+            var AccountDetails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var Account_Details = await this.getDataFromResponce(AccountDetails);
+            foreach (var account in Account_Details)
+            {
+                Accounts.Add(account["eqs_applicantid"].ToString());
+            }
+            return Accounts; 
+        }
+
         public async Task<JArray> getLeadData(string ApplicantId)
         {
             try

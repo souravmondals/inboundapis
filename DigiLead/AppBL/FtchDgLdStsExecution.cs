@@ -41,6 +41,8 @@
             }
         }
 
+        public string appkey { get; set; }
+
         public string API_Name { set
             {
                 _logger.API_Name = value;
@@ -69,16 +71,16 @@
         }
 
 
-        public async Task<FtchDgLdStsReturn> ValidateFtchDgLdSts(dynamic RequestData, string appkey)
+        public async Task<FtchDgLdStsReturn> ValidateFtchDgLdSts(dynamic RequestData)
         {
             FtchDgLdStsReturn ldRtPrm = new FtchDgLdStsReturn();
             RequestData = await this.getRequestData(RequestData);
             try
             {
                 string LeadID = RequestData.LeadID;
-                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "FetchDigiLeadStatusappkey"))
+                if (!string.IsNullOrEmpty(this.appkey) && this.appkey != "" && checkappkey(this.appkey, "FetchDigiLeadStatusappkey"))
                 {
-                    if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID) && !string.IsNullOrEmpty(LeadID) && LeadID != "")
+                    if (!string.IsNullOrEmpty(this.Transaction_ID) && !string.IsNullOrEmpty(this.Channel_ID) && !string.IsNullOrEmpty(LeadID) && LeadID != "")
                     {                       
                         
                        ldRtPrm = await this.getDigiLeadStatus(RequestData);
@@ -261,6 +263,9 @@
 
         private async Task<dynamic> getRequestData(dynamic inputData)
         {
+
+            dynamic rejusetJson;
+
             var EncryptedData = inputData.req_root.body.payload;
             string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
             XmlDocument xmlDoc = new XmlDocument();
@@ -269,11 +274,19 @@
             var nodes = xmlDoc.SelectSingleNode(xpath);
             foreach (XmlNode childrenNode in nodes)
             {
-                dynamic rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
+                rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
+
+                var payload = rejusetJson.FetchDigiLeadStatus;
+                this.appkey = payload.msgHdr.authInfo.token.ToString();
+                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                this.Channel_ID = payload.msgHdr.channelID.ToString();
+
+                rejusetJson = payload.msgBdy;
                 return rejusetJson;
             }
 
             return "";
+
         }
 
     }

@@ -42,6 +42,8 @@ namespace DedupeDigiLead
             }
         }
 
+        public string appkey { get; set; }
+
         public string API_Name { set
             {
                 _logger.API_Name = value;
@@ -68,22 +70,28 @@ namespace DedupeDigiLead
         }
 
 
-        public async Task<dynamic> ValidateDedupDgLdNL(dynamic RequestData, string appkey, string type)
+        public async Task<dynamic> ValidateDedupDgAccNL(dynamic RequestData, string type)
         {
 
-            dynamic ldRtPrm = (type == "NLTR") ? new DedupDgLdNLTRReturn() : new DedupDgLdNLReturn();
+            dynamic ldRtPrm = (type == "NLTR") ? new DedupDgAccNLTRReturn() : new DedupDgAccNLReturn();
+            dynamic dedupDgChk = (type == "NLTR") ? new List<DedupDgChkNLTR>() : new List<DedupDgChkNL>();
             try
             {
-                RequestData = await this.getRequestData(RequestData);
+                RequestData = await this.getRequestData(RequestData, "DedupeDigiAccount" + type);
 
-                string ApplicantId = RequestData.ApplicantId;
+                string LeadAccount = RequestData.LeadAccount;
+
                 if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "DedupDgLdNLappkey"))
                 {
-                    if (!string.IsNullOrEmpty(ApplicantId) && ApplicantId != "")
+                    if (!string.IsNullOrEmpty(LeadAccount) && LeadAccount != "")
                     {
-
-                        ldRtPrm = await this.getDedupDgLdNLStatus(RequestData, type);
-
+                        var AccLead_data = await this._commonFunc.getLeadAccData(LeadAccount);
+                        foreach (var AccId in AccLead_data)
+                        {
+                            var Account_data = await this.getDedupDgAccNLStatus(AccId, type);
+                            dedupDgChk.Add(Account_data);
+                        }
+                        ldRtPrm.accountData = dedupDgChk;
                     }
                     else
                     {
@@ -127,13 +135,14 @@ namespace DedupeDigiLead
         }
 
 
-        public async Task<dynamic> getDedupDgLdNLStatus(dynamic RequestData, string type)
+        public async Task<dynamic> getDedupDgAccNLStatus(string ApplicantId, string type)
         {
-            dynamic ldRtPrm = (type == "NLTR") ? new DedupDgLdNLTRReturn() : new DedupDgLdNLReturn();
+            dynamic ldRtPrm = (type == "NLTR") ? new DedupDgChkNLTR() : new DedupDgChkNL();
             JArray NLTR_data;
             try
             {
-                var Lead_data = await this._commonFunc.getLeadData(RequestData.ApplicantId.ToString());
+
+                var Lead_data = await this._commonFunc.getLeadData(ApplicantId);
                 if (Lead_data.Count > 0)
                 {
                     dynamic LeadData = Lead_data[0];
@@ -149,6 +158,7 @@ namespace DedupeDigiLead
 
                     if (NLTR_data.Count > 0)
                     {
+                        ldRtPrm.AccountID = ApplicantId;
                         if (type == "NLTR")
                         {
                             ldRtPrm.decideNLTR = true;
@@ -194,8 +204,11 @@ namespace DedupeDigiLead
             return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
         }
 
-        private async Task<dynamic> getRequestData(dynamic inputData)
+        private async Task<dynamic> getRequestData(dynamic inputData, string APIname)
         {
+
+            dynamic rejusetJson;
+
             var EncryptedData = inputData.req_root.body.payload;
             string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
             XmlDocument xmlDoc = new XmlDocument();
@@ -204,11 +217,22 @@ namespace DedupeDigiLead
             var nodes = xmlDoc.SelectSingleNode(xpath);
             foreach (XmlNode childrenNode in nodes)
             {
-                dynamic rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
+                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+
+                dynamic payload = rejusetJson1[APIname];
+
+                this.appkey = payload.msgHdr.authInfo.token.ToString();
+                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                this.Channel_ID = payload.msgHdr.channelID.ToString();
+
+                rejusetJson = payload.msgBdy;
+
                 return rejusetJson;
+
             }
 
             return "";
+
         }
 
 

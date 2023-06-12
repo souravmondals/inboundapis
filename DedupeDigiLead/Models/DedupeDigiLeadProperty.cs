@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 namespace DedupeDigiLead
 {
 
+    
     public class DedupDgLdNLReturn
     {
         public bool decideNL { get; set; }   
@@ -35,6 +36,34 @@ namespace DedupeDigiLead
 
     }
 
-   
+    public class DedupDgChkNL
+    {
+        public string AccountID { get; set; }
+        public bool decideNL { get; set; }
+        public string ReturnCode { get; set; }
+        public string Message { get; set; }
+    }
+
+    public class DedupDgChkNLTR
+    {
+        public string AccountID { get; set; }
+        public bool decideNL { get; set; }
+        public string ReturnCode { get; set; }
+        public string Message { get; set; }
+    }
+
+    public class DedupDgAccNLReturn
+    {
+        public List<DedupDgChkNL> accountData { get; set; }
+        public string TransactionID { get; set; }
+        public string ExecutionTime { get; set; }
+
+    }
+    public class DedupDgAccNLTRReturn
+    {
+        public List<DedupDgChkNLTR> accountData { get; set; }
+        public string TransactionID { get; set; }
+        public string ExecutionTime { get; set; }
+    }
 
 }

@@ -20,14 +20,14 @@ namespace DedupeDigiLead.Controllers
     public class DedupeDigiAccountNLController : ControllerBase
     {
 
-        private readonly IDedupDgLdNLExecution _dedupDgLdNLExecution;
+        private readonly IDedupDgAccountNLExecution _dedupDgAccountNLExecution;
         private Stopwatch watch;
 
-        public DedupeDigiAccountNLController(IDedupDgLdNLExecution dedupDgLdNLExecution)
+        public DedupeDigiAccountNLController(IDedupDgAccountNLExecution dedupDgAccountNLExecution)
         {
             watch = new System.Diagnostics.Stopwatch();
             watch.Start();
-            this._dedupDgLdNLExecution = dedupDgLdNLExecution;
+            this._dedupDgAccountNLExecution = dedupDgAccountNLExecution;
         }
 
 
@@ -40,29 +40,15 @@ namespace DedupeDigiLead.Controllers
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
 
-                string Header_Value = string.Empty;
-                if (Request.Headers.TryGetValue("appkey", out var headerValues))
-                {
-                    Header_Value = headerValues;
-                }
-                if (Request.Headers.TryGetValue("ChannelID", out var ChannelID))
-                {
-                    _dedupDgLdNLExecution.Channel_ID = ChannelID;
-                }
 
-                if (Request.Headers.TryGetValue("communicationID", out var communicationID))
-                {
-                    _dedupDgLdNLExecution.Transaction_ID = communicationID;
-                }
-
-                _dedupDgLdNLExecution.API_Name = "DedupeDigiLeadNL";
-                _dedupDgLdNLExecution.Input_payload = request.ToString();
-                DedupDgLdNLReturn Casetatus = await _dedupDgLdNLExecution.ValidateDedupDgLdNL(request,"NL");
+                _dedupDgAccountNLExecution.API_Name = "DedupeDigiAccountNL";
+                _dedupDgAccountNLExecution.Input_payload = request.ToString();
+                DedupDgAccNLReturn Casetatus = await _dedupDgAccountNLExecution.ValidateDedupDgAccNL(request,"NL");
 
                 watch.Stop();
-                Casetatus.TransactionID = this._dedupDgLdNLExecution.Transaction_ID;
+                Casetatus.TransactionID = this._dedupDgAccountNLExecution.Transaction_ID;
                 Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
-                string response = await _dedupDgLdNLExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
+                string response = await _dedupDgAccountNLExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
 
                 return Ok(response);
 

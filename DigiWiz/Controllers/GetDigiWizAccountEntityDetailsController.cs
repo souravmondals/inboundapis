@@ -42,25 +42,10 @@
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
 
-                string Header_Value = string.Empty;
-                if (Request.Headers.TryGetValue("appkey", out var headerValues))
-                {
-                    Header_Value = headerValues;
-                }
-
-                if (Request.Headers.TryGetValue("ChannelID", out var ChannelID))
-                {
-                    _getDigiWizAcEntyDetlsExecution.Channel_ID = ChannelID;
-                }
-
-                if (Request.Headers.TryGetValue("communicationID", out var communicationID))
-                {
-                    _getDigiWizAcEntyDetlsExecution.Transaction_ID = communicationID;
-                }
-
+                
                 _getDigiWizAcEntyDetlsExecution.API_Name = "GetDigiWizAccountEntityDetails";
                 _getDigiWizAcEntyDetlsExecution.Input_payload = request.ToString();
-                WizAcEntyReturn Casetatus = await _getDigiWizAcEntyDetlsExecution.ValidateWizAcEntyDetls(request, Header_Value);
+                WizAcEntyReturn Casetatus = await _getDigiWizAcEntyDetlsExecution.ValidateWizAcEntyDetls(request);
 
                 watch.Stop();
                 Casetatus.TransactionID = this._getDigiWizAcEntyDetlsExecution.Transaction_ID;

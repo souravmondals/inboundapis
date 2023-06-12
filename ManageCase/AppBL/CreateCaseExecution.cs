@@ -109,7 +109,7 @@ namespace ManageCase
         }
 
 
-        public async Task<CaseReturnParam> ValidateCreateCase(dynamic CaseData, string appkey)
+        public async Task<CaseReturnParam> ValidateCreateCase(dynamic CaseData)
         {
             CaseData = await this.getRequestData(CaseData, "CreateCase");
             CaseReturnParam ldRtPrm = new CaseReturnParam();
@@ -227,7 +227,7 @@ namespace ManageCase
             }
         }
 
-        public async Task<CaseStatusRtParam> ValidategetCaseStatus(dynamic CaseData, string appkey)
+        public async Task<CaseStatusRtParam> ValidategetCaseStatus(dynamic CaseData)
         {
             CaseStatusRtParam CSRtPrm = new CaseStatusRtParam();
             CaseData = await this.getRequestData(CaseData, "getCaseStatus");
@@ -462,7 +462,7 @@ namespace ManageCase
         }
                       
 
-        public async Task<CaseListParam> getCaseList(dynamic CaseData, string appkey)
+        public async Task<CaseListParam> getCaseList(dynamic CaseData)
         {
             CaseListParam CSRtPrm = new CaseListParam();
             CSRtPrm.AllCases = new List<CaseDetails>();

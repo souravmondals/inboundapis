@@ -24,6 +24,8 @@ namespace ManageCase
         public Task<string> MeargeJsonString(string json1, string json2);
         public Task<List<MandatoryField>> getMandatoryFields(string subCategoryID);
         public Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue);
+        public bool GetMvalue<T>(string keyname, out T? Outvalue);
+        public void SetMvalue<T>(string keyname, double timevalid, T inputvalue);
 
     }
 }

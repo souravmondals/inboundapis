@@ -258,26 +258,36 @@ namespace ManageCase
                         }
                         else
                         {
-                            CSRtPrm.CaseID = statusCodeId[0]["ticketnumber"];
-                            CSRtPrm.CaseStatus = this.StatusCodes[statusCodeId[0]["statuscode"].ToString()];
-                            CSRtPrm.Casetype = this._CaseType[statusCodeId[0]["eqs_casetype"].ToString()];
-                            CSRtPrm.Subject = statusCodeId[0]["title"];
-                            CSRtPrm.openDate = statusCodeId[0]["createdon"];
-                            CSRtPrm.modifiedDate = statusCodeId[0]["modifiedon"];
-                            CSRtPrm.closeDate = statusCodeId[0]["ccs_resolveddate"];
-                            CSRtPrm.Classification = await this._commonFunc.getClassificationName(statusCodeId[0]["_ccs_classification_value"].ToString());
-                            CSRtPrm.category = await this._commonFunc.getCategoryName(statusCodeId[0]["_ccs_category_value"].ToString());
-                            CSRtPrm.subcategory = await this._commonFunc.getSubCategoryName(statusCodeId[0]["_ccs_subcategory_value"].ToString());
-                            CSRtPrm.AdditionalField = JsonConvert.DeserializeObject(statusCodeId[0]["eqs_casepayload"].ToString());
+                            CaseStatusRtParam case_dtl;
+                            if (!this._commonFunc.GetMvalue<CaseStatusRtParam>("CsSt" + CaseData.CaseID.ToString() + statusCodeId, out case_dtl))
+                            {
+                                CSRtPrm.CaseID = statusCodeId[0]["ticketnumber"];
+                                CSRtPrm.CaseStatus = this.StatusCodes[statusCodeId[0]["statuscode"].ToString()];
+                                CSRtPrm.Casetype = this._CaseType[statusCodeId[0]["eqs_casetype"].ToString()];
+                                CSRtPrm.Subject = statusCodeId[0]["title"];
+                                CSRtPrm.openDate = statusCodeId[0]["createdon"];
+                                CSRtPrm.modifiedDate = statusCodeId[0]["modifiedon"];
+                                CSRtPrm.closeDate = statusCodeId[0]["ccs_resolveddate"];
+                                CSRtPrm.Classification = await this._commonFunc.getClassificationName(statusCodeId[0]["_ccs_classification_value"].ToString());
+                                CSRtPrm.category = await this._commonFunc.getCategoryName(statusCodeId[0]["_ccs_category_value"].ToString());
+                                CSRtPrm.subcategory = await this._commonFunc.getSubCategoryName(statusCodeId[0]["_ccs_subcategory_value"].ToString());
+                                CSRtPrm.AdditionalField = JsonConvert.DeserializeObject(statusCodeId[0]["eqs_casepayload"].ToString());
 
-                            CSRtPrm.Description = statusCodeId[0]["description"];
-                            CSRtPrm.Priority = this._Priority[Convert.ToInt32(statusCodeId[0]["prioritycode"])];
-                            CSRtPrm.Channel = await this._commonFunc.getChannelCode(statusCodeId[0]["_eqs_casechannel_value"].ToString());
-                            CSRtPrm.Source = await this._commonFunc.getSourceCode(statusCodeId[0]["_eqs_casesource_value"].ToString());
-                            CSRtPrm.Accountid = await this._commonFunc.getAccountNumber(statusCodeId[0]["_eqs_account_value"].ToString());
-                            CSRtPrm.customerid = await this._commonFunc.getCustomerCode(statusCodeId[0]["_customerid_value"].ToString());
+                                CSRtPrm.Description = statusCodeId[0]["description"];
+                                CSRtPrm.Priority = this._Priority[Convert.ToInt32(statusCodeId[0]["prioritycode"])];
+                                CSRtPrm.Channel = await this._commonFunc.getChannelCode(statusCodeId[0]["_eqs_casechannel_value"].ToString());
+                                CSRtPrm.Source = await this._commonFunc.getSourceCode(statusCodeId[0]["_eqs_casesource_value"].ToString());
+                                CSRtPrm.Accountid = await this._commonFunc.getAccountNumber(statusCodeId[0]["_eqs_account_value"].ToString());
+                                CSRtPrm.customerid = await this._commonFunc.getCustomerCode(statusCodeId[0]["_customerid_value"].ToString());
 
-                            CSRtPrm.ReturnCode = "CRM-SUCCESS";
+                                CSRtPrm.ReturnCode = "CRM-SUCCESS";
+
+                                this._commonFunc.SetMvalue<CaseStatusRtParam>("CaseStatus" + CaseData.CaseID.ToString() + statusCodeId, 1400, CSRtPrm);
+                            }
+                            else
+                            {
+                                CSRtPrm = case_dtl;
+                            }
                         }
                         
                     }
@@ -513,29 +523,39 @@ namespace ManageCase
                         foreach (var caseDetails in CaseList)
                         {
                             CaseDetails case_details = new CaseDetails();
-                            case_details.CaseID = caseDetails["ticketnumber"].ToString();
-                            case_details.CaseStatus = this.StatusCodes[caseDetails["statuscode"].ToString()];
-                            case_details.Subject = caseDetails["title"].ToString();
-                            case_details.openDate = caseDetails["createdon"].ToString();
-                            case_details.modifiedDate = caseDetails["modifiedon"].ToString();
-                            case_details.closeDate = caseDetails["ccs_resolveddate"].ToString();
-
-                            if (!string.IsNullOrEmpty(caseDetails["eqs_casetype"].ToString()))
+                            CaseDetails case_dtl;
+                            if (!this._commonFunc.GetMvalue<CaseDetails>("Case" + caseDetails["ticketnumber"].ToString(), out case_dtl))
                             {
-                                case_details.Casetype = this._CaseType[caseDetails["eqs_casetype"].ToString()];
+                                case_details.CaseID = caseDetails["ticketnumber"].ToString();
+                                case_details.CaseStatus = this.StatusCodes[caseDetails["statuscode"].ToString()];
+                                case_details.Subject = caseDetails["title"].ToString();
+                                case_details.openDate = caseDetails["createdon"].ToString();
+                                case_details.modifiedDate = caseDetails["modifiedon"].ToString();
+                                case_details.closeDate = caseDetails["ccs_resolveddate"].ToString();
+
+                                if (!string.IsNullOrEmpty(caseDetails["eqs_casetype"].ToString()))
+                                {
+                                    case_details.Casetype = this._CaseType[caseDetails["eqs_casetype"].ToString()];
+                                }
+
+                                case_details.Classification = await this._commonFunc.getClassificationName(caseDetails["_ccs_classification_value"].ToString());
+                                case_details.category = await this._commonFunc.getCategoryName(caseDetails["_ccs_category_value"].ToString());
+                                case_details.subcategory = await this._commonFunc.getSubCategoryName(caseDetails["_ccs_subcategory_value"].ToString());
+                                case_details.AdditionalField = (JObject)JsonConvert.DeserializeObject(caseDetails["eqs_casepayload"].ToString());
+
+                                case_details.Description = caseDetails["description"].ToString();
+                                case_details.Priority = this._Priority[Convert.ToInt32(caseDetails["prioritycode"])];
+                                case_details.Channel = await this._commonFunc.getChannelCode(caseDetails["_eqs_casechannel_value"].ToString());
+                                case_details.Source = await this._commonFunc.getSourceCode(caseDetails["_eqs_casesource_value"].ToString());
+                                case_details.Accountid = await this._commonFunc.getAccountNumber(caseDetails["_eqs_account_value"].ToString());
+                                case_details.customerid = await this._commonFunc.getCustomerCode(caseDetails["_customerid_value"].ToString());
+
+                                this._commonFunc.SetMvalue<CaseDetails>("Case" + caseDetails["ticketnumber"].ToString(), 60, case_details);
                             }
-
-                            case_details.Classification = await this._commonFunc.getClassificationName(caseDetails["_ccs_classification_value"].ToString());
-                            case_details.category = await this._commonFunc.getCategoryName(caseDetails["_ccs_category_value"].ToString());
-                            case_details.subcategory = await this._commonFunc.getSubCategoryName(caseDetails["_ccs_subcategory_value"].ToString());
-                            case_details.AdditionalField = (JObject)JsonConvert.DeserializeObject(caseDetails["eqs_casepayload"].ToString());
-
-                            case_details.Description = caseDetails["description"].ToString();
-                            case_details.Priority = this._Priority[Convert.ToInt32(caseDetails["prioritycode"])];
-                            case_details.Channel = await this._commonFunc.getChannelCode(caseDetails["_eqs_casechannel_value"].ToString());
-                            case_details.Source = await this._commonFunc.getSourceCode(caseDetails["_eqs_casesource_value"].ToString());
-                            case_details.Accountid = await this._commonFunc.getAccountNumber(caseDetails["_eqs_account_value"].ToString());
-                            case_details.customerid = await this._commonFunc.getCustomerCode(caseDetails["_customerid_value"].ToString());
+                            else
+                            {
+                                case_details = case_dtl;
+                            }
 
                             CSRtPrm.AllCases.Add(case_details);
                         }

@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿namespace GFSProduct
+{
+
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,20 +13,17 @@ using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Diagnostics.Metrics;
-using CRMConnect;
+    using CRMConnect;
 
-namespace DedupeDigiLead
-{
+
     public class CommonFunction : ICommonFunction
     {
         public IQueryParser _queryParser;
-        public ILoggers _loggers;
-        public IMemoryCache _cache;
-        public CommonFunction(IMemoryCache cache, IQueryParser queryParser, ILoggers loggers)
+        private ILoggers _logger;
+        public CommonFunction(ILoggers logger, IQueryParser queryParser)
         {
             this._queryParser = queryParser;
-            this._loggers = loggers;
-            this._cache = cache;
+            this._logger = logger;
         }
         public async Task<string> AcquireNewTokenAsync()
         {
@@ -160,181 +160,47 @@ namespace DedupeDigiLead
             return TableId;
         }
 
-        public async Task<string> getclassificationId(string classification)
+        public async Task<string> getProductCatName(string product_Cat_Id)
         {            
-            return await this.getIDfromMSDTable("ccs_classifications", "ccs_classificationid", "ccs_name", classification);
+            return await this.getIDfromMSDTable("eqs_productcategories", "eqs_name", "eqs_productcategoryid", product_Cat_Id);
+        }
+        
+        public async Task<string> getPurposeOfCreation(string PurposeOfCreatioId)
+        {            
+            return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_name", "eqs_purposeofcreationid", PurposeOfCreatioId);
         }
 
-        public async Task<List<string>> getLeadAccData(string LeadAccId)
-        {
-            List<string> Accounts = new List<string>();
-            List<string> Accounts1;
-            if (!this.GetMvalue<List<string>>("LeadAccId" + LeadAccId, out Accounts1))
-            {
-                string lead_accountid = await this.getIDfromMSDTable("eqs_leadaccounts", "eqs_leadaccountid", "eqs_crmleadaccountid", LeadAccId);
-                string query_url = $"eqs_accountapplicants()?$select=eqs_applicantid&$filter=_eqs_leadaccountid_value eq '{lead_accountid}'";
-                var AccountDetails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Account_Details = await this.getDataFromResponce(AccountDetails);
-                foreach (var account in Account_Details)
-                {
-                    Accounts.Add(account["eqs_applicantid"].ToString());
-                }
-                this.SetMvalue<List<string>>("LeadAccId" + LeadAccId, 60, Accounts);
-            }
-            else
-            {
-                Accounts = Accounts1;
-            }
-            return Accounts; 
-        }
-
-        public async Task<JArray> getLeadData(string ApplicantId)
+        public async Task<JArray> getAccountData(string AccountNumber)
         {
             try
             {
-                string query_url = $"eqs_accountapplicants()?$select=eqs_internalpan,eqs_aadhar,eqs_passportnumber,eqs_name,eqs_dob,eqs_cinnumber,eqs_dateofregistration,_eqs_entitytypeid_value&$filter=eqs_applicantid eq '{ApplicantId}'";
-                var Leaddtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Lead_dtails = await this.getDataFromResponce(Leaddtails);
-                return Lead_dtails;
+                string query_url = $"eqs_accounts()?$filter=eqs_accountno eq '{AccountNumber}'";
+                var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Account_dtails = await this.getDataFromResponce(Accountdtails);
+                return Account_dtails;
             }
             catch (Exception ex)
             {
-                this._loggers.LogError("getLeadData", ex.Message);
+                this._logger.LogError("getLeadData", ex.Message);
                 throw ex;
             }
         }
 
-        public async Task<JArray> getNLTRData(string Pan, string aadhar, string passport, string cin)
+        public async Task<JArray> getContactData(string contact_id)
         {
             try
             {
-                int filter = 0;
-                string query_url = $"eqs_trnls()?$select=eqs_passports,eqs_pan,eqs_aadhaar,eqs_cin,eqs_dob&$filter=";
-                if (!string.IsNullOrEmpty(Pan))
-                {
-                    query_url += $"eqs_pan eq '{Pan}' ";
-                    filter++;
-                }
-                if (!string.IsNullOrEmpty(aadhar))
-                {
-                    if (filter > 0)
-                    {
-                        query_url += $"or eqs_aadhaar eq '{aadhar}' ";
-                    }
-                    else
-                    {
-                        query_url += $"eqs_aadhaar eq '{aadhar}' ";
-                    }
-                    filter++;
-                }
-                if (!string.IsNullOrEmpty(passport))
-                {
-                    if (filter > 0)
-                    {
-                        query_url += $"or eqs_passports eq '{passport}' ";
-                    }
-                    else
-                    {
-                        query_url += $"eqs_passports eq '{passport}' ";
-                    }
-                    filter++;
-                }
-                if (!string.IsNullOrEmpty(cin))
-                {
-                    if (filter > 0)
-                    {
-                        query_url += $"or eqs_cin eq '{cin}' ";
-                    }
-                    else
-                    {
-                        query_url += $"eqs_cin eq '{cin}' ";
-                    }
-                    filter++;
-                }
-                if (filter > 0)
-                {
-                    var NLTRdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                    var NLTR_dtails = await this.getDataFromResponce(NLTRdtails);
-                    return NLTR_dtails;
-                }
-                else
-                {
-                    return new JArray();
-                }
-                
+                string query_url = $"contacts({contact_id})?$select=createdon,eqs_entityflag,eqs_subentitytypeid,mobilephone,eqs_customerid";
+                var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Account_dtails = await this.getDataFromResponce(Accountdtails);
+                return Account_dtails;
             }
             catch (Exception ex)
             {
-                this._loggers.LogError("getLeadData", ex.Message);
+                this._logger.LogError("getLeadData", ex.Message);
                 throw ex;
             }
         }
-
-        public async Task<JArray> getNLData(string Pan, string aadhar, string passport, string cin)
-        {
-            try
-            {
-                int filter = 0;
-                string query_url = $"eqs_nls()?$select=eqs_passport,eqs_pan,eqs_aadhaar,eqs_cin,eqs_doiordob&$filter=";
-                if (!string.IsNullOrEmpty(Pan))
-                {
-                    query_url += $"eqs_pan eq '{Pan}' ";
-                    filter++;
-                }
-                if (!string.IsNullOrEmpty(aadhar))
-                {
-                    if (filter > 0)
-                    {
-                        query_url += $"or eqs_aadhaar eq '{aadhar}' ";
-                    }
-                    else
-                    {
-                        query_url += $"eqs_aadhaar eq '{aadhar}' ";
-                    }
-                    filter++;
-                }
-                if (!string.IsNullOrEmpty(passport))
-                {
-                    if (filter > 0)
-                    {
-                        query_url += $"or eqs_passport eq '{passport}' ";
-                    }
-                    else
-                    {
-                        query_url += $"eqs_passport eq '{passport}' ";
-                    }
-                    filter++;
-                }
-                if (!string.IsNullOrEmpty(cin))
-                {
-                    if (filter > 0)
-                    {
-                        query_url += $"or eqs_cin eq '{cin}' ";
-                    }
-                    else
-                    {
-                        query_url += $"eqs_cin eq '{cin}' ";
-                    }
-                    filter++;
-                }
-                if (filter > 0)
-                {
-                    var NLTRdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                    var NLTR_dtails = await this.getDataFromResponce(NLTRdtails);
-                    return NLTR_dtails;
-                }
-                    else
-                {
-                    return new JArray();
-                }
-        }
-            catch (Exception ex)
-            {
-                this._loggers.LogError("getLeadData", ex.Message);
-                throw ex;
-            }
-        }
-
 
         public async Task<string> MeargeJsonString(string json1, string json2)
         {

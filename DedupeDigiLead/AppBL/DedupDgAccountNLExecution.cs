@@ -10,6 +10,7 @@ using System.Xml.Linq;
 using System.Collections.Generic;
 using CRMConnect;
 using System.Xml;
+using Microsoft.Identity.Client;
 
 namespace DedupeDigiLead
 {
@@ -138,64 +139,91 @@ namespace DedupeDigiLead
         public async Task<dynamic> getDedupDgAccNLStatus(string ApplicantId, string type)
         {
             dynamic ldRtPrm = (type == "NLTR") ? new DedupDgChkNLTR() : new DedupDgChkNL();
+
+            DedupDgChkNLTR dedupDgChkNLTR;
+            DedupDgChkNL dedupDgChkNL;
             JArray NLTR_data;
-            try
+            int mData = 0;
+            if (type == "NLTR" && this._commonFunc.GetMvalue<DedupDgChkNLTR>("NLTR" + ApplicantId, out dedupDgChkNLTR))
+            {
+                mData = 1;
+                ldRtPrm = dedupDgChkNLTR;
+            }
+            else if (type == "NL" && this._commonFunc.GetMvalue<DedupDgChkNL>("NL" + ApplicantId, out dedupDgChkNL))
+            {
+                mData = 1;
+                ldRtPrm = dedupDgChkNL;
+            }
+            else
             {
 
-                var Lead_data = await this._commonFunc.getLeadData(ApplicantId);
-                if (Lead_data.Count > 0)
+                try
                 {
-                    dynamic LeadData = Lead_data[0];
 
-                    if (type == "NLTR")
+                    var Lead_data = await this._commonFunc.getLeadData(ApplicantId);
+                    if (Lead_data.Count > 0)
                     {
-                        NLTR_data = await this._commonFunc.getNLTRData(LeadData.eqs_internalpan.ToString(), LeadData.eqs_aadhar.ToString(), LeadData.eqs_passportnumber.ToString(), LeadData.eqs_cinnumber.ToString());
-                    }
-                    else
-                    {
-                        NLTR_data = await this._commonFunc.getNLData(LeadData.eqs_internalpan.ToString(), LeadData.eqs_aadhar.ToString(), LeadData.eqs_passportnumber.ToString(), LeadData.eqs_cinnumber.ToString());
-                    }
+                        dynamic LeadData = Lead_data[0];
 
-                    if (NLTR_data.Count > 0)
-                    {
-                        ldRtPrm.AccountID = ApplicantId;
                         if (type == "NLTR")
                         {
-                            ldRtPrm.decideNLTR = true;
+                            NLTR_data = await this._commonFunc.getNLTRData(LeadData.eqs_internalpan.ToString(), LeadData.eqs_aadhar.ToString(), LeadData.eqs_passportnumber.ToString(), LeadData.eqs_cinnumber.ToString());
+                        }
+                        else
+                        {
+                            NLTR_data = await this._commonFunc.getNLData(LeadData.eqs_internalpan.ToString(), LeadData.eqs_aadhar.ToString(), LeadData.eqs_passportnumber.ToString(), LeadData.eqs_cinnumber.ToString());
+                        }
+
+                        if (NLTR_data.Count > 0)
+                        {
+                            ldRtPrm.AccountID = ApplicantId;
+                            if (type == "NLTR")
+                            {
+                                ldRtPrm.decideNLTR = true;
+                            }
+                            else if (type == "NL")
+                            {
+                                ldRtPrm.decideNL = true;
+                            }
+
+                            ldRtPrm.ReturnCode = "CRM - SUCCESS";
+                            ldRtPrm.Message = "";
+                        }
+                        else
+                        {
+                            if (type == "NLTR")
+                            {
+                                ldRtPrm.decideNLTR = false;
+                            }
+                            else if (type == "NL")
+                            {
+                                ldRtPrm.decideNL = false;
+                            }
+
+                            ldRtPrm.ReturnCode = "CRM - SUCCESS";
+                            ldRtPrm.Message = "";
+                        }
+
+                        if (type == "NLTR")
+                        {
+                            this._commonFunc.SetMvalue<DedupDgChkNLTR>("NLTR" + ApplicantId, 60, ldRtPrm);
                         }
                         else if (type == "NL")
                         {
-                            ldRtPrm.decideNL = true;
+                            this._commonFunc.SetMvalue<DedupDgChkNL>("NL" + ApplicantId, 60, ldRtPrm);
                         }
-                       
-                        ldRtPrm.ReturnCode = "CRM - SUCCESS";
-                        ldRtPrm.Message = "";
-                    }
-                    else
-                    {
-                        if (type == "NLTR")
-                        {
-                            ldRtPrm.decideNLTR = false;
-                        }
-                        else if (type == "NL")
-                        {
-                            ldRtPrm.decideNL = false;
-                        }
-                     
-                        ldRtPrm.ReturnCode = "CRM - SUCCESS";
-                        ldRtPrm.Message = "";
-                    }
 
-                    
+                    }
                 }
+                catch (Exception ex)
+                {
+
+                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                    ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                }
+
             }
-            catch (Exception ex)
-            {
-                
-                ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                ldRtPrm.Message = OutputMSG.Resource_n_Found;
-            }
-            
+
                 return ldRtPrm;
         }
 

@@ -473,12 +473,7 @@ namespace CreateLeads
                         if (ldProperty.BranchId != null && ldProperty.BranchId != "")
                             odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({ldProperty.BranchId})");
                     }
-                    if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
-                    {
-                        ldProperty.ETBCustomerID = await this._commonFunc.getCustomerId(LeadData.CustomerID.ToString());
-                        if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
-                            odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
-                    }
+                    
 
                     if (LeadData.Pincode != null && LeadData.Pincode.ToString() != "")
                         lead_Property.eqs_pincode = LeadData.Pincode;

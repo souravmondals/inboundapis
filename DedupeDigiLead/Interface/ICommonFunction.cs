@@ -9,5 +9,8 @@ namespace DedupeDigiLead
         public Task<JArray> getNLData(string Pan, string aadhar, string passport, string cin);
         public Task<List<string>> getLeadAccData(string LeadAccId);
 
+        public bool GetMvalue<T>(string keyname, out T? Outvalue);
+        public void SetMvalue<T>(string keyname, double timevalid, T inputvalue);
+
     }
 }

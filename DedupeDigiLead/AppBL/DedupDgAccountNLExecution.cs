@@ -206,11 +206,11 @@ namespace DedupeDigiLead
 
                         if (type == "NLTR")
                         {
-                            this._commonFunc.SetMvalue<DedupDgChkNLTR>("NLTR" + ApplicantId, 1, ldRtPrm);
+                            this._commonFunc.SetMvalue<DedupDgChkNLTR>("NLTR" + ApplicantId, 2, ldRtPrm);
                         }
                         else if (type == "NL")
                         {
-                            this._commonFunc.SetMvalue<DedupDgChkNL>("NL" + ApplicantId, 1, ldRtPrm);
+                            this._commonFunc.SetMvalue<DedupDgChkNL>("NL" + ApplicantId, 2, ldRtPrm);
                         }
 
                     }

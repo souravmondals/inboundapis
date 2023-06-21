@@ -47,7 +47,7 @@ namespace DedupeDigiLead
     public class DedupDgChkNLTR
     {
         public string AccountID { get; set; }
-        public bool decideNL { get; set; }
+        public bool decideNLTR { get; set; }
         public string ReturnCode { get; set; }
         public string Message { get; set; }
     }

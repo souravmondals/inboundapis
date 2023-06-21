@@ -179,7 +179,7 @@ namespace DedupeDigiLead
                 {
                     Accounts.Add(account["eqs_applicantid"].ToString());
                 }
-                this.SetMvalue<List<string>>("LeadAccId" + LeadAccId, 60, Accounts);
+                this.SetMvalue<List<string>>("LeadAccId" + LeadAccId, 5, Accounts);
             }
             else
             {
@@ -265,7 +265,7 @@ namespace DedupeDigiLead
             }
             catch (Exception ex)
             {
-                this._loggers.LogError("getLeadData", ex.Message);
+                this._loggers.LogError("getNLTRData", ex.Message);
                 throw ex;
             }
         }
@@ -330,7 +330,7 @@ namespace DedupeDigiLead
         }
             catch (Exception ex)
             {
-                this._loggers.LogError("getLeadData", ex.Message);
+                this._loggers.LogError("getNLData", ex.Message);
                 throw ex;
             }
         }

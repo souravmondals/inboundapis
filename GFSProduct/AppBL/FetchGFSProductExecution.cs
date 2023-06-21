@@ -12,6 +12,8 @@
     using CRMConnect;
     using System.Xml;
     using System.Threading.Channels;
+    using System.ComponentModel;
+    using System;
 
     public class FetchGFSProductExecution : IFetchGFSProductExecution
     {
@@ -78,28 +80,50 @@
             RequestData = await this.getRequestData(RequestData, "FetchGFSProductList");
             try
             {
-                string AccountNumber = RequestData.AccountNumber;
+                string CategoryCode = RequestData.CategoryCode;
+                string leadId = RequestData.LeadID;
+                string customerID = RequestData.UCIC;
+
                 if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "FetchGFSProductappkey"))
                 {
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID))
                     {
-                        if (!string.IsNullOrEmpty(AccountNumber) && AccountNumber != "")
+                        if (!string.IsNullOrEmpty(CategoryCode) && CategoryCode != "")
                         {
-
-                            ldRtPrm = await this.getGFSProductList(AccountNumber);
+                            if (!string.IsNullOrEmpty(leadId) && leadId != "")
+                            {
+                                ldRtPrm = await this.getApplicentToProduct(leadId, CategoryCode);
+                            }
+                            else if (!string.IsNullOrEmpty(customerID) && customerID != "")
+                            {
+                                ldRtPrm = await this.getUcicToProduct(customerID, CategoryCode);
+                            }
+                            else
+                            {
+                                this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
+                                ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                                ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                            }
+                            
 
                         }
                         else
                         {
-                            this._logger.LogInformation("ValidateFtchDgLdSts", "Input parameters are incorrect");
+                            this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
                             ldRtPrm.Message = OutputMSG.Incorrect_Input;
                         }
                     }
+                    else
+                    {
+                        this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
+                        ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateFtchDgLdSts", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
                     ldRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
@@ -108,7 +132,7 @@
             }
             catch (Exception ex)
             {
-                this._logger.LogError("ValidateFtchDgLdSts", ex.Message);
+                this._logger.LogError("ValidateProductInput", ex.Message);
                 throw ex;
             }
             
@@ -129,58 +153,54 @@
 
         
 
-        public async Task<GFSProducrListReturn> getGFSProductList(string AccountNumber)
+        public async Task<GFSProducrListReturn> getUcicToProduct(string customerID, string CategoryCode)
         {
             GFSProducrListReturn csRtPrm = new GFSProducrListReturn();
             try
             {
-                var Account_data = await this._commonFunc.getAccountData(AccountNumber);
-                if (Account_data.Count > 0)
+                string CategoryId = await this._commonFunc.getCategoryId(CategoryCode);
+                JArray applicentDetails = await this._commonFunc.getCustomerDetails(customerID);
+                if (applicentDetails.Count > 0)
                 {
-                    dynamic AccountData = Account_data[0];
-                    csRtPrm.accountNumber = AccountNumber;
+                    productFilter product_Filter = new productFilter();
 
-                    if (AccountData.createdon.ToString().Length > 1)
+                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_gender"].ToString()) && applicentDetails[0]["eqs_gender"].ToString() == "789030001")
                     {
-                        csRtPrm.accountCreatedOn = AccountData.createdon;
-                        csRtPrm.productVariant = AccountData.eqs_productcode;
-
-                        string product_Cat_Id = AccountData._eqs_productcategoryid_value;
-                        csRtPrm.productCategory = await this._commonFunc.getProductCatName(product_Cat_Id);
-
-                        string product_customer_Id = AccountData._eqs_customeridvalue_value;
-
-                        csRtPrm.customerInfo = new CustomerInfo();
-                        csRtPrm.customerInfo.accountTitle = AccountData.eqs_name;
-                        var Contact_data = await this._commonFunc.getContactData(product_customer_Id);
-
-                        foreach (var cu_Data in Contact_data)
-                        {
-                            csRtPrm.customerInfo.UCICCreatedOn = (cu_Data["createdon"].ToString()==null)? "" : cu_Data["createdon"].ToString();
-                            csRtPrm.customerInfo.entityFlag = (cu_Data["eqs_entityflag"].ToString() == null)? "" : cu_Data["eqs_entityflag"].ToString(); 
-                            csRtPrm.customerInfo.entityType = (AccountData["eqs_subentitytypeid"] == null)? "" : AccountData["eqs_subentitytypeid"].ToString();                           
-                            csRtPrm.customerInfo.phoneNumber = (cu_Data["mobilephone"].ToString() == null)? "" : cu_Data["mobilephone"].ToString();
-                            csRtPrm.customerInfo.ucic = (cu_Data["eqs_customerid"].ToString() == null) ? "" : cu_Data["eqs_customerid"].ToString();
-                        }                        
-
-                        csRtPrm.ReturnCode = "CRM-SUCCESS";
-                        csRtPrm.Message = OutputMSG.Case_Success;
+                        product_Filter.gender = "Woman";
                     }
 
-                    
-                    
+                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_age"].ToString()))
+                    {
+                        product_Filter.age = applicentDetails[0]["eqs_age"].ToString();
+                    }
 
-                }
-                else
-                {
-                    this._logger.LogInformation("getDigiLeadStatus", "Input parameters are incorrect");
-                    csRtPrm.ReturnCode = "CRM-ERROR-102";
-                    csRtPrm.Message = OutputMSG.Incorrect_Input;
+                    if (!string.IsNullOrEmpty(applicentDetails[0]["_eqs_subentitytypeid_value"].ToString()))
+                    {
+                        string subentity = await this._commonFunc.getSubentity(applicentDetails[0]["_eqs_subentitytypeid_value"].ToString());
+                        if (subentity.ToLower() == "foreigners")
+                        {
+                            product_Filter.subentity = "NRI";
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_customersegment"].ToString()) && applicentDetails[0]["eqs_customersegment"].ToString() == "789030002")
+                    {
+                        product_Filter.customerSegment = "elite";
+                    }
+
+                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_isstafffcode"].ToString()))
+                    {
+                        product_Filter.gender = "staff";
+                    }
+
+                    product_Filter.productCategory = CategoryId;
+
+                    csRtPrm = await this.getProductDetails(product_Filter);
                 }
             }
             catch(Exception ex)
             {
-                this._logger.LogError("getDigiLeadStatus", ex.Message);
+                this._logger.LogError("getUcicToProduct", ex.Message);
                 csRtPrm.ReturnCode = "CRM-ERROR-102";
                 csRtPrm.Message = OutputMSG.Incorrect_Input;
             }
@@ -190,8 +210,173 @@
             return csRtPrm;
         }
 
+        public async Task<GFSProducrListReturn> getApplicentToProduct(string ApplicantId, string CategoryCode)
+        {
+            GFSProducrListReturn csRtPrm = new GFSProducrListReturn();
+            try
+            {
+                string CategoryId = await this._commonFunc.getCategoryId(CategoryCode);
+                JArray applicentDetails = await this._commonFunc.getApplicantDetails(ApplicantId);
+                
+                if (applicentDetails.Count > 0)
+                {
+                    productFilter product_Filter = new productFilter();
 
-       
+                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_gendercode"].ToString()) && applicentDetails[0]["eqs_gendercode"].ToString() == "789030001")
+                    {
+                        product_Filter.gender = "Woman";
+                    }
+
+                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_leadage"].ToString()))
+                    {
+                        product_Filter.age = applicentDetails[0]["eqs_leadage"].ToString();
+                    }
+
+                    if (!string.IsNullOrEmpty(applicentDetails[0]["_eqs_subentity_value"].ToString()))
+                    {
+                        string subentity = await this._commonFunc.getSubentity(applicentDetails[0]["_eqs_subentity_value"].ToString());
+                        if (subentity.ToLower() == "foreigners")
+                        {
+                            product_Filter.subentity = "NRI";
+                        }                        
+                    }
+
+                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_customersegment"].ToString()) && applicentDetails[0]["eqs_customersegment"].ToString() == "789030002")
+                    {
+                        product_Filter.customerSegment = "elite";
+                    }
+
+                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_isstaffcode"].ToString()))
+                    {
+                        product_Filter.gender = "staff";
+                    }
+
+                    product_Filter.productCategory = CategoryId;
+
+                    csRtPrm = await this.getProductDetails(product_Filter);
+                }
+                else
+                {
+                    this._logger.LogInformation("getApplicentToProduct", "No product found in the lead");
+                    csRtPrm.ReturnCode = "CRM-ERROR-102";
+                    csRtPrm.Message = OutputMSG.Resource_n_Found;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getApplicentToProduct", ex.Message);
+                csRtPrm.ReturnCode = "CRM-ERROR-102";
+                csRtPrm.Message = OutputMSG.Incorrect_Input;
+            }
+
+            return csRtPrm;
+        }
+
+        public async Task<GFSProducrListReturn> getProductDetails(productFilter product_Filter)
+        {
+            GFSProducrListReturn csRtPrm = new GFSProducrListReturn();
+            var productDetails = await this._commonFunc.getProductData(product_Filter);
+            if (productDetails.Count >0 )
+            {
+                csRtPrm.fdproductsApplicable = new List<FDProductsApplicable>();
+                csRtPrm.rdproductsApplicable = new List<RDProductsApplicable>();
+                csRtPrm.applicableCASAProducts = new List<ApplicableCASAProducts>();
+
+            }
+            foreach(dynamic product_detail in productDetails)
+            {
+                if (product_detail.eqs_crmproductcategorycode.ToString() == "615290001")
+                {
+                    FDProductsApplicable fDProductsApplicable = new FDProductsApplicable();
+                    fDProductsApplicable.productCode = product_detail.eqs_productcode;
+                    fDProductsApplicable.productName = product_detail.eqs_name;
+                    fDProductsApplicable.nri = product_detail.eqs_nri;
+                    fDProductsApplicable.mfi = product_detail.eqs_mfi;
+                    fDProductsApplicable.minAge = product_detail.eqs_minage;
+                    fDProductsApplicable.maxAge = product_detail.eqs_maxage;
+                    fDProductsApplicable.staff = product_detail.eqs_staff;
+                    fDProductsApplicable.woman = product_detail.eqs_woman;
+                    fDProductsApplicable.minTenureDays = product_detail.eqs_mintenuredays;
+                    fDProductsApplicable.maxTenureDays = product_detail.eqs_maxtenuredays;
+                    fDProductsApplicable.minTenureMonths = product_detail.eqs_mintenuremonths;
+                    fDProductsApplicable.maxTenureMonths = product_detail.eqs_maxtenuremonths;
+                    fDProductsApplicable.minAmount = product_detail.eqs_minamount;
+                    fDProductsApplicable.maxAmount = product_detail.eqs_maxamount;
+                    fDProductsApplicable.depositVariance = product_detail.eqs_depositvariance;
+                    fDProductsApplicable.payoutFrequency = product_detail.eqs_payoutfrequency;
+                    fDProductsApplicable.compoundingFrequency = product_detail.eqs_compoundingfrequency;
+                    fDProductsApplicable.renewalOptions = product_detail.eqs_renewaloptions;
+                    fDProductsApplicable.payoutFrequencyType = product_detail.eqs_payoutfrequencytype;
+                    fDProductsApplicable.compoundingFrequencyType = product_detail.eqs_compoundingfrequencytype;
+                    fDProductsApplicable.isElite = product_detail.eqs_iselite;
+
+                    csRtPrm.fdproductsApplicable.Add(fDProductsApplicable);
+                }
+                else if (product_detail.eqs_crmproductcategorycode.ToString() == "615290002")
+                {
+                    RDProductsApplicable rdProductsApplicable = new RDProductsApplicable();
+                    rdProductsApplicable.productCode = product_detail.eqs_productcode;
+                    rdProductsApplicable.productName = product_detail.eqs_name;
+                    rdProductsApplicable.nri = product_detail.eqs_nri;
+                    rdProductsApplicable.mfi = product_detail.eqs_mfi;
+                    rdProductsApplicable.minAge = product_detail.eqs_minage;
+                    rdProductsApplicable.maxAge = product_detail.eqs_maxage;
+                    rdProductsApplicable.staff = product_detail.eqs_staff;
+                    rdProductsApplicable.woman = product_detail.eqs_woman;
+                    rdProductsApplicable.minTenureDays = product_detail.eqs_mintenuredays;
+                    rdProductsApplicable.maxTenureDays = product_detail.eqs_maxtenuredays;
+                    rdProductsApplicable.minTenureMonths = product_detail.eqs_mintenuremonths;
+                    rdProductsApplicable.maxTenureMonths = product_detail.eqs_maxtenuremonths;
+                    rdProductsApplicable.minAmount = product_detail.eqs_minamount;
+                    rdProductsApplicable.maxAmount = product_detail.eqs_maxamount;
+                    rdProductsApplicable.depositVariance = product_detail.eqs_depositvariance;
+                    rdProductsApplicable.payoutFrequency = product_detail.eqs_payoutfrequency;
+                    rdProductsApplicable.compoundingFrequency = product_detail.eqs_compoundingfrequency;
+                    rdProductsApplicable.renewalOptions = product_detail.eqs_renewaloptions;
+                    rdProductsApplicable.payoutFrequencyType = product_detail.eqs_payoutfrequencytype;
+                    rdProductsApplicable.compoundingFrequencyType = product_detail.eqs_compoundingfrequencytype;
+                    rdProductsApplicable.isElite = product_detail.eqs_iselite;
+
+                    csRtPrm.rdproductsApplicable.Add(rdProductsApplicable);
+                }
+                else
+                {
+                    ApplicableCASAProducts applicableCASAProducts = new ApplicableCASAProducts();
+                    applicableCASAProducts.productCode = product_detail.eqs_productcode;
+                    applicableCASAProducts.productName = product_detail.eqs_name;
+                    applicableCASAProducts.nri = product_detail.eqs_nri;
+                    applicableCASAProducts.mfi = product_detail.eqs_mfi;
+                    applicableCASAProducts.minAge = product_detail.eqs_minage;
+                    applicableCASAProducts.maxAge = product_detail.eqs_maxage;
+                    applicableCASAProducts.staff = product_detail.eqs_staff;
+                    applicableCASAProducts.woman = product_detail.eqs_woman;
+                    applicableCASAProducts.chequeBook = product_detail.eqs_chequebook;
+                    applicableCASAProducts.debitCard = product_detail.eqs_debitcard;
+                    applicableCASAProducts.applicableDebitCard = product_detail.eqs_applicabledebitcard;
+                    applicableCASAProducts.defaultDebitCard = product_detail.eqs_defaultdebitcard;
+                    applicableCASAProducts.instaKit = product_detail.eqs_InstaKit;
+                    applicableCASAProducts.doorStep = product_detail.eqs_doorstep;
+                    applicableCASAProducts.frontEnd = product_detail.eqs_frontend;
+                    applicableCASAProducts.PMAY = product_detail.eqs_pmay;
+                    applicableCASAProducts.isElite = product_detail.eqs_iselite;
+                    applicableCASAProducts.srnoofchequeleaves = product_detail.eqs_srnoofchequeleaves;
+                    applicableCASAProducts.noofchequeleaves = product_detail.eqs_noofchequeleaves;
+                    applicableCASAProducts.srdefaultchequeleaves = product_detail.eqs_srdefaultchequeleaves;
+                    applicableCASAProducts.defaultchequeleaves = product_detail.eqs_defaultchequeleaves;
+
+
+                    csRtPrm.applicableCASAProducts.Add(applicableCASAProducts);
+                }
+
+            }
+
+            csRtPrm.ReturnCode = "CRM-SUCCESS";
+            csRtPrm.Message = OutputMSG.Case_Success;
+
+            return csRtPrm;
+        }
+
         public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
         {
             Dictionary<string, string> CRMProp = new Dictionary<string, string>();

@@ -45,14 +45,14 @@
                 
                 _fetchGFSProductExecution.API_Name = "FetchGFSProductlist";
                 _fetchGFSProductExecution.Input_payload = request.ToString();
-                GFSProducrListReturn Casetatus = await _fetchGFSProductExecution.ValidateProductInput(request);
+                GFSProducrListReturn productList = await _fetchGFSProductExecution.ValidateProductInput(request);
 
                 watch.Stop();
-                Casetatus.TransactionID = this._fetchGFSProductExecution.Transaction_ID;
-                Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
+                productList.TransactionID = this._fetchGFSProductExecution.Transaction_ID;
+                productList.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
-                string response = await _fetchGFSProductExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
-                this._fetchGFSProductExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
+                string response = await _fetchGFSProductExecution.EncriptRespons(JsonConvert.SerializeObject(productList));
+                this._fetchGFSProductExecution.CRMLog(JsonConvert.SerializeObject(request), response, productList.ReturnCode);
 
                 return Ok(response);
 

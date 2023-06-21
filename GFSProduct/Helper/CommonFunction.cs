@@ -20,10 +20,12 @@ using System.Diagnostics.Metrics;
     {
         public IQueryParser _queryParser;
         private ILoggers _logger;
-        public CommonFunction(ILoggers logger, IQueryParser queryParser)
+        public IMemoryCache _cache;
+        public CommonFunction(IMemoryCache cache, ILoggers logger, IQueryParser queryParser)
         {
             this._queryParser = queryParser;
             this._logger = logger;
+            this._cache = cache;
         }
         public async Task<string> AcquireNewTokenAsync()
         {
@@ -160,28 +162,105 @@ using System.Diagnostics.Metrics;
             return TableId;
         }
 
-        public async Task<string> getProductCatName(string product_Cat_Id)
+        public async Task<string> getCategoryId(string product_Cat_Id)
         {            
-            return await this.getIDfromMSDTable("eqs_productcategories", "eqs_name", "eqs_productcategoryid", product_Cat_Id);
-        }
-        
-        public async Task<string> getPurposeOfCreation(string PurposeOfCreatioId)
-        {            
-            return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_name", "eqs_purposeofcreationid", PurposeOfCreatioId);
+            return await this.getIDfromMSDTable("eqs_productcategories", "eqs_productcategoryid", "eqs_productcategorycode", product_Cat_Id);
         }
 
-        public async Task<JArray> getAccountData(string AccountNumber)
+        public async Task<string> getSubentity(string subentity_Id)
+        {
+            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_name", "eqs_subentitytypeid", subentity_Id);
+        }
+
+        public async Task<JArray> getApplicantDetails(string ApplicantId)
         {
             try
             {
-                string query_url = $"eqs_accounts()?$filter=eqs_accountno eq '{AccountNumber}'";
-                var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Account_dtails = await this.getDataFromResponce(Accountdtails);
-                return Account_dtails;
+                string query_url = $"eqs_accountapplicants()?$select=_eqs_entitytypeid_value,eqs_gendercode,eqs_leadage,_eqs_subentity_value,eqs_customersegment,eqs_isstaffcode&$filter=eqs_applicantid eq '{ApplicantId}'";
+                var Applicantdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Applicant_dtails = await this.getDataFromResponce(Applicantdtails);
+                return Applicant_dtails;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("getLeadData", ex.Message);
+                this._logger.LogError("getApplicantDetails", ex.Message);
+                throw ex;
+            }
+        }
+        
+        public async Task<JArray> getCustomerDetails(string CustomerId)
+        {
+            try
+            {
+                string query_url = $"contacts()?$select=_eqs_entitytypeid_value,eqs_gender,eqs_age,_eqs_subentitytypeid_value,eqs_customersegment,eqs_isstafffcode&$filter=eqs_customerid eq '{CustomerId}'";
+                var Customerdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Customer_dtails = await this.getDataFromResponce(Customerdtails);
+                return Customer_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getCustomerDetails", ex.Message);
+                throw ex;
+            }
+        }
+
+        public async Task<JArray> getProductData(productFilter product_Filter)
+        {
+            try
+            {
+                string prodSrkey = product_Filter.productCategory;
+                string filter = $"_eqs_productcategory_value eq '{product_Filter.productCategory}' ";
+
+                if (string.IsNullOrEmpty(product_Filter.gender))
+                {
+                    filter += $"and eqs_woman eq false ";
+                    prodSrkey += "GF";
+                }
+
+                if (!string.IsNullOrEmpty(product_Filter.age))
+                {
+                    filter += $"and eqs_maxage gt {product_Filter.age} and eqs_minage lt {product_Filter.age} ";
+                    prodSrkey += "ag" + product_Filter.age;
+                }
+
+                if (string.IsNullOrEmpty(product_Filter.subentity))
+                {
+                    filter += $"and eqs_nri eq false ";
+                    prodSrkey += "nriF";
+                }
+
+                if (string.IsNullOrEmpty(product_Filter.customerSegment))
+                {
+                    filter += $"and eqs_iselite eq false ";
+                    prodSrkey += "elitF";
+                }
+
+                if (string.IsNullOrEmpty(product_Filter.IsStaff))
+                {
+                    filter += $"and eqs_staff eq false ";
+                    prodSrkey += "stfF";
+                }
+
+                JArray Product_dtails, Product_dtails1;
+
+                if (!this.GetMvalue<JArray>(prodSrkey, out Product_dtails1))
+                {
+                    string query_url = $"eqs_products()?$filter={filter}";
+                    var Productdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                    Product_dtails = await this.getDataFromResponce(Productdtails);
+
+                    this.SetMvalue<JArray>(prodSrkey, 5, Product_dtails);
+                }
+                else
+                {
+                    Product_dtails = Product_dtails1;
+                }
+                
+                return Product_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getProductData", ex.Message);
                 throw ex;
             }
         }
@@ -197,7 +276,7 @@ using System.Diagnostics.Metrics;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("getLeadData", ex.Message);
+                this._logger.LogError("getContactData", ex.Message);
                 throw ex;
             }
         }

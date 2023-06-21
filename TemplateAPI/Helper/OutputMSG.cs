@@ -1,4 +1,4 @@
-﻿namespace DigiWiz
+﻿namespace GFSProduct
 {
     public static class OutputMSG
     {

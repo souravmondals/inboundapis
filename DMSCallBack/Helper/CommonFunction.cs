@@ -168,56 +168,7 @@ using CRMConnect;
         }
 
         
-
-        public async Task<JArray> getApplicantDetails(string ApplicantId)
-        {
-            try
-            {
-                string query_url = $"eqs_accountapplicants()?$select=_eqs_entitytypeid_value,eqs_gendercode,eqs_leadage,_eqs_subentity_value,eqs_customersegment,eqs_isstaffcode&$filter=eqs_applicantid eq '{ApplicantId}'";
-                var Applicantdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Applicant_dtails = await this.getDataFromResponce(Applicantdtails);
-                return Applicant_dtails;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("getApplicantDetails", ex.Message);
-                throw ex;
-            }
-        }
-        
-        public async Task<JArray> getCustomerDetails(string CustomerId)
-        {
-            try
-            {
-                string query_url = $"contacts()?$select=_eqs_entitytypeid_value,eqs_gender,eqs_age,_eqs_subentitytypeid_value,eqs_customersegment,eqs_isstafffcode&$filter=eqs_customerid eq '{CustomerId}'";
-                var Customerdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Customer_dtails = await this.getDataFromResponce(Customerdtails);
-                return Customer_dtails;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("getCustomerDetails", ex.Message);
-                throw ex;
-            }
-        }
-
-        
-
-        public async Task<JArray> getContactData(string contact_id)
-        {
-            try
-            {
-                string query_url = $"contacts({contact_id})?$select=createdon,eqs_entityflag,eqs_subentitytypeid,mobilephone,eqs_customerid";
-                var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Account_dtails = await this.getDataFromResponce(Accountdtails);
-                return Account_dtails;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("getContactData", ex.Message);
-                throw ex;
-            }
-        }
+             
 
         public async Task<string> MeargeJsonString(string json1, string json2)
         {

@@ -165,9 +165,14 @@ using System.Diagnostics.Metrics;
             return await this.getIDfromMSDTable("eqs_productcategories", "eqs_name", "eqs_productcategoryid", product_Cat_Id);
         }
         
-        public async Task<string> getPurposeOfCreation(string PurposeOfCreatioId)
+        public async Task<string> getEntityType(string EntityId)
         {            
-            return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_name", "eqs_purposeofcreationid", PurposeOfCreatioId);
+            return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_flagtype", "eqs_entitytypeid", EntityId);
+        }
+
+        public async Task<string> getSubEntityType(string sunEntityId)
+        {
+            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_flagtype", "eqs_subentitytypeid", sunEntityId);
         }
 
         public async Task<JArray> getAccountData(string AccountNumber)
@@ -190,7 +195,7 @@ using System.Diagnostics.Metrics;
         {
             try
             {
-                string query_url = $"contacts({contact_id})?$select=createdon,eqs_entityflag,eqs_subentitytypeid,mobilephone,eqs_customerid";
+                string query_url = $"contacts({contact_id})?$select=createdon,_eqs_entitytypeid_value,_eqs_subentitytypeid_value,mobilephone,eqs_customerid";
                 var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                 var Account_dtails = await this.getDataFromResponce(Accountdtails);
                 return Account_dtails;

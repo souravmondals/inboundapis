@@ -32,6 +32,7 @@ namespace DedupeDigiLead.Controllers
 
 
         [HttpPost]
+        [Produces("application/json")]
         public async Task<IActionResult> Post()
         {
             try
@@ -49,7 +50,10 @@ namespace DedupeDigiLead.Controllers
                 Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
                 string response = await _dedupDgLdNLExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
 
-                return Ok(response);
+                var contentResult = new ContentResult();
+                contentResult.Content = response;
+                contentResult.ContentType = "application/json";
+                return contentResult;
 
 
             }

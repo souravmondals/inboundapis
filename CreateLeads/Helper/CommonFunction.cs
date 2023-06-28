@@ -113,6 +113,43 @@ namespace CreateLeads
                 return resourceID;
         }
 
+        public async Task<JArray> getDataFromResponce(List<JObject> RsponsData)
+        {
+            string resourceID = "";
+            foreach (JObject item in RsponsData)
+            {
+                if (Enum.TryParse(item["responsecode"].ToString(), out HttpStatusCode responseStatus) && responseStatus == HttpStatusCode.OK)
+                {
+                    dynamic responseValue = item["responsebody"];
+                    JArray resArray = new JArray();
+                    string urlMetaData = string.Empty;
+                    if (responseValue?.value != null)
+                    {
+                        resArray = (JArray)responseValue?.value;
+                        urlMetaData = responseValue["@odata.context"];
+                    }
+                    else if (responseValue is JArray)
+                    {
+                        resArray = responseValue;
+
+                    }
+                    else
+                    {
+                        resArray.Add(responseValue);
+                        urlMetaData = responseValue["@odata.context"];
+                    }
+
+                    if (resArray != null && resArray.Any())
+                    {
+
+                        return resArray;
+
+                    }
+                }
+            }
+            return new JArray();
+        }
+
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {  
             string Table_Id;
@@ -132,9 +169,12 @@ namespace CreateLeads
             return TableId;
         }
 
-        public async Task<string> getCustomerId(string CustomerCode)
-        {            
-            return await this.getIDfromMSDTable("contacts", "contactid", "ccs_customercode", CustomerCode);
+        public async Task<JArray> getCustomerDetail(string CustomerCode)
+        {
+            string query_url = $"contacts()?$select=contactid,firstname,lastname,mobilephone,_eqs_entitytypeid_value,_eqs_subentitytypeid_value&$filter=ccs_customercode eq '{CustomerCode}'";
+            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var customerDetail = await this.getDataFromResponce(responsdtails);
+            return customerDetail;
         }
 
         public async Task<string> getCityId(string CityCode)

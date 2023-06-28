@@ -27,7 +27,7 @@ namespace DigiWiz
     {
         public string UCICCreatedOn { get; set; }
         public string entityFlag { get; set; }
-        public string entityType { get; set; }
+        public string subentityFlag { get; set; }
         public string accountTitle { get; set; }
         public string phoneNumber { get; set; }
         public string ucic { get; set; }

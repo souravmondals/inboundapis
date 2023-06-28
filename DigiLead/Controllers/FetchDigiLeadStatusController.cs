@@ -35,6 +35,7 @@
 
 
         [HttpPost]
+        [Produces("application/json")]
         public async Task<IActionResult> Post()
         {
             try
@@ -54,7 +55,10 @@
                 string response = await _ftchDgLdStsExecution.EncriptRespons(JsonConvert.SerializeObject(LeadStatus));
                 this._ftchDgLdStsExecution.CRMLog(JsonConvert.SerializeObject(request), response, LeadStatus.ReturnCode);
 
-                return Ok(response);
+                var contentResult = new ContentResult();
+                contentResult.Content = response;
+                contentResult.ContentType = "application/json";
+                return contentResult;
 
 
             }

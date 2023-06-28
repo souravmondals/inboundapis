@@ -79,7 +79,7 @@ namespace DedupeDigiLead
                 RequestData = await this.getRequestData(RequestData,"DedupeDigiCustomer" + type);
 
                 string ApplicantId = RequestData.ApplicantId;
-                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "DedupDgLdNLappkey"))
+                if (!string.IsNullOrEmpty(this.Transaction_ID) && !string.IsNullOrEmpty(this.Channel_ID) && !string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "DedupDgLdNLappkey"))
                 {
                     if (!string.IsNullOrEmpty(ApplicantId) && ApplicantId != "")
                     {

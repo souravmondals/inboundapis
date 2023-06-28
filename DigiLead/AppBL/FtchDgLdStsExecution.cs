@@ -134,9 +134,10 @@
                 if (Lead_data.Count > 0)
                 {
                     dynamic LeadData = Lead_data[0];
+                    string Entity_type = await this._commonFunc.getLeadType(LeadData._eqs_entitytypeid_value.ToString());
                     csRtPrm.LeadID = RequestData.LeadID;
 
-                    if (LeadData.firstname.ToString().Length > 1)
+                    if (Entity_type == "Individual")
                     {
                         csRtPrm.individualDetails = new IndividualDetails();
                         csRtPrm.individualDetails.firstName = LeadData.firstname;
@@ -170,7 +171,7 @@
                         csRtPrm.Message = OutputMSG.Case_Success;
                     }
 
-                    if (csRtPrm.ReturnCode == null && LeadData.eqs_companynamepart1.ToString().Length > 1)
+                    if (Entity_type == "Corporate")
                     {
                         csRtPrm.individualDetails = null;
                         csRtPrm.corporateDetails = new CorporateDetails();

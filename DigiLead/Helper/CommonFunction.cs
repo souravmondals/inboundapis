@@ -158,6 +158,11 @@ using System.Diagnostics.Metrics;
             return TableId;
         }
 
+        public async Task<string> getLeadType(string EntityTypeId)
+        {
+            return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_name", "eqs_entitytypeid", EntityTypeId);
+        }
+
         public async Task<string> getTitle(string TitleId)
         {            
             return await this.getIDfromMSDTable("eqs_titles", "eqs_name", "eqs_titleid", TitleId);

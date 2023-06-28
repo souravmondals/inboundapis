@@ -156,11 +156,12 @@
 
                         foreach (var cu_Data in Contact_data)
                         {
-                            csRtPrm.customerInfo.UCICCreatedOn = (cu_Data["createdon"].ToString()==null)? "" : cu_Data["createdon"].ToString();
-                            csRtPrm.customerInfo.entityFlag = (cu_Data["eqs_entityflag"].ToString() == null)? "" : cu_Data["eqs_entityflag"].ToString(); 
-                            csRtPrm.customerInfo.entityType = (AccountData["eqs_subentitytypeid"] == null)? "" : AccountData["eqs_subentitytypeid"].ToString();                           
+                            csRtPrm.customerInfo.UCICCreatedOn = (cu_Data["createdon"].ToString()==null)? "" : cu_Data["createdon"].ToString();                                                     
                             csRtPrm.customerInfo.phoneNumber = (cu_Data["mobilephone"].ToString() == null)? "" : cu_Data["mobilephone"].ToString();
                             csRtPrm.customerInfo.ucic = (cu_Data["eqs_customerid"].ToString() == null) ? "" : cu_Data["eqs_customerid"].ToString();
+
+                            csRtPrm.customerInfo.entityFlag = (cu_Data["_eqs_entitytypeid_value"].ToString() == null) ? "" : await this._commonFunc.getEntityType(cu_Data["_eqs_entitytypeid_value"].ToString());
+                            csRtPrm.customerInfo.subentityFlag = (cu_Data["_eqs_subentitytypeid_value"].ToString() == null) ? "" : await this._commonFunc.getSubEntityType(cu_Data["_eqs_subentitytypeid_value"].ToString());
                         }                        
 
                         csRtPrm.ReturnCode = "CRM-SUCCESS";

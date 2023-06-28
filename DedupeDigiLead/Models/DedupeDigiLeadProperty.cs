@@ -7,7 +7,7 @@ namespace DedupeDigiLead
     
     public class DedupDgLdNLReturn
     {
-        public bool decideNL { get; set; }   
+        public bool? decideNL { get; set; }   
         public string ReturnCode { get; set; }
         public string Message { get; set; }
         public string TransactionID { get; set; }
@@ -16,7 +16,7 @@ namespace DedupeDigiLead
 
     public class DedupDgLdNLTRReturn
     {
-        public bool decideNLTR { get; set; }
+        public bool? decideNLTR { get; set; }
         public string ReturnCode { get; set; }
         public string Message { get; set; }
         public string TransactionID { get; set; }

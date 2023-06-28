@@ -21,6 +21,7 @@ builder.Services.AddSingleton<IMemoryCache,MemoryCache>();
 
 builder.Services.AddLogging();
 
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

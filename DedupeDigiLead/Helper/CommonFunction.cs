@@ -209,7 +209,7 @@ namespace DedupeDigiLead
             try
             {
                 int filter = 0;
-                string query_url = $"eqs_trnls()?$select=eqs_passports,eqs_pan,eqs_aadhaar,eqs_cin,eqs_dob&$filter=";
+                string query_url = $"eqs_trnls()?$select=eqs_uid,eqs_passports,eqs_pan,eqs_aadhaar,eqs_cin,eqs_dob&$filter=";
                 if (!string.IsNullOrEmpty(Pan))
                 {
                     query_url += $"eqs_pan eq '{Pan}' ";
@@ -275,7 +275,7 @@ namespace DedupeDigiLead
             try
             {
                 int filter = 0;
-                string query_url = $"eqs_nls()?$select=eqs_passport,eqs_pan,eqs_aadhaar,eqs_cin,eqs_doiordob&$filter=";
+                string query_url = $"eqs_nls()?$select=eqs_recordid,eqs_passport,eqs_pan,eqs_aadhaar,eqs_cin,eqs_doiordob&$filter=";
                 if (!string.IsNullOrEmpty(Pan))
                 {
                     query_url += $"eqs_pan eq '{Pan}' ";

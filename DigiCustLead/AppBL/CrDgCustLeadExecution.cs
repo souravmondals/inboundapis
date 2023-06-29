@@ -247,7 +247,7 @@
 
                     List<JObject> Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
 
-                    string purpose = await this._commonFunc.getPurposeID(CustLeadData.PurposeOfCreation.ToString());
+                    string purpose = await this._commonFunc.getPurposeID(CustLeadData.IndividualEntry.PurposeOfCreation.ToString());
 
                     CRMCustomermappingFields.Add("eqs_titleid@odata.bind", $"eqs_titles({TitleId})");
                     CRMCustomermappingFields.Add("eqs_firstname", custLeadElement.firstname);

@@ -154,14 +154,16 @@ namespace DedupeDigiLead
                         if (type == "NLTR")
                         {
                             ldRtPrm.decideNLTR = true;
+                            ldRtPrm.Message = $"Applicant {RequestData.ApplicantId.ToString()} has been matched with UID {NLTR_data[0]["eqs_uid"].ToString()}";
                         }
                         else if (type == "NL")
                         {
                             ldRtPrm.decideNL = true;
+                            ldRtPrm.Message = $"Applicant {RequestData.ApplicantId.ToString()} has been matched with recordid {NLTR_data[0]["eqs_recordid"].ToString()}";
                         }
                        
                         ldRtPrm.ReturnCode = "CRM - SUCCESS";
-                        ldRtPrm.Message = "";
+                        
                     }
                     else
                     {

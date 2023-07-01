@@ -182,6 +182,11 @@ namespace DedupeDigiLead
 
                     
                 }
+                else
+                {
+                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                    ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                }
             }
             catch (Exception ex)
             {

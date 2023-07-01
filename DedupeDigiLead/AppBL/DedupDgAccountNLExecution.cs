@@ -176,7 +176,7 @@ namespace DedupeDigiLead
 
                         if (NLTR_data.Count > 0)
                         {
-                            ldRtPrm.AccountID = ApplicantId;
+                            ldRtPrm.ApplicantID = ApplicantId;
                             if (type == "NLTR")
                             {
                                 ldRtPrm.decideNLTR = true;
@@ -193,7 +193,7 @@ namespace DedupeDigiLead
                         }
                         else
                         {
-                            ldRtPrm.AccountID = ApplicantId;
+                            ldRtPrm.ApplicantID = ApplicantId;
                             if (type == "NLTR")
                             {
                                 ldRtPrm.decideNLTR = false;
@@ -216,6 +216,11 @@ namespace DedupeDigiLead
                             this._commonFunc.SetMvalue<DedupDgChkNL>("NL" + ApplicantId, 2, ldRtPrm);
                         }
 
+                    }
+                    else
+                    {
+                        ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                        ldRtPrm.Message = OutputMSG.Resource_n_Found;
                     }
                 }
                 catch (Exception ex)

@@ -14,6 +14,7 @@
     using System.Threading.Channels;
     using System.ComponentModel;
     using System;
+    using System.Globalization;
 
     public class DCMCallBackExecution : IDCMCallBackExecution
     {
@@ -162,10 +163,13 @@
             try
             {
                 Dictionary<string, string> DataMapping = new Dictionary<string, string>();
-
-                DataMapping.Add("eqs_dmsdocumentuploadstatus", "false");
+              
                 DataMapping.Add("eqs_dmsdocumentname", succData.docNm.ToString());
                 DataMapping.Add("eqs_dmsdocumentid", succData.docIndx.ToString());
+                string update_date = DateTime.Now.Date.ToString("yyyy-MM-dd") + " " + DateTime.Now.ToString("HH") + ":" + DateTime.Now.ToString("mm") + ":" + DateTime.Now.ToString("ss");
+              
+                DataMapping.Add("eqs_uploadeddatetimefordms", update_date);
+                DataMapping.Add("eqs_dmsdocumentuploadstatus", "true");
 
                 string postDataParametr = JsonConvert.SerializeObject(DataMapping);
 
@@ -215,6 +219,9 @@
                 DataMapping.Add("eqs_dmsdocumentuploadstatus", "true");
                 DataMapping.Add("eqs_integrationerrorcode", ErrorData.code.ToString());
                 DataMapping.Add("eqs_integrationerrormessage", ErrorData.reason.ToString());
+                string update_date = DateTime.Now.Date.ToString("yyyy-MM-dd") + " " + DateTime.Now.ToString("HH") + ":" + DateTime.Now.ToString("mm") + ":" + DateTime.Now.ToString("ss");
+
+                DataMapping.Add("eqs_uploadeddatetimefordms", update_date);
 
                 string postDataParametr = JsonConvert.SerializeObject(DataMapping);
 

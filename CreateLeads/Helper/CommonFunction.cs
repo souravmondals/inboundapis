@@ -171,7 +171,7 @@ namespace CreateLeads
 
         public async Task<JArray> getCustomerDetail(string CustomerCode)
         {
-            string query_url = $"contacts()?$select=contactid,firstname,lastname,mobilephone,_eqs_entitytypeid_value,_eqs_subentitytypeid_value&$filter=ccs_customercode eq '{CustomerCode}'";
+            string query_url = $"contacts()?$select=contactid,firstname,lastname,mobilephone,emailaddress1,_eqs_entitytypeid_value,_eqs_subentitytypeid_value&$filter=ccs_customercode eq '{CustomerCode}'";
             var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
             var customerDetail = await this.getDataFromResponce(responsdtails);
             return customerDetail;
@@ -179,12 +179,22 @@ namespace CreateLeads
 
         public async Task<string> getCityId(string CityCode)
         {           
-            return await this.getIDfromMSDTable("eqs_cities", "eqs_cityid", "eqs_name", CityCode);
+            return await this.getIDfromMSDTable("eqs_cities", "eqs_cityid", "eqs_citycode", CityCode);
         }
 
         public async Task<string> getBranchId(string BranchCode)
         {            
             return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchid", "eqs_branchidvalue", BranchCode); 
+        }
+
+        public async Task<string> getEntityTypeId(string EntityTypeCode)
+        {
+            return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_entitytypeid", "eqs_entitytypekey", EntityTypeCode);
+        }
+
+        public async Task<string> getSubEntityTypeId(string subEntityTypeCode)
+        {
+            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_subentitytypeid", "eqs_key", subEntityTypeCode);
         }
 
         public async Task<Dictionary<string,string>> getProductId(string ProductCode)

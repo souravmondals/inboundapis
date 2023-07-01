@@ -8,6 +8,8 @@ namespace CreateLeads
         public Task<string> getCityId(string CityCode);
         public Task<string> getBranchId(string BranchCode);
         public Task<JArray> getCustomerDetail(string CustomerCode);
+        public Task<string> getEntityTypeId(string EntityTypeCode);
+        public Task<string> getSubEntityTypeId(string subEntityTypeCode);
         public Task<string> MeargeJsonString(string json1, string json2);
 
         public bool GetMvalue<T>(string keyname, out T? Outvalue);

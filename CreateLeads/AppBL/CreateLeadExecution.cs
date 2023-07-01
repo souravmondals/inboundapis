@@ -67,11 +67,11 @@ namespace CreateLeads
             this._queryParser = queryParser;
             this._commonFunc = commonFunction;
 
-            this.Channel.Add("ESFBWebsite", 6);
+            this.Channel.Add("ESFB Website", 6);
             this.Channel.Add("ChatBot", 8);
             this.Channel.Add("Email", 3);
-            this.Channel.Add("MobileBanking", 4);
-            this.Channel.Add("InternetBanking", 5);
+            this.Channel.Add("Mobile Banking", 4);
+            this.Channel.Add("Internet Banking", 5);
            // this.Channel.Add("Selfie", 15);
 
             this.LeadStatus.Add("Open", 0);
@@ -95,7 +95,7 @@ namespace CreateLeads
                     {
                         int ValidationError = 0;
 
-                        if (string.Equals(LeadData.ChannelType.ToString(), "InternetBanking") || string.Equals(LeadData.ChannelType.ToString(), "MobileBanking") || string.Equals(LeadData.ChannelType.ToString(), "ESFBWebsite"))
+                        if (string.Equals(LeadData.ChannelType.ToString(), "ESFB Website"))
                         {
                             if (LeadData.FirstName == null || string.IsNullOrEmpty(LeadData.FirstName.ToString()) || LeadData.FirstName.ToString() == "")
                             {
@@ -113,15 +113,15 @@ namespace CreateLeads
                             {
                                 ValidationError = 1;
                             }
+                            
 
-                            if (string.Equals(LeadData.ChannelType.ToString(), "InternetBanking") || string.Equals(LeadData.ChannelType.ToString(), "MobileBanking"))
+                        }
+                        else if (string.Equals(LeadData.ChannelType.ToString(), "Internet Banking") || string.Equals(LeadData.ChannelType.ToString(), "Mobile Banking"))
+                        {
+                            if (LeadData.CustomerID == null || string.IsNullOrEmpty(LeadData.CustomerID.ToString()) || LeadData.CustomerID.ToString() == "")
                             {
-                                if (LeadData.CustomerID == null || string.IsNullOrEmpty(LeadData.CustomerID.ToString()) || LeadData.CustomerID.ToString() == "")
-                                {
-                                    ValidationError = 1;
-                                }
+                                ValidationError = 1;
                             }
-
                         }
                         else if (string.Equals(LeadData.ChannelType.ToString(), "ChatBot"))
                         {
@@ -255,8 +255,8 @@ namespace CreateLeads
             lead_Property.leadsourcecode = this.Channel[LeadData.ChannelType.ToString()];
             try
             {
-                if (string.Equals(LeadData.ChannelType.ToString(), "ESFBWebsite"))
-                {
+                if (string.Equals(LeadData.ChannelType.ToString(), "ESFB Website"))
+                {                
                     var productDetails = await this._commonFunc.getProductId(LeadData.ProductCode.ToString());
                     ldProperty.ProductId = productDetails["ProductId"];
                     ldProperty.Businesscategoryid = productDetails["businesscategoryid"];
@@ -273,7 +273,7 @@ namespace CreateLeads
                         odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({ldProperty.Productcategoryid})");
                         odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({ldProperty.Businesscategoryid})");
 
-                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityName.ToString());
+                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityCode.ToString());
                         if (ldProperty.CityId != null && ldProperty.CityId != "")
                             odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
 
@@ -283,12 +283,37 @@ namespace CreateLeads
 
 
                         if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
-                        {
-                            ldProperty.ETBCustomerID = await this._commonFunc.getCustomerDetail(LeadData.CustomerID.ToString());
-                            if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
-                                odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
-                        }
+                        {                            
+                            var Customer_Detail = await this._commonFunc.getCustomerDetail(LeadData.CustomerID.ToString());
+                            if (Customer_Detail.Count > 0)
+                            {
+                                ldProperty.ETBCustomerID = Customer_Detail[0]["contactid"];
+                                lead_Property.firstname = Customer_Detail[0]["firstname"];
+                                lead_Property.lastname = Customer_Detail[0]["lastname"];
+                                if (!string.IsNullOrEmpty(Customer_Detail[0]["mobilephone"].ToString()))
+                                {
+                                    lead_Property.mobilephone = Customer_Detail[0]["mobilephone"];
+                                }
+                                if (!string.IsNullOrEmpty(Customer_Detail[0]["emailaddress1"].ToString()))
+                                {
+                                    lead_Property.emailaddress1 = Customer_Detail[0]["emailaddress1"];
+                                }
 
+                                odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
+
+                                odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({Customer_Detail[0]["_eqs_entitytypeid_value"].ToString()})");
+                                odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({Customer_Detail[0]["_eqs_subentitytypeid_value"].ToString()})");
+                            }
+                        }
+                        else
+                        {
+                            string EntityTypeId = await this._commonFunc.getEntityTypeId("I");
+                            string SubEntityTypeId = await this._commonFunc.getSubEntityTypeId("I");
+
+                            odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({EntityTypeId})");
+                            odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({SubEntityTypeId})");
+                        }
+                        
 
                         if (LeadData.Pincode != null && LeadData.Pincode.ToString() != "")
                             lead_Property.eqs_pincode = LeadData.Pincode;
@@ -314,7 +339,7 @@ namespace CreateLeads
                     }
 
                 }
-                else if (string.Equals(LeadData.ChannelType.ToString(), "MobileBanking") || string.Equals(LeadData.ChannelType.ToString(), "InternetBanking"))
+                else if (string.Equals(LeadData.ChannelType.ToString(), "Mobile Banking") || string.Equals(LeadData.ChannelType.ToString(), "Internet Banking"))
                 {
                     var productDetails = await this._commonFunc.getProductId(LeadData.ProductCode.ToString());
                     ldProperty.ProductId = productDetails["ProductId"];
@@ -333,7 +358,7 @@ namespace CreateLeads
                         odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({ldProperty.Productcategoryid})");
                         odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({ldProperty.Businesscategoryid})");
 
-                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityName.ToString());
+                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityCode.ToString());
                         if (ldProperty.CityId != null && ldProperty.CityId != "")
                             odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
 
@@ -346,32 +371,47 @@ namespace CreateLeads
                             ldProperty.ETBCustomerID = Customer_Detail[0]["contactid"];
                             lead_Property.firstname = Customer_Detail[0]["firstname"];
                             lead_Property.lastname = Customer_Detail[0]["lastname"];
-                            lead_Property.mobilephone = Customer_Detail[0]["mobilephone"];
+                            if (!string.IsNullOrEmpty(Customer_Detail[0]["mobilephone"].ToString()))
+                            {
+                                lead_Property.mobilephone = Customer_Detail[0]["mobilephone"];
+                            }
+                            if (!string.IsNullOrEmpty(Customer_Detail[0]["emailaddress1"].ToString()))
+                            {
+                                lead_Property.emailaddress1 = Customer_Detail[0]["emailaddress1"];
+                            }
 
                             odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
 
                             odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({Customer_Detail[0]["_eqs_entitytypeid_value"].ToString()})");
                             odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({Customer_Detail[0]["_eqs_subentitytypeid_value"].ToString()})");
+
+                            if (LeadData.Pincode != null && LeadData.Pincode.ToString() != "")
+                                lead_Property.eqs_pincode = LeadData.Pincode;
+
+                            if (LeadData.MiddleName != null && LeadData.MiddleName.ToString() != "")
+                                lead_Property.middlename = LeadData.MiddleName;
+
+                            odatab.Add("eqs_createdfromonline", "true");
+
+                            postDataParametr = JsonConvert.SerializeObject(lead_Property);
+                            postDataParametr1 = JsonConvert.SerializeObject(odatab);
+
+                            postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+
+                            Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
+                        }
+                        else
+                        {
+                            this._logger.LogInformation("CreateLead", "Input parameters are incorrect");
+                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
                         }
 
-                        if (LeadData.Pincode != null && LeadData.Pincode.ToString() != "")
-                            lead_Property.eqs_pincode = LeadData.Pincode;
-
-                        if (LeadData.MiddleName != null && LeadData.MiddleName.ToString() != "")
-                            lead_Property.middlename = LeadData.MiddleName;
-
-                        odatab.Add("eqs_createdfromonline", "true");
-
-                        postDataParametr = JsonConvert.SerializeObject(lead_Property);
-                        postDataParametr1 = JsonConvert.SerializeObject(odatab);
-
-                        postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
-
-                        Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
+                        
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                        this._logger.LogInformation("CreateLead", "Input parameters are incorrect");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
                         ldRtPrm.Message = OutputMSG.Incorrect_Input;
                     }
@@ -397,16 +437,12 @@ namespace CreateLeads
                         odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({ldProperty.Businesscategoryid})");
                     }
 
-                    if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
-                    {
-                        ldProperty.ETBCustomerID = await this._commonFunc.getCustomerDetail(LeadData.CustomerID.ToString());
-                        if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
-                            odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
-                    }
+                    lead_Property.mobilephone = LeadData.MobileNumber;
+                    lead_Property.emailaddress1 = LeadData.Email;
 
-                    if (LeadData.CityName != null && LeadData.CityName.ToString() != "")
+                    if (LeadData.CityCode != null && LeadData.CityCode.ToString() != "")
                     {
-                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityName.ToString());
+                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityCode.ToString());
                         if (ldProperty.CityId != null && ldProperty.CityId != "")
                             odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
                     }
@@ -416,15 +452,41 @@ namespace CreateLeads
                         if (ldProperty.BranchId != null && ldProperty.BranchId != "")
                             odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({ldProperty.BranchId})");
                     }
+
+                                        
                     if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
                     {
-                        ldProperty.ETBCustomerID = await this._commonFunc.getCustomerDetail(LeadData.CustomerID.ToString());
-                        if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
+                        var Customer_Detail = await this._commonFunc.getCustomerDetail(LeadData.CustomerID.ToString());
+                        if (Customer_Detail.Count > 0)
+                        {
+                            ldProperty.ETBCustomerID = Customer_Detail[0]["contactid"];
+                            lead_Property.firstname = Customer_Detail[0]["firstname"];
+                            lead_Property.lastname = Customer_Detail[0]["lastname"];
+                            if (!string.IsNullOrEmpty(Customer_Detail[0]["mobilephone"].ToString()))
+                            {
+                                lead_Property.mobilephone = Customer_Detail[0]["mobilephone"];
+                            }
+                            if (!string.IsNullOrEmpty(Customer_Detail[0]["emailaddress1"].ToString()))
+                            {
+                                lead_Property.emailaddress1 = Customer_Detail[0]["emailaddress1"];
+                            }
+
                             odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
+
+                            odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({Customer_Detail[0]["_eqs_entitytypeid_value"].ToString()})");
+                            odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({Customer_Detail[0]["_eqs_subentitytypeid_value"].ToString()})");
+                        }
+                    }
+                    else
+                    {
+                        string EntityTypeId = await this._commonFunc.getEntityTypeId("I");
+                        string SubEntityTypeId = await this._commonFunc.getSubEntityTypeId("I");
+
+                        odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({EntityTypeId})");
+                        odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({SubEntityTypeId})");
                     }
 
-                    lead_Property.mobilephone = LeadData.MobileNumber;
-                    lead_Property.emailaddress1 = LeadData.Email;
+                   
                     lead_Property.description = LeadData.Transcript;
 
                     if (LeadData.Pincode != null && LeadData.Pincode.ToString() != "")
@@ -470,16 +532,11 @@ namespace CreateLeads
                         odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({ldProperty.Businesscategoryid})");
                     }
 
-                    if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
-                    {
-                        ldProperty.ETBCustomerID = await this._commonFunc.getCustomerDetail(LeadData.CustomerID.ToString());
-                        if (ldProperty.ETBCustomerID != null && ldProperty.ETBCustomerID != "")
-                            odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
-                    }
+                   
 
-                    if (LeadData.CityName != null && LeadData.CityName.ToString() != "")
+                    if (LeadData.CityCode != null && LeadData.CityCode.ToString() != "")
                     {
-                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityName.ToString());
+                        ldProperty.CityId = await this._commonFunc.getCityId(LeadData.CityCode.ToString());
                         if (ldProperty.CityId != null && ldProperty.CityId != "")
                            odatab.Add("eqs_cityid@odata.bind", $"eqs_cities({ldProperty.CityId})");
                     }
@@ -488,6 +545,38 @@ namespace CreateLeads
                         ldProperty.BranchId = await this._commonFunc.getBranchId(LeadData.BranchCode.ToString());
                         if (ldProperty.BranchId != null && ldProperty.BranchId != "")
                             odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({ldProperty.BranchId})");
+                    }
+
+                    if (LeadData.CustomerID != null && LeadData.CustomerID.ToString() != "")
+                    {
+                        var Customer_Detail = await this._commonFunc.getCustomerDetail(LeadData.CustomerID.ToString());
+                        if (Customer_Detail.Count > 0)
+                        {
+                            ldProperty.ETBCustomerID = Customer_Detail[0]["contactid"];
+                            lead_Property.firstname = Customer_Detail[0]["firstname"];
+                            lead_Property.lastname = Customer_Detail[0]["lastname"];
+                            if (!string.IsNullOrEmpty(Customer_Detail[0]["mobilephone"].ToString()))
+                            {
+                                lead_Property.mobilephone = Customer_Detail[0]["mobilephone"];
+                            }
+                            if (!string.IsNullOrEmpty(Customer_Detail[0]["emailaddress1"].ToString()))
+                            {
+                                lead_Property.emailaddress1 = Customer_Detail[0]["emailaddress1"];
+                            }
+
+                            odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({ldProperty.ETBCustomerID})");
+
+                            odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({Customer_Detail[0]["_eqs_entitytypeid_value"].ToString()})");
+                            odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({Customer_Detail[0]["_eqs_subentitytypeid_value"].ToString()})");
+                        }
+                    }
+                    else
+                    {
+                        string EntityTypeId = await this._commonFunc.getEntityTypeId("I");
+                        string SubEntityTypeId = await this._commonFunc.getSubEntityTypeId("I");
+
+                        odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({EntityTypeId})");
+                        odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({SubEntityTypeId})");
                     }
 
                     odatab.Add("eqs_createdfromonline", "true");

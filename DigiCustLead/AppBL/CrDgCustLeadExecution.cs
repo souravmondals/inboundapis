@@ -217,6 +217,7 @@
                     CRMLeadmappingFields.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({SubEntityID})");
                     CRMLeadmappingFields.Add("eqs_aadhaarreference", CustLeadData.IndividualEntry.AadharReference.ToString());
 
+                    CRMLeadmappingFields.Add("eqs_createdfrompartnerchannel", "true");
 
                     if (CustLeadData.IndividualEntry.Pincode != null && CustLeadData.IndividualEntry.Pincode.ToString() != "")
                         custLeadElement.eqs_pincode = CustLeadData.IndividualEntry.Pincode;

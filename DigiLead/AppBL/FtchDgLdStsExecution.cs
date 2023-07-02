@@ -11,6 +11,7 @@
     using System.Xml.Linq;
     using CRMConnect;
     using System.Xml;
+    using Swashbuckle.AspNetCore.SwaggerGen;
 
     public class FtchDgLdStsExecution : IFtchDgLdStsExecution
     {
@@ -50,8 +51,10 @@
         }
         public string Input_payload { set {
                 _logger.Input_payload = value;
-            } 
+            }
         }
+
+        Dictionary<int, string> Status_Code = new Dictionary<int, string>();
 
         private readonly IKeyVaultService _keyVaultService;
 
@@ -66,8 +69,20 @@
             this._keyVaultService = keyVaultService;
             this._queryParser = queryParser;
             this._commonFunc = commonFunction;
-           
-           
+
+            this.Status_Code.Add(7, "Duplicate Lead");
+            this.Status_Code.Add(615290000, "Pushed to LOS");
+            this.Status_Code.Add(615290001, "Onboarding");
+            this.Status_Code.Add(615290002, "Clousre");
+            this.Status_Code.Add(8, "Not Qualified");
+            this.Status_Code.Add(3, "Onboarded");
+            this.Status_Code.Add(4, "Lead Not Interested");
+            this.Status_Code.Add(5, "Lead Not Eligible");
+            this.Status_Code.Add(0, "Identification");
+            this.Status_Code.Add(1, "Qualification");
+            this.Status_Code.Add(6, "Lead Rejected");
+            this.Status_Code.Add(2, "Doc Verification");
+
         }
 
 
@@ -136,6 +151,9 @@
                     dynamic LeadData = Lead_data[0];
                     string Entity_type = await this._commonFunc.getLeadType(LeadData._eqs_entitytypeid_value.ToString());
                     csRtPrm.LeadID = RequestData.LeadID;
+                    
+                    csRtPrm.Status = this.Status_Code[Convert.ToInt32(LeadData.statuscode.ToString())];
+
 
                     if (Entity_type == "Individual")
                     {
@@ -143,7 +161,7 @@
                         csRtPrm.individualDetails.firstName = LeadData.firstname;
                         csRtPrm.individualDetails.lastName = LeadData.lastname;
                         csRtPrm.individualDetails.middleName = LeadData.middlename;
-                        csRtPrm.individualDetails.shortName = LeadData.eqs_shortname;
+                       //csRtPrm.individualDetails.shortName = LeadData.eqs_shortname;
                         csRtPrm.individualDetails.mobilePhone = LeadData.mobilephone;
                         csRtPrm.individualDetails.dob = LeadData.eqs_dob;
                         csRtPrm.individualDetails.aadhar = LeadData.eqs_aadhaarreference;
@@ -179,8 +197,8 @@
                         csRtPrm.corporateDetails.companyName2 = LeadData.eqs_companynamepart2;
                         csRtPrm.corporateDetails.companyName3 = LeadData.eqs_companynamepart3;
                         csRtPrm.corporateDetails.companyPhone = LeadData.mobilephone;
-                        csRtPrm.corporateDetails.aadhar = LeadData.eqs_aadhaarreference;
-                        csRtPrm.corporateDetails.pocNumber = LeadData.eqs_contactmobile;
+                       
+                        csRtPrm.corporateDetails.pocNumber = LeadData.eqs_contactpersonmobile;
                         csRtPrm.corporateDetails.pocName = LeadData.eqs_contactperson;
                         csRtPrm.corporateDetails.cinNumber = LeadData.eqs_cinnumber;
                         csRtPrm.corporateDetails.dateOfIncorporation = LeadData.eqs_dateofregistration;

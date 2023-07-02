@@ -90,9 +90,24 @@ namespace DedupeDigiLead
                         foreach (var AccId in AccLead_data)
                         {
                             var Account_data = await this.getDedupDgAccNLStatus(AccId, type);
-                            dedupDgChk.Add(Account_data);
+                            if (Account_data!=null)
+                            {
+                                dedupDgChk.Add(Account_data);
+                            }
+                            
                         }
                         ldRtPrm.accountData = dedupDgChk;
+
+                        if (AccLead_data.Count<1)
+                        {
+                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                            ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                        }
+                        else
+                        {
+                            ldRtPrm.ReturnCode = "CRM-SUCCESS";
+                            ldRtPrm.Message =  OutputMSG.Case_Success;
+                        }
                     }
                     else
                     {
@@ -188,8 +203,7 @@ namespace DedupeDigiLead
                                 ldRtPrm.Message = $"Applicant {ApplicantId} has been matched with recordid {NLTR_data[0]["eqs_recordid"].ToString()}";
                             }
 
-                            ldRtPrm.ReturnCode = "CRM - SUCCESS";
-                            
+                                                       
                         }
                         else
                         {
@@ -203,8 +217,7 @@ namespace DedupeDigiLead
                                 ldRtPrm.decideNL = false;
                             }
 
-                            ldRtPrm.ReturnCode = "CRM - SUCCESS";
-                            ldRtPrm.Message = "";
+                           
                         }
 
                         if (type == "NLTR")
@@ -217,17 +230,12 @@ namespace DedupeDigiLead
                         }
 
                     }
-                    else
-                    {
-                        ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Resource_n_Found;
-                    }
+                   
                 }
                 catch (Exception ex)
                 {
 
-                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                    ldRtPrm=null;
                 }
 
             }

@@ -10,6 +10,7 @@ namespace DigiLead
     public class FtchDgLdStsReturn
     {
         public string LeadID { get; set; }
+        public string Status { get; set; }
         public IndividualDetails? individualDetails { get; set; }
         public CorporateDetails? corporateDetails { get; set; }
         public string ReturnCode { get; set; } 
@@ -25,7 +26,7 @@ namespace DigiLead
         public string firstName { get; set; }
         public string lastName { get; set; }
         public string middleName { get; set; }
-        public string shortName { get; set; }
+        //public string shortName { get; set; }
         public string mobilePhone { get; set; }
         public string dob { get; set; }
         public string aadhar { get; set; }
@@ -49,7 +50,7 @@ namespace DigiLead
         public string companyName2 { get; set; }
         public string companyName3 { get; set;}
         public string companyPhone { get; set;}
-        public string aadhar { get; set;}
+       
         public string pocNumber { get; set; }
         public string pocName { get; set; }
         public string cinNumber { get; set;}

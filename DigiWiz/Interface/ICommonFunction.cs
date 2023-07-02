@@ -10,7 +10,8 @@ namespace DigiWiz
         public Task<string> getEntityType(string EntityId);
 
         public Task<string> getSubEntityType(string subEntityId);
-
+        public bool GetMvalue<T>(string keyname, out T? Outvalue);
+        public void SetMvalue<T>(string keyname, double timevalid, T inputvalue);
 
     }
 }

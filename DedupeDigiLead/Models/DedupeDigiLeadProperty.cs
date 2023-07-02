@@ -40,16 +40,16 @@ namespace DedupeDigiLead
     {
         public string ApplicantID { get; set; }
         public bool? decideNL { get; set; }
-        public string ReturnCode { get; set; }
         public string Message { get; set; }
+
     }
 
     public class DedupDgChkNLTR
     {
         public string ApplicantID { get; set; }
         public bool? decideNLTR { get; set; }
-        public string ReturnCode { get; set; }
         public string Message { get; set; }
+
     }
 
     public class DedupDgAccNLReturn
@@ -57,6 +57,8 @@ namespace DedupeDigiLead
         public List<DedupDgChkNL> accountData { get; set; }
         public string TransactionID { get; set; }
         public string ExecutionTime { get; set; }
+        public string ReturnCode { get; set; }
+        public string Message { get; set; }
 
     }
     public class DedupDgAccNLTRReturn
@@ -64,6 +66,8 @@ namespace DedupeDigiLead
         public List<DedupDgChkNLTR> accountData { get; set; }
         public string TransactionID { get; set; }
         public string ExecutionTime { get; set; }
+        public string ReturnCode { get; set; }
+        public string Message { get; set; }
     }
 
 }

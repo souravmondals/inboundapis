@@ -167,7 +167,17 @@ using System.Diagnostics.Metrics;
         {            
             return await this.getIDfromMSDTable("eqs_titles", "eqs_name", "eqs_titleid", TitleId);
         }
-        
+
+        public async Task<string> getEntityType(string EntityTypeId)
+        {
+            return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_name", "eqs_entitytypeid", EntityTypeId);
+        }
+
+        public async Task<string> getSubEntityType(string SubEntityTypeId)
+        {
+            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_name", "eqs_subentitytypeid", SubEntityTypeId);
+        }
+
         public async Task<string> getPurposeOfCreation(string PurposeOfCreatioId)
         {            
             return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_name", "eqs_purposeofcreationid", PurposeOfCreatioId);

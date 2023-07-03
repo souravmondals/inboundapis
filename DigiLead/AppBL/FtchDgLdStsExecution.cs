@@ -55,6 +55,7 @@
         }
 
         Dictionary<int, string> Status_Code = new Dictionary<int, string>();
+        Dictionary<string, string> IdentityType = new Dictionary<string, string>();
 
         private readonly IKeyVaultService _keyVaultService;
 
@@ -82,6 +83,12 @@
             this.Status_Code.Add(1, "Qualification");
             this.Status_Code.Add(6, "Lead Rejected");
             this.Status_Code.Add(2, "Doc Verification");
+
+            this.IdentityType.Add("615290000", "PAN Card");
+            this.IdentityType.Add("615290001", "8Form 60 + Form 49 A");
+            this.IdentityType.Add("615290002", "Form 60");
+            this.IdentityType.Add("615290003", "Minor -NA");
+            this.IdentityType.Add("615290004", "Not Applicable");
 
         }
 
@@ -153,7 +160,8 @@
                     csRtPrm.LeadID = RequestData.LeadID;
                     
                     csRtPrm.Status = this.Status_Code[Convert.ToInt32(LeadData.statuscode.ToString())];
-
+                    csRtPrm.EntityType = await this._commonFunc.getLeadType(LeadData._eqs_entitytypeid_value.ToString());
+                    csRtPrm.SubEntityType = await this._commonFunc.getLeadType(LeadData._eqs_subentitytypeid_value.ToString());
 
                     if (Entity_type == "Individual")
                     {
@@ -164,10 +172,10 @@
                        //csRtPrm.individualDetails.shortName = LeadData.eqs_shortname;
                         csRtPrm.individualDetails.mobilePhone = LeadData.mobilephone;
                         csRtPrm.individualDetails.dob = LeadData.eqs_dob;
-                        csRtPrm.individualDetails.aadhar = LeadData.eqs_aadhaarreference;
-                        csRtPrm.individualDetails.PAN = LeadData.eqs_pan;
+                        csRtPrm.individualDetails.aadhar = LeadData.eqs_aadhaarreference;                     
+                        csRtPrm.individualDetails.PAN = LeadData.eqs_internalpan;
                         csRtPrm.individualDetails.motherMaidenName = LeadData.eqs_mothermaidenname;
-                        csRtPrm.individualDetails.identityType = LeadData.eqs_panform60code;
+                        csRtPrm.individualDetails.identityType = this.IdentityType[LeadData.eqs_panform60code.ToString()];
                         csRtPrm.individualDetails.NLFound = LeadData.eqs_nlmatchcode;
                         csRtPrm.individualDetails.reasonNotApplicable = LeadData.eqs_reasonforna;
                         csRtPrm.individualDetails.voterid = LeadData.eqs_voterid;
@@ -175,14 +183,15 @@
                         csRtPrm.individualDetails.passport = LeadData.eqs_passportnumber;
                         csRtPrm.individualDetails.ckycnumber = LeadData.eqs_ckycnumber;
 
-                        // csRtPrm.individualDetails.reason = TBC;
+                     
                         if (LeadData._eqs_titleid_value != null)
                         {
                             csRtPrm.individualDetails.title = await this._commonFunc.getTitle(LeadData._eqs_titleid_value.ToString());
                         }
                         if (LeadData._eqs_purposeofcreationid_value != null)
                         {
-                            csRtPrm.individualDetails.purposeOfCreation = await this._commonFunc.getPurposeOfCreation(Lead_data._eqs_purposeofcreationid_value.ToString());
+                            csRtPrm.individualDetails.purposeOfCreation = await this._commonFunc.getPurposeOfCreation(LeadData._eqs_purposeofcreationid_value.ToString());
+                            csRtPrm.individualDetails.OtherPurpose = LeadData.eqs_otherpurpose;
                         }
 
                         csRtPrm.ReturnCode = "CRM-SUCCESS";
@@ -201,20 +210,21 @@
                         csRtPrm.corporateDetails.pocNumber = LeadData.eqs_contactpersonmobile;
                         csRtPrm.corporateDetails.pocName = LeadData.eqs_contactperson;
                         csRtPrm.corporateDetails.cinNumber = LeadData.eqs_cinnumber;
-                        csRtPrm.corporateDetails.dateOfIncorporation = LeadData.eqs_dateofregistration;
-                        csRtPrm.corporateDetails.pan = LeadData.eqs_pan;
+                        csRtPrm.corporateDetails.dateOfIncorporation = LeadData.eqs_dateofincorporation;                
                         csRtPrm.corporateDetails.tanNumber = LeadData.eqs_tannumber;
                         csRtPrm.corporateDetails.NLFound = LeadData.eqs_nlmatchcode;
-                        csRtPrm.corporateDetails.identityType = LeadData.eqs_panform60code;
+                        csRtPrm.corporateDetails.identityType = this.IdentityType[LeadData.eqs_panform60code.ToString()];
                         csRtPrm.corporateDetails.gstNumber = LeadData.eqs_gstnumber;
-                        csRtPrm.corporateDetails.alternateMandatoryCheck = LeadData.eqs_deferalcode;
+                        csRtPrm.corporateDetails.alternateMandatoryCheck = (LeadData.eqs_deferalcode.ToString()== "615290000") ? "Yes" : "No";
                         csRtPrm.corporateDetails.cstNumber = LeadData.eqs_cstvatnumber;
+                        csRtPrm.corporateDetails.ckycnumber = LeadData.eqs_ckycnumber;
 
-                        //csRtPrm.corporateDetails.tinNumber = TBC;
-                        //csRtPrm.corporateDetails.reason = TBC;
+
+                      
                         if (LeadData._eqs_purposeofcreationid_value != null)
                         {
-                            csRtPrm.corporateDetails.purposeOfCreation = await this._commonFunc.getPurposeOfCreation(Lead_data._eqs_purposeofcreationid_value.ToString());
+                            csRtPrm.corporateDetails.purposeOfCreation = await this._commonFunc.getPurposeOfCreation(LeadData._eqs_purposeofcreationid_value.ToString());
+                            csRtPrm.corporateDetails.OtherPurpose = LeadData.eqs_otherpurpose;
                         }
 
 

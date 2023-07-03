@@ -209,7 +209,7 @@ using System.Diagnostics.Metrics;
             try
             {
                 string prodSrkey = product_Filter.productCategory;
-                string filter = $"_eqs_productcategory_value eq '{product_Filter.productCategory}' ";
+                string filter = $"_eqs_productcategory_value eq '{product_Filter.productCategory}' and statuscode eq 1 ";
 
                 if (string.IsNullOrEmpty(product_Filter.gender))
                 {

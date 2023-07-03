@@ -217,6 +217,15 @@ using System.Diagnostics.Metrics;
             }
         }
 
+
+        public async Task<JArray> getAllCustomers(string accountid)
+        {
+            string query_url = $"eqs_accountrelationships()?$select=_eqs_customeridvalue_value&$filter=_eqs_accountid_value eq '{accountid}'";
+            var Customerdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var contact_dtails = await this.getDataFromResponce(Customerdtails);
+            return contact_dtails;
+        }
+
         public async Task<JArray> getContactData(string contact_id)
         {
             try
@@ -238,7 +247,7 @@ using System.Diagnostics.Metrics;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("getLeadData", ex.Message);
+                this._logger.LogError("getContactData", ex.Message);
                 throw ex;
             }
         }

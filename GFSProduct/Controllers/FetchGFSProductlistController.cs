@@ -35,6 +35,7 @@
 
 
         [HttpPost]
+        [Produces("application/json")]
         public async Task<IActionResult> Post()
         {
             try
@@ -54,7 +55,10 @@
                 string response = await _fetchGFSProductExecution.EncriptRespons(JsonConvert.SerializeObject(productList));
                 this._fetchGFSProductExecution.CRMLog(JsonConvert.SerializeObject(request), response, productList.ReturnCode);
 
-                return Ok(response);
+                var contentResult = new ContentResult();
+                contentResult.Content = response;
+                contentResult.ContentType = "application/json";
+                return contentResult;
 
 
             }

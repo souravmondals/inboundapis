@@ -160,8 +160,8 @@
                     csRtPrm.LeadID = RequestData.LeadID;
                     
                     csRtPrm.Status = this.Status_Code[Convert.ToInt32(LeadData.statuscode.ToString())];
-                    csRtPrm.EntityType = await this._commonFunc.getLeadType(LeadData._eqs_entitytypeid_value.ToString());
-                    csRtPrm.SubEntityType = await this._commonFunc.getLeadType(LeadData._eqs_subentitytypeid_value.ToString());
+                    csRtPrm.EntityType = await this._commonFunc.getEntityType(LeadData._eqs_entitytypeid_value.ToString());
+                    csRtPrm.SubEntityType = await this._commonFunc.getSubEntityType(LeadData._eqs_subentitytypeid_value.ToString()); 
 
                     if (Entity_type == "Individual")
                     {

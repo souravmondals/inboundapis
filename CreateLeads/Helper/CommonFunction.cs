@@ -171,7 +171,7 @@ namespace CreateLeads
 
         public async Task<JArray> getCustomerDetail(string CustomerCode)
         {
-            string query_url = $"contacts()?$select=contactid,firstname,lastname,mobilephone,emailaddress1,_eqs_entitytypeid_value,_eqs_subentitytypeid_value&$filter=ccs_customercode eq '{CustomerCode}'";
+            string query_url = $"contacts()?$select=contactid,_eqs_titleid_value,firstname,lastname,eqs_companyname,eqs_companyname2,eqs_companyname3,birthdate,eqs_dateofincorporation,eqs_gender,mobilephone,emailaddress1,_eqs_entitytypeid_value,_eqs_subentitytypeid_value&$filter=eqs_customerid eq '{CustomerCode}'";
             var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
             var customerDetail = await this.getDataFromResponce(responsdtails);
             return customerDetail;

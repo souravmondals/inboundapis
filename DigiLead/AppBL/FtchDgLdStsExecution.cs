@@ -175,7 +175,7 @@
                         csRtPrm.individualDetails.aadhar = LeadData.eqs_aadhaarreference;                     
                         csRtPrm.individualDetails.PAN = LeadData.eqs_internalpan;
                         csRtPrm.individualDetails.motherMaidenName = LeadData.eqs_mothermaidenname;
-                        csRtPrm.individualDetails.identityType = this.IdentityType[LeadData.eqs_panform60code.ToString()];
+                        csRtPrm.individualDetails.identityType = (!string.IsNullOrEmpty(LeadData.eqs_panform60code.ToString())) ? this.IdentityType[LeadData.eqs_panform60code.ToString()] : "";
                         csRtPrm.individualDetails.NLFound = LeadData.eqs_nlmatchcode;
                         csRtPrm.individualDetails.reasonNotApplicable = LeadData.eqs_reasonforna;
                         csRtPrm.individualDetails.voterid = LeadData.eqs_voterid;
@@ -213,7 +213,7 @@
                         csRtPrm.corporateDetails.dateOfIncorporation = LeadData.eqs_dateofincorporation;                
                         csRtPrm.corporateDetails.tanNumber = LeadData.eqs_tannumber;
                         csRtPrm.corporateDetails.NLFound = LeadData.eqs_nlmatchcode;
-                        csRtPrm.corporateDetails.identityType = this.IdentityType[LeadData.eqs_panform60code.ToString()];
+                        csRtPrm.corporateDetails.identityType = (!string.IsNullOrEmpty(LeadData.eqs_panform60code.ToString())) ? this.IdentityType[LeadData.eqs_panform60code.ToString()] : "";
                         csRtPrm.corporateDetails.gstNumber = LeadData.eqs_gstnumber;
                         csRtPrm.corporateDetails.alternateMandatoryCheck = (LeadData.eqs_deferalcode.ToString()== "615290000") ? "Yes" : "No";
                         csRtPrm.corporateDetails.cstNumber = LeadData.eqs_cstvatnumber;

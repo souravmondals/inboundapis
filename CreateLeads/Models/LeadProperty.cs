@@ -7,10 +7,16 @@ namespace CreateLeads
     public class LeadMsdProperty
     {
        // public string leadid { get; set; }
-        public int leadsourcecode { get; set; }
+        public int leadsourcecode { get; set; }     
         public string firstname { get; set; }
         public string middlename { get; set; }
         public string lastname { get; set; }
+        public string eqs_companynamepart1 { get; set; }
+        public string eqs_companynamepart2 { get; set; }
+        public string eqs_companynamepart3 { get; set; }
+        public string eqs_dob { get; set; }
+        public string eqs_dateofincorporation { get; set; }
+        public string eqs_gendercode { get; set; }
         public string yomifullname
         {
             get

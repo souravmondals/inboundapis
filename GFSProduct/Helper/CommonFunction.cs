@@ -213,7 +213,7 @@ using System.Diagnostics.Metrics;
 
                 if (string.IsNullOrEmpty(product_Filter.gender))
                 {
-                    filter += $"and eqs_woman eq false ";
+                    filter += $"and eqs_gendercode eq 789030001 ";
                     prodSrkey += "GF";
                 }
 
@@ -225,7 +225,7 @@ using System.Diagnostics.Metrics;
 
                 if (string.IsNullOrEmpty(product_Filter.subentity))
                 {
-                    filter += $"and eqs_nri eq false ";
+                    filter += $"and eqs_residencytypecode eq false ";
                     prodSrkey += "nriF";
                 }
 
@@ -237,7 +237,7 @@ using System.Diagnostics.Metrics;
 
                 if (string.IsNullOrEmpty(product_Filter.IsStaff))
                 {
-                    filter += $"and eqs_staff eq false ";
+                    filter += $"and eqs_isstaff eq false ";
                     prodSrkey += "stfF";
                 }
 
@@ -245,7 +245,7 @@ using System.Diagnostics.Metrics;
 
                 if (!this.GetMvalue<JArray>(prodSrkey, out Product_dtails1))
                 {
-                    string query_url = $"eqs_products()?$filter={filter}";
+                    string query_url = $"eqs_producteligibilitymatrixes(()?$filter={filter}";
                     var Productdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                     Product_dtails = await this.getDataFromResponce(Productdtails);
 

@@ -1,4 +1,4 @@
-﻿namespace GFSProduct
+﻿namespace AccountLead
 {
 
 using Microsoft.Extensions.Caching.Memory;

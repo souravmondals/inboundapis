@@ -31,7 +31,7 @@ namespace CreateLeads
         public string eqs_pincode { get; set; }
         public string emailaddress1 { get; set; }
         public string eqs_crmproductcategorycode { get; set;}
-      //  public string eqs_SelfieJourneyStatus { get; set;}
+        public string eqs_ucic { get; set;}
         
 
     }

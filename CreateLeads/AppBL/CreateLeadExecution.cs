@@ -292,7 +292,12 @@ namespace CreateLeads
                                 lead_Property.lastname = Customer_Detail[0]["lastname"];
 
                                 odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({Customer_Detail[0]["_eqs_titleid_value"]})");
-                              
+                                if (!string.IsNullOrEmpty(Customer_Detail[0]["_eqs_businesstypeid_value"].ToString()))
+                                {
+                                    odatab.Add("eqs_businesstypeid@odata.bind", $"eqs_businesstypes({Customer_Detail[0]["_eqs_businesstypeid_value"]})");
+                                }
+
+                                lead_Property.eqs_ucic = Customer_Detail[0]["eqs_customerid"];
                                 lead_Property.eqs_companynamepart1 = Customer_Detail[0]["eqs_companyname"];
                                 lead_Property.eqs_companynamepart2 = Customer_Detail[0]["eqs_companyname2"];
                                 lead_Property.eqs_companynamepart3 = Customer_Detail[0]["eqs_companyname3"];
@@ -382,12 +387,18 @@ namespace CreateLeads
                             lead_Property.lastname = Customer_Detail[0]["lastname"];
 
                             odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({Customer_Detail[0]["_eqs_titleid_value"]})");
+                            if (!string.IsNullOrEmpty(Customer_Detail[0]["_eqs_businesstypeid_value"].ToString()))
+                            {
+                                odatab.Add("eqs_businesstypeid@odata.bind", $"eqs_businesstypes({Customer_Detail[0]["_eqs_businesstypeid_value"]})");
+                            }                            
+
                             lead_Property.eqs_companynamepart1 = Customer_Detail[0]["eqs_companyname"];
                             lead_Property.eqs_companynamepart2 = Customer_Detail[0]["eqs_companyname2"];
                             lead_Property.eqs_companynamepart3 = Customer_Detail[0]["eqs_companyname3"];
                             lead_Property.eqs_dateofincorporation = Customer_Detail[0]["eqs_dateofincorporation"];
                             lead_Property.eqs_dob = Customer_Detail[0]["birthdate"];
                             lead_Property.eqs_gendercode = Customer_Detail[0]["eqs_gender"];
+                            lead_Property.eqs_ucic = Customer_Detail[0]["eqs_customerid"];
 
                             if (!string.IsNullOrEmpty(Customer_Detail[0]["mobilephone"].ToString()))
                             {
@@ -482,12 +493,18 @@ namespace CreateLeads
                             lead_Property.lastname = Customer_Detail[0]["lastname"];
 
                             odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({Customer_Detail[0]["_eqs_titleid_value"]})");
+                            if (!string.IsNullOrEmpty(Customer_Detail[0]["_eqs_businesstypeid_value"].ToString()))
+                            {
+                                odatab.Add("eqs_businesstypeid@odata.bind", $"eqs_businesstypes({Customer_Detail[0]["_eqs_businesstypeid_value"]})");
+                            }
+
                             lead_Property.eqs_companynamepart1 = Customer_Detail[0]["eqs_companyname"];
                             lead_Property.eqs_companynamepart2 = Customer_Detail[0]["eqs_companyname2"];
                             lead_Property.eqs_companynamepart3 = Customer_Detail[0]["eqs_companyname3"];
                             lead_Property.eqs_dateofincorporation = Customer_Detail[0]["eqs_dateofincorporation"];
                             lead_Property.eqs_dob = Customer_Detail[0]["birthdate"];
                             lead_Property.eqs_gendercode = Customer_Detail[0]["eqs_gender"];
+                            lead_Property.eqs_ucic = Customer_Detail[0]["eqs_customerid"];
 
                             if (!string.IsNullOrEmpty(Customer_Detail[0]["mobilephone"].ToString()))
                             {
@@ -584,12 +601,18 @@ namespace CreateLeads
                             lead_Property.lastname = Customer_Detail[0]["lastname"];
 
                             odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({Customer_Detail[0]["_eqs_titleid_value"]})");
+                            if (!string.IsNullOrEmpty(Customer_Detail[0]["_eqs_businesstypeid_value"].ToString()))
+                            {
+                                odatab.Add("eqs_businesstypeid@odata.bind", $"eqs_businesstypes({Customer_Detail[0]["_eqs_businesstypeid_value"]})");
+                            }
+
                             lead_Property.eqs_companynamepart1 = Customer_Detail[0]["eqs_companyname"];
                             lead_Property.eqs_companynamepart2 = Customer_Detail[0]["eqs_companyname2"];
                             lead_Property.eqs_companynamepart3 = Customer_Detail[0]["eqs_companyname3"];
                             lead_Property.eqs_dateofincorporation = Customer_Detail[0]["eqs_dateofincorporation"];
                             lead_Property.eqs_dob = Customer_Detail[0]["birthdate"];
                             lead_Property.eqs_gendercode = Customer_Detail[0]["eqs_gender"];
+                            lead_Property.eqs_ucic = Customer_Detail[0]["eqs_customerid"];
 
                             if (!string.IsNullOrEmpty(Customer_Detail[0]["mobilephone"].ToString()))
                             {

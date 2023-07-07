@@ -195,7 +195,7 @@
 
                     product_Filter.productCategory = CategoryId;
 
-                    csRtPrm = await this.getProductDetails(product_Filter);
+                    csRtPrm = await this.getProductDetails(product_Filter, CategoryCode);
                 }
             }
             catch(Exception ex)
@@ -253,7 +253,7 @@
 
                     product_Filter.productCategory = CategoryId;
 
-                    csRtPrm = await this.getProductDetails(product_Filter);
+                    csRtPrm = await this.getProductDetails(product_Filter, CategoryCode);
                 }
                 else
                 {
@@ -273,7 +273,7 @@
             return csRtPrm;
         }
 
-        public async Task<GFSProducrListReturn> getProductDetails(productFilter product_Filter)
+        public async Task<GFSProducrListReturn> getProductDetails(productFilter product_Filter, string CategoryCode)
         {
             GFSProducrListReturn csRtPrm = new GFSProducrListReturn();
             var productDetails = await this._commonFunc.getProductData(product_Filter);
@@ -286,7 +286,7 @@
             }
             foreach(dynamic product_detail in productDetails)
             {
-                if (product_detail.eqs_crmproductcategorycode.ToString() == "615290001")
+                if (CategoryCode == "PCAT04")
                 {
                     FDProductsApplicable fDProductsApplicable = new FDProductsApplicable();
                     fDProductsApplicable.productCode = product_detail.eqs_productcode;
@@ -313,7 +313,7 @@
 
                     csRtPrm.fdproductsApplicable.Add(fDProductsApplicable);
                 }
-                else if (product_detail.eqs_crmproductcategorycode.ToString() == "615290002")
+                else if (CategoryCode == "PCAT05")
                 {
                     RDProductsApplicable rdProductsApplicable = new RDProductsApplicable();
                     rdProductsApplicable.productCode = product_detail.eqs_productcode;
@@ -340,7 +340,7 @@
 
                     csRtPrm.rdproductsApplicable.Add(rdProductsApplicable);
                 }
-                else
+                else if (CategoryCode == "PCAT02" || CategoryCode == "PCAT01")
                 {
                     ApplicableCASAProducts applicableCASAProducts = new ApplicableCASAProducts();
                     applicableCASAProducts.productCode = product_detail.eqs_productcode;

@@ -204,66 +204,7 @@ using System.Diagnostics.Metrics;
             }
         }
 
-        public async Task<JArray> getProductData(productFilter product_Filter)
-        {
-            try
-            {
-                string prodSrkey = product_Filter.productCategory;
-                string filter = $"_eqs_productcategory_value eq '{product_Filter.productCategory}' and statuscode eq 1 ";
-
-                if (string.IsNullOrEmpty(product_Filter.gender))
-                {
-                    filter += $"and (eqs_gendercode eq 789030001 or eqs_gendercode eq null) ";
-                    prodSrkey += "GF";
-                }
-
-                if (!string.IsNullOrEmpty(product_Filter.age))
-                {
-                    filter += $"and eqs_maxage gt {product_Filter.age} and eqs_minage lt {product_Filter.age} ";
-                    prodSrkey += "ag" + product_Filter.age;
-                }
-
-                if (string.IsNullOrEmpty(product_Filter.subentity))
-                {
-                    filter += $"and (eqs_residencytypecode eq false or eqs_residencytypecode eq null) ";
-                    prodSrkey += "nriF";
-                }
-
-                if (string.IsNullOrEmpty(product_Filter.customerSegment))
-                {
-                    filter += $"and (eqs_iselite eq false or eqs_iselite eq null) ";
-                    prodSrkey += "elitF";
-                }
-
-                if (string.IsNullOrEmpty(product_Filter.IsStaff))
-                {
-                    filter += $"and (eqs_isstaff eq false or eqs_isstaff eq null) ";
-                    prodSrkey += "stfF";
-                }
-
-                JArray Product_dtails, Product_dtails1;
-
-                if (!this.GetMvalue<JArray>(prodSrkey, out Product_dtails1))
-                {
-                    string query_url = $"eqs_producteligibilitymatrixes()?$filter={filter}";
-                    var Productdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                    Product_dtails = await this.getDataFromResponce(Productdtails);
-
-                    this.SetMvalue<JArray>(prodSrkey, 5, Product_dtails);
-                }
-                else
-                {
-                    Product_dtails = Product_dtails1;
-                }
-                
-                return Product_dtails;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("getProductData", ex.Message);
-                throw ex;
-            }
-        }
+        
 
         public async Task<JArray> getContactData(string contact_id)
         {

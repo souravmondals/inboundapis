@@ -14,6 +14,8 @@
     using System.Threading.Channels;
     using System.ComponentModel;
     using System;
+    using System.Security.Cryptography.Xml;
+    using Azure;
 
     public class CrdgAccLeadExecution : ICrdgAccLeadExecution
     {
@@ -58,7 +60,8 @@
 
         private readonly IKeyVaultService _keyVaultService;
 
-                
+        private AccountLead _accountLead;
+        private List<AccountApplicant> _accountApplicants;
         private ICommonFunction _commonFunc;
 
         public CrdgAccLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
@@ -69,8 +72,9 @@
             this._keyVaultService = keyVaultService;
             this._queryParser = queryParser;
             this._commonFunc = commonFunction;
-           
-           
+
+            _accountLead = new AccountLead();
+            _accountApplicants = new List<AccountApplicant>();
         }
 
 
@@ -87,22 +91,16 @@
                     {
                         if (this.ValidateAccountLead(RequestData.accountLead) && this.ValidateAccountApplicent(RequestData.CustomerAccountLeadRelation))
                         {
-                            if (!string.IsNullOrEmpty(leadId) && leadId != "")
+                            if (this.ValidateUCIC(_accountApplicants))
                             {
-                                ldRtPrm = await this.getApplicentToProduct(leadId, CategoryCode);
-                            }
-                            else if (!string.IsNullOrEmpty(customerID) && customerID != "")
-                            {
-                                ldRtPrm = await this.getUcicToProduct(customerID, CategoryCode);
+                                ldRtPrm = await this.CreateAccountLead();
                             }
                             else
                             {
-                                this._logger.LogInformation("ValidateLeadtInput", "Input parameters are incorrect");
+                                this._logger.LogInformation("ValidateLeadtInput", "Input UCIC are incorrect");
                                 ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                                ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                                ldRtPrm.Message = OutputMSG.Incorrect_Input;
                             }
-                            
-
                         }
                         else
                         {
@@ -136,6 +134,13 @@
         }
 
 
+        private AccountLeadReturn CreateAccountLead()
+        {
+            AccountLeadReturn accountLeadReturn = new AccountLeadReturn();
+            return accountLeadReturn;
+        }
+
+
         public bool checkappkey(string appkey, string APIKey)
         {
             if (this._keyVaultService.ReadSecret(APIKey) == appkey)
@@ -150,71 +155,134 @@
 
         
 
-        public async Task<AccountLeadReturn> getUcicToProduct(string customerID, string CategoryCode)
+       
+        private bool ValidateUCIC(List<AccountApplicant> accountApplicants)
         {
-            AccountLeadReturn csRtPrm = new AccountLeadReturn();
-            try
+
+            return true;
+        }
+
+        private bool ValidateAccountLead(dynamic AccountData)
+        {
+            if (string.IsNullOrEmpty(AccountData.accountType.ToString()))
             {
-                string CategoryId = await this._commonFunc.getCategoryId(CategoryCode);
-                JArray applicentDetails = await this._commonFunc.getCustomerDetails(customerID);
-                if (applicentDetails.Count > 0)
+                return false;                
+            }
+            else
+            {
+                _accountLead.accountType = AccountData.accountType.ToString();
+            }
+
+            if (string.IsNullOrEmpty(AccountData.productCategory.ToString()))
+            {
+                return false;
+            }
+            else
+            {
+                _accountLead.productCategory = AccountData.productCategory.ToString();
+            }
+
+            if (string.IsNullOrEmpty(AccountData.sourceBranch.ToString()))
+            {
+                return false;
+            }
+            else
+            {
+                _accountLead.sourceBranch = AccountData.sourceBranch.ToString();
+            }
+            
+            if (string.IsNullOrEmpty(AccountData.accountOpeningFlow.ToString()))
+            {
+                return false;
+            }
+            else
+            {
+                _accountLead.accountOpeningFlow = AccountData.accountOpeningFlow.ToString();
+            }
+
+            if (string.IsNullOrEmpty(AccountData.depositAmount.ToString()))
+            {
+                return false;
+            }
+            else
+            {
+                _accountLead.depositAmount = AccountData.depositAmount.ToString();
+            }
+
+            _accountLead.productCategory = AccountData.productCategory;
+            _accountLead.initialDepositType = AccountData.initialDepositType;
+            _accountLead.fieldEmployeeCode = AccountData.fieldEmployeeCode;
+            _accountLead.applicationDate = AccountData.applicationDate;
+            _accountLead.tenureInMonths = AccountData.tenureInMonths;
+            _accountLead.tenureInDays = AccountData.tenureInDays;
+            _accountLead.rateOfInterest = AccountData.rateOfInterest;
+            _accountLead.fundsTobeDebitedFrom = AccountData.fundsTobeDebitedFrom;
+            _accountLead.mopRemarks = AccountData.mopRemarks;
+            _accountLead.fdAccOpeningDate = AccountData.fdAccOpeningDate;
+            _accountLead.sweepFacility = AccountData.sweepFacility;
+            
+
+            return true;
+        }
+
+        private bool ValidateAccountApplicent(dynamic ApplicentData)
+        {
+            if (ApplicentData.Count>0) 
+            {
+                foreach (var item in ApplicentData)
                 {
-                    productFilter product_Filter = new productFilter();
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_gender"].ToString()) && applicentDetails[0]["eqs_gender"].ToString() == "789030001")
+                    AccountApplicant accountApplicant = new AccountApplicant(); 
+                    if (string.IsNullOrEmpty(item.UCIC.ToString()))
                     {
-                        product_Filter.gender = "Woman";
+                        return false;
+                    }
+                    else
+                    {
+                        accountApplicant.UCIC = item.UCIC.ToString();
+                    }
+                    
+                    if (string.IsNullOrEmpty(item.isPrimaryHolder.ToString()))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        accountApplicant.isPrimaryHolder = item.isPrimaryHolder;
+                    }
+                    
+                    if (string.IsNullOrEmpty(item.customerPhoneNumber.ToString()))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        accountApplicant.customerPhoneNumber = item.customerPhoneNumber;
                     }
 
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_age"].ToString()))
-                    {
-                        product_Filter.age = applicentDetails[0]["eqs_age"].ToString();
-                    }
+                    accountApplicant.customerAccountRelation = item.customerAccountRelation;
+                    accountApplicant.customerAccountRelationTitle = item.customerAccountRelationTitle;
+                    accountApplicant.relationToPrimaryHolder = item.relationToPrimaryHolder;
+                    accountApplicant.entityType = item.entityType;
+                    accountApplicant.subentityType = item.subentityType;
+                    accountApplicant.customerName = item.customerName;
+                    accountApplicant.age = item.age;
+                    accountApplicant.isStaff = item.isStaff;
+                    accountApplicant.customerEmailID = item.customerEmailID;
+                    accountApplicant.gender = item.gender;
+                    accountApplicant.pan = item.pan;
+                    accountApplicant.dob = item.dob;
 
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["_eqs_subentitytypeid_value"].ToString()))
-                    {
-                        string subentity = await this._commonFunc.getSubentity(applicentDetails[0]["_eqs_subentitytypeid_value"].ToString());
-                        if (subentity.ToLower() == "foreigners")
-                        {
-                            product_Filter.subentity = "NRI";
-                        }
-                    }
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_customersegment"].ToString()) && applicentDetails[0]["eqs_customersegment"].ToString() == "789030002")
-                    {
-                        product_Filter.customerSegment = "elite";
-                    }
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_isstafffcode"].ToString()))
-                    {
-                        product_Filter.gender = "staff";
-                    }
-
-                    product_Filter.productCategory = CategoryId;
-
-                    csRtPrm = await this.getProductDetails(product_Filter, CategoryCode);
+                    var preferencest = JsonConvert.SerializeObject(item.CustomerPreferences);
+                    accountApplicant.preferences = JsonConvert.DeserializeObject<Preferences>(preferencest);
+                    _accountApplicants.Add(accountApplicant);
                 }
+                return true;
             }
-            catch(Exception ex)
+            else
             {
-                this._logger.LogError("getUcicToProduct", ex.Message);
-                csRtPrm.ReturnCode = "CRM-ERROR-102";
-                csRtPrm.Message = OutputMSG.Incorrect_Input;
+                return false;
             }
-            
-            
-
-            return csRtPrm;
-        }
-
-        private async Task<bool> ValidateAccountLead(dynamic AccountData)
-        {
-            return true;
-        }
-
-        private async Task<bool> ValidateAccountApplicent(dynamic ApplicentData)
-        {
-            return true;
+           
         }
 
         

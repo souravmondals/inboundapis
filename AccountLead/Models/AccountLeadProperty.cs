@@ -4,6 +4,19 @@ using System.Text.Json.Serialization;
 namespace AccountLead
 {
        
+    public class LeadParam
+    {
+        public string leadid { get; set; }
+        public string Lead_id { get; set; }      
+        public string eqs_ucic { get; set; }
+        public string productCategory { get; set; }
+        public string productid { get; set; }
+        public string branchid { get; set; }
+
+        public string LeadAccountid { get; set; }
+        public string LeadAccount_id { get; set; }
+
+    }
     
     public class AccountLeadReturn
     {
@@ -18,9 +31,9 @@ namespace AccountLead
 
     public class AccountApplicant
     {
+        public string contactid { get; set; }
         public string UCIC { get; set; }
-        public string customerName { get; set; }
-        public string customerPhoneNumber { get; set; }
+        public string customerName { get; set; }       
         public string entityType { get; set; }
         public string subentityType { get; set; }
         public string customerAccountRelation { get; set; }
@@ -28,11 +41,21 @@ namespace AccountLead
         public bool? isPrimaryHolder { get; set; }
         public bool? isStaff { get; set; }
         public string relationToPrimaryHolder { get; set; }
-        public string age { get; set; }       
+        public string age { get; set; }
+
+        public string customerPhoneNumber { get; set; }
         public string customerEmailID { get; set; }
         public string gender { get; set; }
         public string pan { get; set; }
         public string dob { get; set; }
+
+        public string firstname { get; set; }
+        public string lastname { get; set; }
+        public string eqs_companynamepart1 { get; set; }
+        public string eqs_companynamepart2 { get; set; }
+        public string eqs_companynamepart3 { get; set; }
+        public string eqs_dateofincorporation { get; set; }
+        
         public Preferences preferences { get; set; }
 
     }

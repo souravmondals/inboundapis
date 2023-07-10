@@ -291,12 +291,7 @@
                     FDProductsApplicable fDProductsApplicable = new FDProductsApplicable();
                     fDProductsApplicable.productCode = product_detail.eqs_productcode;
                     fDProductsApplicable.productName = product_detail.eqs_name;
-                    fDProductsApplicable.nri = product_detail.eqs_nri;
-                    fDProductsApplicable.mfi = product_detail.eqs_mfi;
-                    fDProductsApplicable.minAge = product_detail.eqs_minage;
-                    fDProductsApplicable.maxAge = product_detail.eqs_maxage;
-                    fDProductsApplicable.staff = product_detail.eqs_staff;
-                    fDProductsApplicable.woman = product_detail.eqs_woman;
+                  
                     fDProductsApplicable.minTenureDays = product_detail.eqs_mintenuredays;
                     fDProductsApplicable.maxTenureDays = product_detail.eqs_maxtenuredays;
                     fDProductsApplicable.minTenureMonths = product_detail.eqs_mintenuremonths;
@@ -318,12 +313,7 @@
                     RDProductsApplicable rdProductsApplicable = new RDProductsApplicable();
                     rdProductsApplicable.productCode = product_detail.eqs_productcode;
                     rdProductsApplicable.productName = product_detail.eqs_name;
-                    rdProductsApplicable.nri = product_detail.eqs_nri;
-                    rdProductsApplicable.mfi = product_detail.eqs_mfi;
-                    rdProductsApplicable.minAge = product_detail.eqs_minage;
-                    rdProductsApplicable.maxAge = product_detail.eqs_maxage;
-                    rdProductsApplicable.staff = product_detail.eqs_staff;
-                    rdProductsApplicable.woman = product_detail.eqs_woman;
+                   
                     rdProductsApplicable.minTenureDays = product_detail.eqs_mintenuredays;
                     rdProductsApplicable.maxTenureDays = product_detail.eqs_maxtenuredays;
                     rdProductsApplicable.minTenureMonths = product_detail.eqs_mintenuremonths;
@@ -345,19 +335,14 @@
                     ApplicableCASAProducts applicableCASAProducts = new ApplicableCASAProducts();
                     applicableCASAProducts.productCode = product_detail.eqs_productcode;
                     applicableCASAProducts.productName = product_detail.eqs_name;
-                    applicableCASAProducts.nri = product_detail.eqs_nri;
-                    applicableCASAProducts.mfi = product_detail.eqs_mfi;
-                    applicableCASAProducts.minAge = product_detail.eqs_minage;
-                    applicableCASAProducts.maxAge = product_detail.eqs_maxage;
-                    applicableCASAProducts.staff = product_detail.eqs_staff;
-                    applicableCASAProducts.woman = product_detail.eqs_woman;
+                  
                     applicableCASAProducts.chequeBook = product_detail.eqs_chequebook;
                     applicableCASAProducts.debitCard = product_detail.eqs_debitcard;
                     applicableCASAProducts.applicableDebitCard = product_detail.eqs_applicabledebitcard;
                     applicableCASAProducts.defaultDebitCard = product_detail.eqs_defaultdebitcard;
                     applicableCASAProducts.instaKit = product_detail.eqs_InstaKit;
                     applicableCASAProducts.doorStep = product_detail.eqs_doorstep;
-                    applicableCASAProducts.frontEnd = product_detail.eqs_frontend;
+                  
                     applicableCASAProducts.PMAY = product_detail.eqs_pmay;
                     applicableCASAProducts.isElite = product_detail.eqs_iselite;
                     applicableCASAProducts.srnoofchequeleaves = product_detail.eqs_srnoofchequeleaves;

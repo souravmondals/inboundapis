@@ -32,19 +32,14 @@ namespace GFSProduct
     {
         public string productCode { get; set; }
         public string productName { get; set; }
-        public bool? nri { get; set; }
-        public bool? mfi { get; set; }
-        public int? minAge { get; set; }
-        public int? maxAge { get; set; }
-        public bool? staff { get; set; }
-        public bool? woman { get; set; }
+    
         public bool? chequeBook { get; set; }
         public bool? debitCard { get; set; }
         public string applicableDebitCard { get; set; }
         public string defaultDebitCard { get; set; }
         public bool? instaKit { get; set; }
         public bool? doorStep { get; set; }
-        public bool? frontEnd { get; set; }
+       
         public bool? PMAY { get; set; }
         public bool? isElite { get; set; }
         public string srnoofchequeleaves { get; set; }
@@ -59,12 +54,7 @@ namespace GFSProduct
     {
         public int? productCode { get; set; }
         public string productName { get; set; }
-        public bool? nri { get; set; }
-        public bool? mfi { get; set; }
-        public int? minAge { get; set; }
-        public int? maxAge { get; set; }
-        public bool? staff { get; set; }
-        public bool? woman { get; set; }
+       
         public string minTenureDays { get; set; }
         public string maxTenureDays { get; set; }
         public string minTenureMonths { get; set; }
@@ -85,12 +75,7 @@ namespace GFSProduct
     {
         public int? productCode { get; set; }
         public string productName { get; set; }
-        public bool? nri { get; set; }
-        public bool? mfi { get; set; }
-        public int? minAge { get; set; }
-        public int? maxAge { get; set; }
-        public bool? staff { get; set; }
-        public bool? woman { get; set; }
+        
         public string minTenureDays { get; set; }
         public string maxTenureDays { get; set; }
         public string minTenureMonths { get; set; }

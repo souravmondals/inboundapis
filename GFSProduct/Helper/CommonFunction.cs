@@ -213,7 +213,7 @@ using System.Diagnostics.Metrics;
 
                 if (string.IsNullOrEmpty(product_Filter.gender))
                 {
-                    filter += $"and (eqs_gendercode eq 789030001 or eqs_gendercode eq null) ";
+                    filter += $"and eqs_woman eq false ";
                     prodSrkey += "GF";
                 }
 
@@ -225,19 +225,19 @@ using System.Diagnostics.Metrics;
 
                 if (string.IsNullOrEmpty(product_Filter.subentity))
                 {
-                    filter += $"and (eqs_residencytypecode eq false or eqs_residencytypecode eq null) ";
+                    filter += $"and eqs_nri eq false ";
                     prodSrkey += "nriF";
                 }
 
                 if (string.IsNullOrEmpty(product_Filter.customerSegment))
                 {
-                    filter += $"and (eqs_iselite eq false or eqs_iselite eq null) ";
+                    filter += $"and eqs_iselite eq false ";
                     prodSrkey += "elitF";
                 }
 
                 if (string.IsNullOrEmpty(product_Filter.IsStaff))
                 {
-                    filter += $"and (eqs_isstaff eq false or eqs_isstaff eq null) ";
+                    filter += $"and eqs_staff eq false ";
                     prodSrkey += "stfF";
                 }
 
@@ -245,7 +245,7 @@ using System.Diagnostics.Metrics;
 
                 if (!this.GetMvalue<JArray>(prodSrkey, out Product_dtails1))
                 {
-                    string query_url = $"eqs_producteligibilitymatrixes()?$filter={filter}";
+                    string query_url = $"eqs_products()?$filter={filter}";
                     var Productdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                     Product_dtails = await this.getDataFromResponce(Productdtails);
 

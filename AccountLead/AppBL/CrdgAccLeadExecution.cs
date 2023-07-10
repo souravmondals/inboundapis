@@ -61,7 +61,11 @@
         private readonly IKeyVaultService _keyVaultService;
 
         private AccountLead _accountLead;
+        private LeadParam _leadParam;
         private List<AccountApplicant> _accountApplicants;
+        Dictionary<string, string> AccountType = new Dictionary<string, string>();
+        Dictionary<string, string> KitOption = new Dictionary<string, string>();
+        Dictionary<string, string> DepositMode = new Dictionary<string, string>();
         private ICommonFunction _commonFunc;
 
         public CrdgAccLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
@@ -73,8 +77,23 @@
             this._queryParser = queryParser;
             this._commonFunc = commonFunction;
 
+            _leadParam = new LeadParam();
             _accountLead = new AccountLead();
             _accountApplicants = new List<AccountApplicant>();
+
+            AccountType.Add("Single", "615290000");
+            AccountType.Add("Joint", "615290001");
+
+            KitOption.Add("Non Insta Kit", "615290000");
+            KitOption.Add("Insta Kit", "615290001");
+            KitOption.Add("Instant A/C No kit", "615290002");
+
+            DepositMode.Add("Cheque", "789030000");
+            DepositMode.Add("Cash", "789030001");
+            DepositMode.Add("Remittance (NRI)", "789030002");
+            DepositMode.Add("Cheque from Existing NRI Account", "789030003");
+            DepositMode.Add("IP waiver", "789030004");
+            DepositMode.Add("Fund Transfer", "789030005");
         }
 
 
@@ -91,7 +110,7 @@
                     {
                         if (this.ValidateAccountLead(RequestData.accountLead) && this.ValidateAccountApplicent(RequestData.CustomerAccountLeadRelation))
                         {
-                            if (this.ValidateUCIC(_accountApplicants))
+                            if (await this.ValidateUCIC())
                             {
                                 ldRtPrm = await this.CreateAccountLead();
                             }
@@ -134,12 +153,156 @@
         }
 
 
-        private AccountLeadReturn CreateAccountLead()
+        private async Task<AccountLeadReturn> CreateAccountLead()
         {
             AccountLeadReturn accountLeadReturn = new AccountLeadReturn();
+            if(await CreateLead())
+            {
+                await LeadAccountCreation();
+            }
             return accountLeadReturn;
         }
 
+
+        private async Task<bool> CreateLead()
+        {
+            Dictionary<string, string> odatab = new Dictionary<string, string>();
+            var productDetails = await this._commonFunc.getProductId(_accountLead.productCode);
+            string ProductId = productDetails["ProductId"];
+            _leadParam.productid = ProductId;
+            string Businesscategoryid = productDetails["businesscategoryid"];
+            string Productcategoryid = productDetails["productcategory"];
+            _leadParam.productCategory = Productcategoryid;
+            string eqs_crmproductcategorycode = productDetails["crmproductcategorycode"];
+
+            if (ProductId != "")
+            {
+                var appitem = _accountApplicants.Where(x => x.UCIC == _leadParam.eqs_ucic).FirstOrDefault();
+
+                string BranchId = await this._commonFunc.getBranchId(_accountLead.sourceBranch);
+                if (BranchId != null && BranchId != "")
+                {
+                    odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({BranchId})");
+                    _leadParam.branchid = BranchId;
+                }
+
+                odatab.Add("eqs_ucic", appitem.UCIC);
+                odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({appitem.contactid})");
+                odatab.Add("firstname", appitem.firstname);
+                odatab.Add("lastname", appitem.lastname);
+                odatab.Add("mobilephone", appitem.customerPhoneNumber);
+                odatab.Add("emailaddress1", appitem.customerEmailID);
+
+                odatab.Add("eqs_companynamepart1", appitem.eqs_companynamepart1);
+                odatab.Add("eqs_companynamepart2", appitem.eqs_companynamepart2);
+                odatab.Add("eqs_companynamepart3", appitem.eqs_companynamepart3);
+
+                if(!string.IsNullOrEmpty(appitem.eqs_dateofincorporation))
+                    odatab.Add("eqs_dateofincorporation", appitem.eqs_dateofincorporation);
+
+                if (!string.IsNullOrEmpty(appitem.dob))
+                    odatab.Add("eqs_dob", appitem.dob);
+
+                odatab.Add("eqs_gendercode", appitem.gender);
+                odatab.Add("eqs_createdfromonline", "true");
+                odatab.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
+                odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({Productcategoryid})");
+                odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({Businesscategoryid})");
+
+                odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({appitem.entityType})");
+                odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({appitem.subentityType})");
+
+                string postDataParametr = JsonConvert.SerializeObject(odatab);
+
+                var Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
+                if (Lead_details.Count > 0)
+                {
+                    dynamic respons_code = Lead_details[0];
+                    if (respons_code.responsecode == 201)
+                    {
+                        _leadParam.Lead_id = respons_code.responsebody["eqs_crmleadid"];
+                        _leadParam.leadid = respons_code.responsebody["leadid"];
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+                
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task<bool> LeadAccountCreation()
+        {
+            Dictionary<string, string> odatab = new Dictionary<string, string>();
+            Dictionary<string, double> odatab1 = new Dictionary<string, double>();
+
+            odatab.Add("eqs_typeofaccountid@odata.bind", $"eqs_productcategories({_leadParam.productCategory})");
+            odatab.Add("eqs_productid@odata.bind", $"eqs_products({_leadParam.productid})");
+            odatab.Add("eqs_Lead@odata.bind", $"leads({_leadParam.leadid})");
+
+            odatab.Add("eqs_accountownershipcode", this.AccountType[_accountLead.accountType]);
+
+            if(!string.IsNullOrEmpty(_leadParam.branchid))
+                odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({_leadParam.branchid})");
+
+
+            odatab.Add("eqs_instakitoptioncode", this.KitOption[_accountLead.accountOpeningFlow]);
+            odatab.Add("eqs_initialdepositmodecode", this.DepositMode[_accountLead.initialDepositType]);
+
+            odatab.Add("eqs_sourcebyemployeecode", _accountLead.fieldEmployeeCode);
+
+            if(!string.IsNullOrEmpty(_accountLead.applicationDate))
+                odatab.Add("eqs_applicationdate", _accountLead.applicationDate);            
+
+            odatab.Add("eqs_fundstobedebitedfrom", _accountLead.fundsTobeDebitedFrom);           
+            odatab.Add("eqs_modeofoperationremarks", _accountLead.mopRemarks);
+
+            if (!string.IsNullOrEmpty(_accountLead.fdAccOpeningDate))
+                odatab.Add("eqs_fdvaluedate", _accountLead.fdAccOpeningDate);
+
+            odatab.Add("eqs_sweepfacility", _accountLead.sweepFacility.ToString().ToLower());
+
+            string postDataParametr = JsonConvert.SerializeObject(odatab);
+
+            odatab1.Add("eqs_rateofinterest", Convert.ToDouble(_accountLead.rateOfInterest.ToString()));
+            odatab1.Add("eqs_depositamount", Convert.ToDouble(_accountLead.depositAmount.ToString()));
+
+            string postDataParametr1 = JsonConvert.SerializeObject(odatab1);
+            postDataParametr = await _commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+
+            var LeadAccount_details = await this._queryParser.HttpApiCall("eqs_leadaccounts()?$select=eqs_crmleadaccountid", HttpMethod.Post, postDataParametr);
+            if (LeadAccount_details.Count > 0)
+            {
+                dynamic respons_code = LeadAccount_details[0];
+                if (respons_code.responsecode == 201)
+                {
+                    _leadParam.LeadAccount_id = respons_code.responsebody["eqs_crmleadaccountid"];
+                    _leadParam.LeadAccountid = respons_code.responsebody["eqs_leadaccountid"];
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
+
+        }
 
         public bool checkappkey(string appkey, string APIKey)
         {
@@ -153,12 +316,57 @@
             }
         }
 
-        
-
-       
-        private bool ValidateUCIC(List<AccountApplicant> accountApplicants)
+               
+        private async Task<bool> ValidateUCIC()
         {
+            int nuid = _accountApplicants.Count;
+            if (nuid>0)
+            {
+                string query_url = $"contacts()?$select=contactid,eqs_customerid,firstname,lastname,eqs_companyname,eqs_companyname2,eqs_companyname3,eqs_pan,mobilephone,eqs_gender,emailaddress1,birthdate,eqs_dateofincorporation,_eqs_entitytypeid_value,_eqs_subentitytypeid_value&$filter=";
+                foreach (var applicent in _accountApplicants)
+                {
+                    query_url += $"eqs_customerid eq '{applicent.UCIC}' or ";
+                    if (applicent.isPrimaryHolder==true)
+                    {
+                        _leadParam.eqs_ucic = applicent.UCIC;
+                    }
+                }
+                query_url = query_url.Substring(0, query_url.Length-4);
+                var Applicantdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Applicant_dtails = await this._commonFunc.getDataFromResponce(Applicantdtails);
+                if (Applicant_dtails.Count == nuid)
+                {
+                    List<AccountApplicant> accountApplicants1 = new List<AccountApplicant>();
+                    foreach (var item in Applicant_dtails)
+                    {
+                       var appitem = _accountApplicants.Where(x => x.UCIC == item["eqs_customerid"].ToString()).FirstOrDefault();
+                       
+                        appitem.pan = item["eqs_pan"].ToString();
+                        appitem.customerPhoneNumber = item["mobilephone"].ToString();
+                        appitem.customerEmailID = item["emailaddress1"].ToString();
+                        appitem.dob = item["birthdate"].ToString();
+                        appitem.gender = item["eqs_gender"].ToString();
+                        appitem.entityType = item["_eqs_entitytypeid_value"].ToString();
+                        appitem.subentityType = item["_eqs_subentitytypeid_value"].ToString();
 
+                        appitem.contactid = item["contactid"].ToString();
+                        appitem.firstname = item["firstname"].ToString();
+                        appitem.lastname = item["lastname"].ToString();
+                        appitem.eqs_companynamepart1 = item["eqs_companyname"].ToString();
+                        appitem.eqs_companynamepart2 = item["eqs_companyname2"].ToString();
+                        appitem.eqs_companynamepart3 = item["eqs_companyname3"].ToString();
+                        appitem.eqs_dateofincorporation = item["eqs_dateofincorporation"].ToString();
+
+
+                        accountApplicants1.Add(appitem);
+                    }
+                    _accountApplicants = accountApplicants1;
+                }
+                else
+                {
+                    return false;
+                }
+            }
             return true;
         }
 
@@ -173,13 +381,13 @@
                 _accountLead.accountType = AccountData.accountType.ToString();
             }
 
-            if (string.IsNullOrEmpty(AccountData.productCategory.ToString()))
+            if (string.IsNullOrEmpty(AccountData.productCode.ToString()))
             {
                 return false;
             }
             else
             {
-                _accountLead.productCategory = AccountData.productCategory.ToString();
+                _accountLead.productCode = AccountData.productCode.ToString();
             }
 
             if (string.IsNullOrEmpty(AccountData.sourceBranch.ToString()))

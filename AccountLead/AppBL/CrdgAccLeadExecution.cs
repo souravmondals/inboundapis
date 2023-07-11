@@ -60,6 +60,7 @@
 
         private readonly IKeyVaultService _keyVaultService;
 
+        private List<string> applicents = new List<string>();
         private AccountLead _accountLead;
         private LeadParam _leadParam;
         private List<AccountApplicant> _accountApplicants;
@@ -158,8 +159,36 @@
             AccountLeadReturn accountLeadReturn = new AccountLeadReturn();
             if(await CreateLead())
             {
-                await LeadAccountCreation();
+                if (await LeadAccountCreation())
+                {
+                    if (await AddAccountApplicent())
+                    {
+                        accountLeadReturn.AccountLeadId = _leadParam.LeadAccount_id;
+                        accountLeadReturn.Applicants = this.applicents;
+                        accountLeadReturn.ReturnCode = "CRM - SUCCESS";
+                        accountLeadReturn.Message = OutputMSG.Case_Success;
+                    }
+                    else
+                    {
+                        this._logger.LogInformation("CreateAccountLead", "Input parameters are incorrect");
+                        accountLeadReturn.ReturnCode = "CRM-ERROR-102";
+                        accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+                    }
+                }
+                else
+                {
+                    this._logger.LogInformation("CreateAccountLead", "Input parameters are incorrect");
+                    accountLeadReturn.ReturnCode = "CRM-ERROR-102";
+                    accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+                }
             }
+            else
+            {
+                this._logger.LogInformation("CreateAccountLead", "Input parameters are incorrect");
+                accountLeadReturn.ReturnCode = "CRM-ERROR-102";
+                accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+            }
+
             return accountLeadReturn;
         }
 
@@ -304,6 +333,105 @@
 
         }
 
+        private async Task<bool> AddAccountApplicent()
+        {           
+            foreach (var applicant in _accountApplicants)
+            {
+                Dictionary<string, string> odatab = new Dictionary<string, string>();
+
+                odatab.Add("eqs_leadaccountid@odata.bind", $"eqs_leadaccounts({_leadParam.LeadAccountid})");
+                odatab.Add("eqs_ucic", applicant.UCIC);
+                odatab.Add("eqs_customer", applicant.UCIC);
+                odatab.Add("eqs_customerid@odata.bind", $"contacts({applicant.contactid})");
+                odatab.Add("eqs_name", applicant.firstname + " " + applicant.lastname);
+                odatab.Add("eqs_emailaddress", applicant.customerEmailID);
+                odatab.Add("eqs_mobilenumber", applicant.customerPhoneNumber);
+                odatab.Add("eqs_gendercode", applicant.gender);
+                odatab.Add("eqs_dob", applicant.dob);
+                odatab.Add("eqs_pan", applicant.pan);
+                odatab.Add("eqs_leadage", applicant.age);
+
+                odatab.Add("eqs_leadid@odata.bind", $"leads({_leadParam.leadid})");
+
+                odatab.Add("eqs_accountrelationship@odata.bind", $"eqs_accountrelationships({await this._commonFunc.getAccRelationshipId(applicant.customerAccountRelation)})");
+                odatab.Add("eqs_isprimaryholder", (applicant.isPrimaryHolder == true) ? "789030001" : "789030000");
+
+                odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({applicant.entityType})");
+                odatab.Add("eqs_subentity@odata.bind", $"eqs_subentitytypes({applicant.subentityType})");
+
+                if (applicant.isPrimaryHolder == false && !string.IsNullOrEmpty(applicant.relationToPrimaryHolder))
+                {
+
+                    odatab.Add("eqs_relationship@odata.bind", $"eqs_relationships({await this._commonFunc.getRelationshipId(applicant.relationToPrimaryHolder)})");
+                }
+
+                string postDataParametr = JsonConvert.SerializeObject(odatab);
+                var Applicent_details = await this._queryParser.HttpApiCall("eqs_accountapplicants()?$select=eqs_applicantid", HttpMethod.Post, postDataParametr);
+
+                if (Applicent_details.Count > 0)
+                {
+                    dynamic respons_code = Applicent_details[0];
+                    if (respons_code.responsecode == 201)
+                    {
+                        applicents.Add(respons_code.responsebody["eqs_applicantid"].ToString());
+                        string accountapplicantid = respons_code.responsebody["eqs_accountapplicantid"];
+
+                        Dictionary<string, string> preference = new Dictionary<string, string>();
+                        Dictionary<string, bool?> preference1 = new Dictionary<string, bool?>();
+
+                        preference.Add("eqs_applicantid@odata.bind", $"eqs_accountapplicants({accountapplicantid})");
+                                               
+                        preference1.Add("eqs_sms", applicant.preferences.sms);
+                        preference1.Add("eqs_allsmsalerts", applicant.preferences.allSMSAlerts);
+                        preference1.Add("eqs_onlytransactionalerts", applicant.preferences.onlyTransactionAlerts);
+                        preference1.Add("eqs_passbook", applicant.preferences.passbook);
+                        preference1.Add("eqs_physicalstatement", applicant.preferences.physicalStatement);
+                        preference1.Add("eqs_emailstatement", applicant.preferences.emailStatement);
+                        preference1.Add("eqs_netbanking", applicant.preferences.netBanking);
+                        preference1.Add("eqs_bankguarantee", applicant.preferences.bankGuarantee);
+                        preference1.Add("eqs_letterofcredit", applicant.preferences.letterofCredit);
+                        preference1.Add("eqs_businessloan", applicant.preferences.businessLoan);
+                        preference1.Add("eqs_doorstepbanking", applicant.preferences.doorStepBanking);
+                        preference1.Add("eqs_doorstepbankingoncall", applicant.preferences.doorStepBankingOnCall);
+                        preference1.Add("eqs_doorstepbankingbeat", applicant.preferences.doorStepBankingBeat);
+                        preference1.Add("eqs_tradeforex", applicant.preferences.tradeForex);
+                        preference1.Add("eqs_loanagainstproperty", applicant.preferences.loanAgainstProperty);
+                        preference1.Add("eqs_overdraftagainstfd", applicant.preferences.overdraftsagainstFD);
+                        preference1.Add("eqs_preferencescopied", applicant.preferences.preferencesCopied);
+                        preference1.Add("eqs_banklevelalerts", applicant.preferences.bankLevelAlerts);
+
+                        //preference.Add("eqs_netbankingrights", applicant.preferences.netBankingRights);
+                        //preference.Add("eqs_mobilebankingnumber", applicant.preferences.mobileBankingNumber);
+                       // preference.Add("eqs_internationaldclimitact", applicant.preferences.InternationalLimitActivation);
+
+                        postDataParametr = JsonConvert.SerializeObject(preference);
+                        string postDataParametr1 = JsonConvert.SerializeObject(preference1);
+                        postDataParametr = await _commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+
+                        var Apreferences_details = await this._queryParser.HttpApiCall("eqs_customerpreferences()?", HttpMethod.Post, postDataParametr);
+
+                        if (Apreferences_details.Count < 1)
+                        {
+                            return false;
+                        }
+
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+       
+            return true;
+
+        }
+
         public bool checkappkey(string appkey, string APIKey)
         {
             if (this._keyVaultService.ReadSecret(APIKey) == appkey)
@@ -417,8 +545,17 @@
                 _accountLead.depositAmount = AccountData.depositAmount.ToString();
             }
 
+            if (string.IsNullOrEmpty(AccountData.initialDepositType.ToString()))
+            {
+                return false;
+            }
+            else
+            {
+                _accountLead.initialDepositType = AccountData.initialDepositType;
+            }
+
             _accountLead.productCategory = AccountData.productCategory;
-            _accountLead.initialDepositType = AccountData.initialDepositType;
+            
             _accountLead.fieldEmployeeCode = AccountData.fieldEmployeeCode;
             _accountLead.applicationDate = AccountData.applicationDate;
             _accountLead.tenureInMonths = AccountData.tenureInMonths;
@@ -448,7 +585,16 @@
                     {
                         accountApplicant.UCIC = item.UCIC.ToString();
                     }
-                    
+
+                    if (string.IsNullOrEmpty(item.customerAccountRelation.ToString()))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        accountApplicant.customerAccountRelation = item.customerAccountRelation;
+                    }
+
                     if (string.IsNullOrEmpty(item.isPrimaryHolder.ToString()))
                     {
                         return false;
@@ -457,7 +603,16 @@
                     {
                         accountApplicant.isPrimaryHolder = item.isPrimaryHolder;
                     }
-                    
+
+                    if (string.IsNullOrEmpty(item.relationToPrimaryHolder.ToString()))
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        accountApplicant.relationToPrimaryHolder = item.relationToPrimaryHolder;
+                    }
+
                     if (string.IsNullOrEmpty(item.customerPhoneNumber.ToString()))
                     {
                         return false;
@@ -467,9 +622,9 @@
                         accountApplicant.customerPhoneNumber = item.customerPhoneNumber;
                     }
 
-                    accountApplicant.customerAccountRelation = item.customerAccountRelation;
+                    
                     accountApplicant.customerAccountRelationTitle = item.customerAccountRelationTitle;
-                    accountApplicant.relationToPrimaryHolder = item.relationToPrimaryHolder;
+                    
                     accountApplicant.entityType = item.entityType;
                     accountApplicant.subentityType = item.subentityType;
                     accountApplicant.customerName = item.customerName;

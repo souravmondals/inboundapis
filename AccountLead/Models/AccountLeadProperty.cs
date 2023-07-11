@@ -21,7 +21,7 @@ namespace AccountLead
     public class AccountLeadReturn
     {
         public string AccountLeadId { get; set; }
-       
+        public List<string> Applicants { get; set; }
         public string ReturnCode { get; set; } 
         public string Message { get; set; }
         public string TransactionID { get; set; }

@@ -167,9 +167,24 @@ using System.Diagnostics.Metrics;
             return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchid", "eqs_branchidvalue", BranchCode);
         }
        
-        public async Task<string> getSubentity(string subentity_Id)
+        public async Task<string> getAccRelationshipId(string AccRelationship_code)
         {
-            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_name", "eqs_subentitytypeid", subentity_Id);
+            return await this.getIDfromMSDTable("eqs_accountrelationshipses", "eqs_accountrelationshipsid", "eqs_key", AccRelationship_code);
+        }
+
+        public async Task<string> getEntityId(string Entity_code)
+        {
+            return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_entitytypeid", "eqs_entitytypekey", Entity_code);
+        }
+
+        public async Task<string> getSubEntityId(string SubEntity_code)
+        {
+            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_subentitytypeid", "eqs_key", SubEntity_code);
+        }
+        
+        public async Task<string> getRelationshipId(string Relationship_code)
+        {
+            return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationshipid", "eqs_relationship", Relationship_code);
         }
 
         public async Task<JArray> getApplicantDetails(string ApplicantId)

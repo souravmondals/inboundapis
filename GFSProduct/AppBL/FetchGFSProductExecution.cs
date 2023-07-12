@@ -235,7 +235,7 @@
                     if (!string.IsNullOrEmpty(applicentDetails[0]["_eqs_subentity_value"].ToString()))
                     {
                         string subentity = await this._commonFunc.getSubentity(applicentDetails[0]["_eqs_subentity_value"].ToString());
-                        if (subentity.ToLower() == "foreigners")
+                        if (subentity.ToLower() == "foreigners" || subentity.ToLower() == "non resident individual")
                         {
                             product_Filter.subentity = "NRI";
                         }                        

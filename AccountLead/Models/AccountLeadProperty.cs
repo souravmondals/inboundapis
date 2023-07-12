@@ -32,6 +32,7 @@ namespace AccountLead
     public class AccountApplicant
     {
         public string contactid { get; set; }
+        public string title { get; set; }
         public string UCIC { get; set; }
         public string customerName { get; set; }       
         public string entityType { get; set; }

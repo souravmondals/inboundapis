@@ -217,6 +217,8 @@
 
                 odatab.Add("eqs_ucic", appitem.UCIC);
                 odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({appitem.contactid})");
+                odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({appitem.title})");
+                odatab.Add("leadsourcecode", "1");
                 odatab.Add("firstname", appitem.firstname);
                 odatab.Add("lastname", appitem.lastname);
                 odatab.Add("mobilephone", appitem.customerPhoneNumber);
@@ -343,6 +345,9 @@
                 odatab.Add("eqs_ucic", applicant.UCIC);
                 odatab.Add("eqs_customer", applicant.UCIC);
                 odatab.Add("eqs_customerid@odata.bind", $"contacts({applicant.contactid})");
+                odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({applicant.title})");
+                odatab.Add("eqs_leadchannel", "1");
+
                 odatab.Add("eqs_name", applicant.firstname + " " + applicant.lastname);
                 odatab.Add("eqs_emailaddress", applicant.customerEmailID);
                 odatab.Add("eqs_mobilenumber", applicant.customerPhoneNumber);
@@ -350,6 +355,12 @@
                 odatab.Add("eqs_dob", applicant.dob);
                 odatab.Add("eqs_pan", applicant.pan);
                 odatab.Add("eqs_leadage", applicant.age);
+
+                if (!string.IsNullOrEmpty(_leadParam.branchid))
+                {
+                    odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({_leadParam.branchid})");
+                }
+                    
 
                 odatab.Add("eqs_leadid@odata.bind", $"leads({_leadParam.leadid})");
 
@@ -450,7 +461,7 @@
             int nuid = _accountApplicants.Count;
             if (nuid>0)
             {
-                string query_url = $"contacts()?$select=contactid,eqs_customerid,firstname,lastname,eqs_companyname,eqs_companyname2,eqs_companyname3,eqs_pan,mobilephone,eqs_gender,emailaddress1,birthdate,eqs_dateofincorporation,_eqs_entitytypeid_value,_eqs_subentitytypeid_value&$filter=";
+                string query_url = $"contacts()?$select=contactid,eqs_customerid,_eqs_titleid_value,firstname,lastname,eqs_companyname,eqs_companyname2,eqs_companyname3,eqs_pan,mobilephone,eqs_gender,emailaddress1,birthdate,eqs_dateofincorporation,_eqs_entitytypeid_value,_eqs_subentitytypeid_value&$filter=";
                 foreach (var applicent in _accountApplicants)
                 {
                     query_url += $"eqs_customerid eq '{applicent.UCIC}' or ";
@@ -478,6 +489,7 @@
                         appitem.subentityType = item["_eqs_subentitytypeid_value"].ToString();
 
                         appitem.contactid = item["contactid"].ToString();
+                        appitem.title = item["_eqs_titleid_value"].ToString();
                         appitem.firstname = item["firstname"].ToString();
                         appitem.lastname = item["lastname"].ToString();
                         appitem.eqs_companynamepart1 = item["eqs_companyname"].ToString();

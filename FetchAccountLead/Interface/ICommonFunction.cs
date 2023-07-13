@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 
-namespace AccountLead
+namespace FetchAccountLead
 {
     public interface ICommonFunction
     {      
@@ -12,7 +12,6 @@ namespace AccountLead
         public Task<string> getEntityId(string Entity_code);
         public Task<string> getSubEntityId(string SubEntity_code);
         public Task<string> getRelationshipId(string Relationship_code);
-        public Task<string> getLeadSourceId(string LeadSource_code);
 
         public Task<JArray> getContactData(string contact_id);
         public Task<JArray> getDataFromResponce(List<JObject> RsponsData);

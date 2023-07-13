@@ -1,10 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System.Text.Json.Serialization;
 
-namespace AccountLead
+namespace FetchAccountLead
 {
        
-    public class LeadParam
+    public class LeadDetails
     {
         public string leadid { get; set; }
         public string Lead_id { get; set; }      
@@ -18,10 +18,11 @@ namespace AccountLead
 
     }
     
-    public class AccountLeadReturn
+    public class FtAccountLeadReturn
     {
-        public string AccountLeadId { get; set; }
-        public List<string> Applicants { get; set; }
+        public LeadAccount AccountLead { get; set; }
+        public LeadDetails leadDetails { get; set; }
+        public List<AccountApplicant> Applicants { get; set; }
         public string ReturnCode { get; set; } 
         public string Message { get; set; }
         public string TransactionID { get; set; }
@@ -87,7 +88,7 @@ namespace AccountLead
         
     }
 
-    public class AccountLead
+    public class LeadAccount
     {
         public string accountType { get; set; }
         public string productCategory { get; set; }

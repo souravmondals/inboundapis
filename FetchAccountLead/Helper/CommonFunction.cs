@@ -1,4 +1,4 @@
-﻿namespace AccountLead
+﻿namespace FetchAccountLead
 {
 
 using Microsoft.Extensions.Caching.Memory;
@@ -181,12 +181,7 @@ using CRMConnect;
         {
             return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_subentitytypeid", "eqs_key", SubEntity_code);
         }
-
-        public async Task<string> getLeadSourceId(string LeadSource_code)
-        {
-            return await this.getIDfromMSDTable("eqs_leadsources", "eqs_leadsourceid", "eqs_name", LeadSource_code);
-        }
-
+        
         public async Task<string> getRelationshipId(string Relationship_code)
         {
             return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationshipid", "eqs_relationship", Relationship_code);

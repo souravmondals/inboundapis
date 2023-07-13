@@ -1,4 +1,4 @@
-﻿namespace AccountLead
+﻿namespace FetchAccountLead
 {
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Caching.Memory;
@@ -17,7 +17,7 @@
     using System.Security.Cryptography.Xml;
     using Azure;
 
-    public class CrdgAccLeadExecution : ICrdgAccLeadExecution
+    public class CrdgAccLeadExecution : IFtdgAccLeadExecution
     {
 
         private ILoggers _logger;
@@ -61,8 +61,8 @@
         private readonly IKeyVaultService _keyVaultService;
 
         private List<string> applicents = new List<string>();
-        private AccountLead _accountLead;
-        private LeadParam _leadParam;
+        private LeadAccount _accountLead;
+        private LeadDetails _leadParam;
         private List<AccountApplicant> _accountApplicants;
         Dictionary<string, string> AccountType = new Dictionary<string, string>();
         Dictionary<string, string> KitOption = new Dictionary<string, string>();
@@ -78,8 +78,8 @@
             this._queryParser = queryParser;
             this._commonFunc = commonFunction;
 
-            _leadParam = new LeadParam();
-            _accountLead = new AccountLead();
+            _leadParam = new LeadDetails();
+            _accountLead = new LeadAccount();
             _accountApplicants = new List<AccountApplicant>();
 
             AccountType.Add("Single", "615290000");
@@ -98,9 +98,9 @@
         }
 
 
-        public async Task<AccountLeadReturn> ValidateLeadtInput(dynamic RequestData)
+        public async Task<FtAccountLeadReturn> ValidateLeadtInput(dynamic RequestData)
         {
-            AccountLeadReturn ldRtPrm = new AccountLeadReturn();
+            FtAccountLeadReturn ldRtPrm = new FtAccountLeadReturn();
             RequestData = await this.getRequestData(RequestData, "CreateDigiAccountLead");
             try
             { 
@@ -154,9 +154,9 @@
         }
 
 
-        private async Task<AccountLeadReturn> CreateAccountLead()
+        private async Task<FtAccountLeadReturn> CreateAccountLead()
         {
-            AccountLeadReturn accountLeadReturn = new AccountLeadReturn();
+            FtAccountLeadReturn accountLeadReturn = new FtAccountLeadReturn();
             if(await CreateLead())
             {
                 if (await LeadAccountCreation())
@@ -218,7 +218,6 @@
                 odatab.Add("eqs_ucic", appitem.UCIC);
                 odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({appitem.contactid})");
                 odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({appitem.title})");
-                odatab.Add("eqs_leadsourceid@odata.bind", $"eqs_leadsources({await this._commonFunc.getLeadSourceId("Selfie")})");
                 odatab.Add("leadsourcecode", "15");
                 odatab.Add("firstname", appitem.firstname);
                 odatab.Add("lastname", appitem.lastname);
@@ -351,8 +350,6 @@
                 odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({applicant.title})");
                 odatab.Add("eqs_leadchannel", "15");
 
-                odatab.Add("eqs_firstname", applicant.firstname);
-                odatab.Add("eqs_lastname", applicant.lastname);
                 odatab.Add("eqs_name", applicant.firstname + " " + applicant.lastname);
                 odatab.Add("eqs_emailaddress", applicant.customerEmailID);
                 odatab.Add("eqs_mobilenumber", applicant.customerPhoneNumber);

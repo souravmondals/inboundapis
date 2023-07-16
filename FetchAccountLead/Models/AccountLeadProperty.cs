@@ -7,14 +7,25 @@ namespace FetchAccountLead
     public class LeadDetails
     {
         public string leadid { get; set; }
-        public string Lead_id { get; set; }      
-        public string eqs_ucic { get; set; }
+      
+        public string ucic { get; set; }
+        public string Firstname { get; set; }
+        public string Lastname { get; set; }
+        public string CustomerPhoneNumber { get; set; }
+        public string CustomerEmailID { get; set; }
+        public string DOB { get; set; }
+        public string PAN { get; set; }
+        public string gender { get; set; }
         public string productCategory { get; set; }
         public string productid { get; set; }
         public string branchid { get; set; }
+        public string EntityType { get; set; }
+        public string SubEntityType { get; set; }
 
-        public string LeadAccountid { get; set; }
-        public string LeadAccount_id { get; set; }
+        public string companynamepart1 { get; set; }
+        public string companynamepart2 { get; set; }
+        public string companynamepart3 { get; set; }
+        public string dateofincorporation { get; set; }
 
     }
     
@@ -90,16 +101,15 @@ namespace FetchAccountLead
 
     public class LeadAccount
     {
-        public string accountType { get; set; }
-        public string productCategory { get; set; }
+        public string LeadAccountID { get; set; }
+        public string accountType { get; set; }       
         public string productCode { get; set; }
+        public string productCategory { get; set; }
         public string accountOpeningFlow { get; set; }
         public string sourceBranch { get; set; }
         public string initialDepositType { get; set; }
         public string fieldEmployeeCode { get; set; }
-        public string applicationDate { get; set; }
-        public string tenureInMonths { get; set; }
-        public string tenureInDays { get; set; }
+        public string applicationDate { get; set; }       
         public string rateOfInterest { get; set; }
         public string fundsTobeDebitedFrom { get; set; }
         public string initialDeposit { get; set; }

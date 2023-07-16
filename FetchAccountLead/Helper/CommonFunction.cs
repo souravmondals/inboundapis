@@ -162,29 +162,48 @@ using CRMConnect;
             return TableId;
         }
 
-        public async Task<string> getBranchId(string BranchCode)
+        public async Task<string> getBranchCode(string BranchID)
         {
-            return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchid", "eqs_branchidvalue", BranchCode);
+            return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchidvalue", "eqs_branchid", BranchID);
         }
-       
+
+        public async Task<string> getProductCode(string Productid)
+        {
+            return await this.getIDfromMSDTable("eqs_products", "eqs_productcode", "eqs_productid", Productid);
+        }
+        
+        public async Task<string> getProductCategoryCode(string Productcatid)
+        {
+            return await this.getIDfromMSDTable("eqs_productcategories", "eqs_productcategorycode", "eqs_productcategoryid", Productcatid);
+        }
+
         public async Task<string> getAccRelationshipId(string AccRelationship_code)
         {
             return await this.getIDfromMSDTable("eqs_accountrelationshipses", "eqs_accountrelationshipsid", "eqs_key", AccRelationship_code);
         }
 
-        public async Task<string> getEntityId(string Entity_code)
+        public async Task<string> getEntityCode(string Entity_id)
         {
-            return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_entitytypeid", "eqs_entitytypekey", Entity_code);
+            return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_entitytypekey", "eqs_entitytypeid",  Entity_id);
         }
 
-        public async Task<string> getSubEntityId(string SubEntity_code)
+        public async Task<string> getSubEntityCode(string SubEntity_id)
         {
-            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_subentitytypeid", "eqs_key", SubEntity_code);
+            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_key", "eqs_subentitytypeid",  SubEntity_id);
         }
         
         public async Task<string> getRelationshipId(string Relationship_code)
         {
             return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationshipid", "eqs_relationship", Relationship_code);
+        }
+
+
+        public async Task<JArray> getLeadAccountDetails(string LdApplicantId)
+        {
+            string query_url = $"eqs_leadaccounts()?$filter=eqs_crmleadaccountid eq '{LdApplicantId}'";
+            var LeadAccountDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var LeadAccount_dtails = await this.getDataFromResponce(LeadAccountDtl);
+            return LeadAccount_dtails;
         }
 
         public async Task<JArray> getApplicantDetails(string ApplicantId)
@@ -221,38 +240,23 @@ using CRMConnect;
 
         
 
-        public async Task<JArray> getContactData(string contact_id)
+        public async Task<JArray> getLeadDetails(string Lead_id)
         {
             try
             {
-                string query_url = $"contacts({contact_id})?$select=createdon,eqs_entityflag,eqs_subentitytypeid,mobilephone,eqs_customerid";
-                var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Account_dtails = await this.getDataFromResponce(Accountdtails);
-                return Account_dtails;
+                string query_url = $"leads({Lead_id})?";
+                var LeadDetails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Lead_dtails = await this.getDataFromResponce(LeadDetails);
+                return Lead_dtails;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("getContactData", ex.Message);
+                this._logger.LogError("getLeadDetails", ex.Message);
                 throw ex;
             }
         }
 
-        public async Task<Dictionary<string, string>> getProductId(string ProductCode)
-        {
-            string query_url = $"eqs_products()?$select=eqs_productid,_eqs_businesscategoryid_value,_eqs_productcategory_value,eqs_crmproductcategorycode&$filter=eqs_productcode eq '{ProductCode}'";
-            var productdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string ProductId = await this.getIDFromGetResponce("eqs_productid", productdtails);
-            string businesscategoryid = await this.getIDFromGetResponce("_eqs_businesscategoryid_value", productdtails);
-            string productcategory = await this.getIDFromGetResponce("_eqs_productcategory_value", productdtails);
-            string crmproductcategorycode = await this.getIDFromGetResponce("eqs_crmproductcategorycode", productdtails);
-            Dictionary<string, string> ProductData = new Dictionary<string, string>() {
-                { "ProductId", ProductId },
-                { "businesscategoryid", businesscategoryid },
-                { "productcategory", productcategory },
-                { "crmproductcategorycode", crmproductcategorycode },
-            };
-            return ProductData;
-        }
+       
 
         public async Task<string> MeargeJsonString(string json1, string json2)
         {

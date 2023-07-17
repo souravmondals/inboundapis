@@ -70,6 +70,8 @@
         Dictionary<string, string> AccountType = new Dictionary<string, string>();
         Dictionary<string, string> KitOption = new Dictionary<string, string>();
         Dictionary<string, string> DepositMode = new Dictionary<string, string>();
+        Dictionary<string, string> genderc = new Dictionary<string, string>();
+
         private ICommonFunction _commonFunc;
 
         public FtdgAccLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
@@ -98,6 +100,11 @@
             DepositMode.Add("789030003", "Cheque from Existing NRI Account");
             DepositMode.Add("789030004", "IP waiver");
             DepositMode.Add("789030005", "Fund Transfer");
+
+            genderc.Add("789030000", "Male");
+            genderc.Add("789030001", "Female");
+            genderc.Add("789030002", "Third Gender");
+
         }
 
 
@@ -161,7 +168,15 @@
                 {
                     if (await getLeadData())
                     {
-                        await getApplicent();
+                        if (await getApplicent())
+                        {
+                            accountLeadReturn.AccountLead = _accountLead;
+                            accountLeadReturn.leadDetails = _leadParam;
+                            accountLeadReturn.Applicants = _accountApplicants;
+                            accountLeadReturn.ReturnCode = "CRM-SUCCESS";
+                            accountLeadReturn.Message = OutputMSG.Case_Success;
+
+                        }
                     }
                 }
             }
@@ -243,106 +258,75 @@
         }
 
         private async Task<bool> getApplicent()
-        {           
-            foreach (var applicant in _accountApplicants)
+        {
+            var _leadAcDetails = await this._commonFunc.getApplicentsSetails(this.LeadAccountid);
+            foreach (var applicant in _leadAcDetails)
             {
-                Dictionary<string, string> odatab = new Dictionary<string, string>();
+                AccountApplicant _accountApplicant = new AccountApplicant();
 
-              //  odatab.Add("eqs_leadaccountid@odata.bind", $"eqs_leadaccounts({_leadParam.LeadAccountid})");
-                odatab.Add("eqs_ucic", applicant.UCIC);
-                odatab.Add("eqs_customer", applicant.UCIC);
-                odatab.Add("eqs_customerid@odata.bind", $"contacts({applicant.contactid})");
-                odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({applicant.title})");
-                odatab.Add("eqs_leadchannel", "15");
+                _accountApplicant.UCIC = applicant["eqs_customer"].ToString();
+                _accountApplicant.firstname = applicant["eqs_firstname"].ToString();
+                _accountApplicant.lastname = applicant["eqs_lastname"].ToString();
+                _accountApplicant.customerPhoneNumber = applicant["eqs_mobilenumber"].ToString();
+                _accountApplicant.customerEmailID = applicant["eqs_emailaddress"].ToString();
+                _accountApplicant.dob = applicant["eqs_dob"].ToString();
+                _accountApplicant.pan = applicant["eqs_pan"].ToString();
+                _accountApplicant.age = applicant["eqs_leadage"].ToString();
+                _accountApplicant.gender = this.genderc[applicant["eqs_gendercode"].ToString()];
 
-                odatab.Add("eqs_name", applicant.firstname + " " + applicant.lastname);
-                odatab.Add("eqs_emailaddress", applicant.customerEmailID);
-                odatab.Add("eqs_mobilenumber", applicant.customerPhoneNumber);
-                odatab.Add("eqs_gendercode", applicant.gender);
-                odatab.Add("eqs_dob", applicant.dob);
-                odatab.Add("eqs_pan", applicant.pan);
-                odatab.Add("eqs_leadage", applicant.age);
+                _accountApplicant.eqs_companynamepart1 = applicant["eqs_companynamepart1"].ToString();
+                _accountApplicant.eqs_companynamepart2 = applicant["eqs_companynamepart2"].ToString();
+                _accountApplicant.eqs_companynamepart3 = applicant["eqs_companynamepart3"].ToString();
+                _accountApplicant.eqs_dateofincorporation = applicant["eqs_dateofincorporation"].ToString();
 
-                //if (!string.IsNullOrEmpty(_leadParam.branchid))
-                //{
-                //    odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({_leadParam.branchid})");
-                //}
-                    
-
-            //    odatab.Add("eqs_leadid@odata.bind", $"leads({_leadParam.leadid})");
-
-                odatab.Add("eqs_accountrelationship@odata.bind", $"eqs_accountrelationships({await this._commonFunc.getAccRelationshipId(applicant.customerAccountRelation)})");
-                odatab.Add("eqs_isprimaryholder", (applicant.isPrimaryHolder == true) ? "789030001" : "789030000");
-
-                odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({applicant.entityType})");
-                odatab.Add("eqs_subentity@odata.bind", $"eqs_subentitytypes({applicant.subentityType})");
-
-                if (applicant.isPrimaryHolder == false && !string.IsNullOrEmpty(applicant.relationToPrimaryHolder))
+                _accountApplicant.entityType = await this._commonFunc.getEntityCode(applicant["_eqs_entitytypeid_value"].ToString()); 
+                _accountApplicant.subentityType = await this._commonFunc.getSubEntityCode(applicant["_eqs_subentity_value"].ToString());
+                if (!string.IsNullOrEmpty(applicant["_eqs_accountrelationship_value"].ToString()))
                 {
+                    _accountApplicant.customerAccountRelation = await this._commonFunc.getAccRelationshipCode(applicant["_eqs_accountrelationship_value"].ToString());
+                }
+               
+                _accountApplicant.isPrimaryHolder = (applicant["eqs_isprimaryholder"].ToString() == "789030001") ? true : false;
+                _accountApplicant.isStaff = applicant["eqs_isstaffcode"].ToString();
 
-                    odatab.Add("eqs_relationship@odata.bind", $"eqs_relationships({await this._commonFunc.getRelationshipId(applicant.relationToPrimaryHolder)})");
+                if (!string.IsNullOrEmpty(applicant["_eqs_relationship_value"].ToString()))
+                {
+                    _accountApplicant.relationToPrimaryHolder = await this._commonFunc.getRelationshipCode(applicant["_eqs_relationship_value"].ToString());
                 }
 
-                string postDataParametr = JsonConvert.SerializeObject(odatab);
-                var Applicent_details = await this._queryParser.HttpApiCall("eqs_accountapplicants()?$select=eqs_applicantid", HttpMethod.Post, postDataParametr);
 
-                if (Applicent_details.Count > 0)
+                var applicentPreferences = await this._commonFunc.getPreferences(applicant["eqs_accountapplicantid"].ToString());
+
+                if (applicentPreferences.Count > 0)
                 {
-                    dynamic respons_code = Applicent_details[0];
-                    if (respons_code.responsecode == 201)
-                    {
-                        applicents.Add(respons_code.responsebody["eqs_applicantid"].ToString());
-                        string accountapplicantid = respons_code.responsebody["eqs_accountapplicantid"];
+                    Preferences preferences = new Preferences();
 
-                        Dictionary<string, string> preference = new Dictionary<string, string>();
-                        Dictionary<string, bool?> preference1 = new Dictionary<string, bool?>();
+                    preferences.sms = Convert.ToBoolean(applicentPreferences[0]["eqs_sms"].ToString());
+                    preferences.allSMSAlerts = Convert.ToBoolean(applicentPreferences[0]["eqs_allsmsalerts"].ToString());
+                    preferences.onlyTransactionAlerts = Convert.ToBoolean(applicentPreferences[0]["eqs_onlytransactionalerts"].ToString());
+                    preferences.passbook = Convert.ToBoolean(applicentPreferences[0]["eqs_passbook"].ToString());
+                    preferences.physicalStatement = Convert.ToBoolean(applicentPreferences[0]["eqs_physicalstatement"].ToString());
+                    preferences.emailStatement = Convert.ToBoolean(applicentPreferences[0]["eqs_emailstatement"].ToString());
+                    preferences.netBanking = Convert.ToBoolean(applicentPreferences[0]["eqs_netbanking"].ToString());
+                    preferences.bankGuarantee = Convert.ToBoolean(applicentPreferences[0]["eqs_bankguarantee"].ToString());
+                    preferences.letterofCredit = Convert.ToBoolean(applicentPreferences[0]["eqs_letterofcredit"].ToString());
+                    preferences.businessLoan = Convert.ToBoolean(applicentPreferences[0]["eqs_businessloan"].ToString());
+                    preferences.doorStepBanking = Convert.ToBoolean(applicentPreferences[0]["eqs_doorstepbanking"].ToString());
+                    preferences.doorStepBankingOnCall = Convert.ToBoolean(applicentPreferences[0]["eqs_doorstepbankingoncall"].ToString());
+                    preferences.doorStepBankingBeat = Convert.ToBoolean(applicentPreferences[0]["eqs_doorstepbankingbeat"].ToString());
+                    preferences.tradeForex = Convert.ToBoolean(applicentPreferences[0]["eqs_tradeforex"].ToString());
+                    preferences.loanAgainstProperty = Convert.ToBoolean(applicentPreferences[0]["eqs_loanagainstproperty"].ToString());
+                    preferences.overdraftsagainstFD = Convert.ToBoolean(applicentPreferences[0]["eqs_overdraftagainstfd"].ToString());
+                    preferences.preferencesCopied = Convert.ToBoolean(applicentPreferences[0]["eqs_preferencescopied"].ToString());
+                    preferences.bankLevelAlerts = Convert.ToBoolean(applicentPreferences[0]["eqs_banklevelalerts"].ToString());
+                 
 
-                        preference.Add("eqs_applicantid@odata.bind", $"eqs_accountapplicants({accountapplicantid})");
-                                               
-                        preference1.Add("eqs_sms", applicant.preferences.sms);
-                        preference1.Add("eqs_allsmsalerts", applicant.preferences.allSMSAlerts);
-                        preference1.Add("eqs_onlytransactionalerts", applicant.preferences.onlyTransactionAlerts);
-                        preference1.Add("eqs_passbook", applicant.preferences.passbook);
-                        preference1.Add("eqs_physicalstatement", applicant.preferences.physicalStatement);
-                        preference1.Add("eqs_emailstatement", applicant.preferences.emailStatement);
-                        preference1.Add("eqs_netbanking", applicant.preferences.netBanking);
-                        preference1.Add("eqs_bankguarantee", applicant.preferences.bankGuarantee);
-                        preference1.Add("eqs_letterofcredit", applicant.preferences.letterofCredit);
-                        preference1.Add("eqs_businessloan", applicant.preferences.businessLoan);
-                        preference1.Add("eqs_doorstepbanking", applicant.preferences.doorStepBanking);
-                        preference1.Add("eqs_doorstepbankingoncall", applicant.preferences.doorStepBankingOnCall);
-                        preference1.Add("eqs_doorstepbankingbeat", applicant.preferences.doorStepBankingBeat);
-                        preference1.Add("eqs_tradeforex", applicant.preferences.tradeForex);
-                        preference1.Add("eqs_loanagainstproperty", applicant.preferences.loanAgainstProperty);
-                        preference1.Add("eqs_overdraftagainstfd", applicant.preferences.overdraftsagainstFD);
-                        preference1.Add("eqs_preferencescopied", applicant.preferences.preferencesCopied);
-                        preference1.Add("eqs_banklevelalerts", applicant.preferences.bankLevelAlerts);
-
-                        //preference.Add("eqs_netbankingrights", applicant.preferences.netBankingRights);
-                        //preference.Add("eqs_mobilebankingnumber", applicant.preferences.mobileBankingNumber);
-                       // preference.Add("eqs_internationaldclimitact", applicant.preferences.InternationalLimitActivation);
-
-                        postDataParametr = JsonConvert.SerializeObject(preference);
-                        string postDataParametr1 = JsonConvert.SerializeObject(preference1);
-                        postDataParametr = await _commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
-
-                        var Apreferences_details = await this._queryParser.HttpApiCall("eqs_customerpreferences()?", HttpMethod.Post, postDataParametr);
-
-                        if (Apreferences_details.Count < 1)
-                        {
-                            return false;
-                        }
-
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    _accountApplicant.preferences = preferences;
                 }
-                else
-                {
-                    return false;
-                }
+
+                _accountApplicants.Add(_accountApplicant);
+
+
             }
 
        

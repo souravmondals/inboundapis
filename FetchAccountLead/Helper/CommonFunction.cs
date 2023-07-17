@@ -156,9 +156,20 @@ using CRMConnect;
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
-            string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
-            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+            string Table_Id;
+            string TableId;
+            if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+            {
+                string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
+                var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+
+                this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+            }
+            else
+            {
+                TableId = Table_Id;
+            }
             return TableId;
         }
 
@@ -177,9 +188,9 @@ using CRMConnect;
             return await this.getIDfromMSDTable("eqs_productcategories", "eqs_productcategorycode", "eqs_productcategoryid", Productcatid);
         }
 
-        public async Task<string> getAccRelationshipId(string AccRelationship_code)
+        public async Task<string> getAccRelationshipCode(string AccRelationship_id)
         {
-            return await this.getIDfromMSDTable("eqs_accountrelationshipses", "eqs_accountrelationshipsid", "eqs_key", AccRelationship_code);
+            return await this.getIDfromMSDTable("eqs_accountrelationshipses", "eqs_key", "eqs_accountrelationshipsid", AccRelationship_id);
         }
 
         public async Task<string> getEntityCode(string Entity_id)
@@ -192,9 +203,9 @@ using CRMConnect;
             return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_key", "eqs_subentitytypeid",  SubEntity_id);
         }
         
-        public async Task<string> getRelationshipId(string Relationship_code)
+        public async Task<string> getRelationshipCode(string Relationship_id)
         {
-            return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationshipid", "eqs_relationship", Relationship_code);
+            return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationship", "eqs_relationshipid", Relationship_id);
         }
 
 
@@ -206,11 +217,11 @@ using CRMConnect;
             return LeadAccount_dtails;
         }
 
-        public async Task<JArray> getApplicantDetails(string ApplicantId)
+        public async Task<JArray> getApplicentsSetails(string LeadAccId)
         {
             try
             {
-                string query_url = $"eqs_accountapplicants()?$select=_eqs_entitytypeid_value,eqs_gendercode,eqs_leadage,_eqs_subentity_value,eqs_customersegment,eqs_isstaffcode&$filter=eqs_applicantid eq '{ApplicantId}'";
+                string query_url = $"eqs_accountapplicants()?$filter=_eqs_leadaccountid_value eq '{LeadAccId}'";
                 var Applicantdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                 var Applicant_dtails = await this.getDataFromResponce(Applicantdtails);
                 return Applicant_dtails;
@@ -222,11 +233,11 @@ using CRMConnect;
             }
         }
         
-        public async Task<JArray> getCustomerDetails(string CustomerId)
+        public async Task<JArray> getPreferences(string applicantid)
         {
             try
             {
-                string query_url = $"contacts()?$select=_eqs_entitytypeid_value,eqs_gender,eqs_age,_eqs_subentitytypeid_value,eqs_customersegment,eqs_isstafffcode&$filter=eqs_customerid eq '{CustomerId}'";
+                string query_url = $"eqs_customerpreferences()?$filter=_eqs_applicantid_value eq '{applicantid}'";
                 var Customerdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                 var Customer_dtails = await this.getDataFromResponce(Customerdtails);
                 return Customer_dtails;

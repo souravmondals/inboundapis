@@ -43,31 +43,29 @@ namespace FetchAccountLead
 
     public class AccountApplicant
     {
-        public string contactid { get; set; }
-        public string title { get; set; }
         public string UCIC { get; set; }
-        public string customerName { get; set; }       
-        public string entityType { get; set; }
-        public string subentityType { get; set; }
-        public string customerAccountRelation { get; set; }
-        public string customerAccountRelationTitle { get; set; }
-        public bool? isPrimaryHolder { get; set; }
-        public bool? isStaff { get; set; }
-        public string relationToPrimaryHolder { get; set; }
-        public string age { get; set; }
-
+        public string title { get; set; }
+        public string firstname { get; set; }
+        public string lastname { get; set; }
         public string customerPhoneNumber { get; set; }
         public string customerEmailID { get; set; }
         public string gender { get; set; }
         public string pan { get; set; }
         public string dob { get; set; }
-
-        public string firstname { get; set; }
-        public string lastname { get; set; }
+        public string age { get; set; }
         public string eqs_companynamepart1 { get; set; }
         public string eqs_companynamepart2 { get; set; }
         public string eqs_companynamepart3 { get; set; }
         public string eqs_dateofincorporation { get; set; }
+        
+        public string entityType { get; set; }
+        public string subentityType { get; set; }
+
+        public string customerAccountRelation { get; set; }
+     
+        public bool? isPrimaryHolder { get; set; }
+        public string isStaff { get; set; }
+        public string relationToPrimaryHolder { get; set; }
         
         public Preferences preferences { get; set; }
 

@@ -5,14 +5,14 @@ namespace FetchAccountLead
     public interface ICommonFunction
     {      
         public Task<string> getBranchCode(string branch_Id);
-        public Task<string> getAccRelationshipId(string AccRelationship_code);
-        public Task<JArray> getApplicantDetails(string ApplicantId);
-        public Task<JArray> getCustomerDetails(string CustomerId);
+        public Task<string> getAccRelationshipCode(string AccRelationship_id);
+        public Task<JArray> getApplicentsSetails(string LeadAccId);
+        public Task<JArray> getPreferences(string applicantid);
         public Task<string> getProductCode(string Productid);
         public Task<string> getProductCategoryCode(string Productcatid);
         public Task<string> getEntityCode(string Entity_id);
         public Task<string> getSubEntityCode(string SubEntity_id);
-        public Task<string> getRelationshipId(string Relationship_code);
+        public Task<string> getRelationshipCode(string Relationship_id);
 
         public Task<JArray> getLeadDetails(string contact_id);
         public Task<JArray> getDataFromResponce(List<JObject> RsponsData);

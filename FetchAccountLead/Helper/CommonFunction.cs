@@ -206,6 +206,11 @@ using CRMConnect;
         public async Task<string> getRelationshipCode(string Relationship_id)
         {
             return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationship", "eqs_relationshipid", Relationship_id);
+        } 
+        
+        public async Task<string> getTitleCode(string title_id)
+        {
+            return await this.getIDfromMSDTable("eqs_titles", "eqs_name", "eqs_titleid", title_id);
         }
 
 

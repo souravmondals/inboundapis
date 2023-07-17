@@ -12,6 +12,7 @@ namespace FetchAccountLead
         public Task<string> getProductCategoryCode(string Productcatid);
         public Task<string> getEntityCode(string Entity_id);
         public Task<string> getSubEntityCode(string SubEntity_id);
+        public Task<string> getTitleCode(string title_id);
         public Task<string> getRelationshipCode(string Relationship_id);
 
         public Task<JArray> getLeadDetails(string contact_id);

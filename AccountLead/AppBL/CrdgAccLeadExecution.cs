@@ -361,6 +361,13 @@
                 odatab.Add("eqs_pan", applicant.pan);
                 odatab.Add("eqs_leadage", applicant.age);
 
+                odatab.Add("eqs_companynamepart1", applicant.eqs_companynamepart1);
+                odatab.Add("eqs_companynamepart2", applicant.eqs_companynamepart2);
+                odatab.Add("eqs_companynamepart3", applicant.eqs_companynamepart3);
+
+                if (!string.IsNullOrEmpty(applicant.eqs_dateofincorporation))
+                    odatab.Add("eqs_dateofincorporation", applicant.eqs_dateofincorporation);
+
                 if (!string.IsNullOrEmpty(_leadParam.branchid))
                 {
                     odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({_leadParam.branchid})");

@@ -9,6 +9,7 @@ namespace FetchAccountLead
         public string leadid { get; set; }
       
         public string ucic { get; set; }
+        public string title { get; set; }
         public string Firstname { get; set; }
         public string Lastname { get; set; }
         public string CustomerPhoneNumber { get; set; }
@@ -43,6 +44,7 @@ namespace FetchAccountLead
 
     public class AccountApplicant
     {
+        public string applicantid { get; set; }
         public string UCIC { get; set; }
         public string title { get; set; }
         public string firstname { get; set; }

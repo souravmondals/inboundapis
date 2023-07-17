@@ -201,6 +201,7 @@
 
             _leadParam.ucic = _leadDetails[0]["eqs_ucic"].ToString();
             _leadParam.leadid = _leadDetails[0]["eqs_crmleadid"].ToString();
+            _leadParam.title = await this._commonFunc.getTitleCode(_leadDetails[0]["_eqs_titleid_value"].ToString());
             _leadParam.Firstname = _leadDetails[0]["firstname"].ToString();
             _leadParam.Lastname = _leadDetails[0]["lastname"].ToString();
             _leadParam.CustomerPhoneNumber = _leadDetails[0]["mobilephone"].ToString();
@@ -264,7 +265,9 @@
             {
                 AccountApplicant _accountApplicant = new AccountApplicant();
 
+                _accountApplicant.applicantid = applicant["eqs_applicantid"].ToString();
                 _accountApplicant.UCIC = applicant["eqs_customer"].ToString();
+                _accountApplicant.title = await this._commonFunc.getTitleCode(applicant["_eqs_titleid_value"].ToString());
                 _accountApplicant.firstname = applicant["eqs_firstname"].ToString();
                 _accountApplicant.lastname = applicant["eqs_lastname"].ToString();
                 _accountApplicant.customerPhoneNumber = applicant["eqs_mobilenumber"].ToString();

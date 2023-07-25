@@ -77,6 +77,7 @@
         Dictionary<string, string> FundSource = new Dictionary<string, string>();
         Dictionary<string, string> currency = new Dictionary<string, string>();
         Dictionary<string, string> ChequeLeaves = new Dictionary<string, string>();
+        Dictionary<string, string> DocStatus = new Dictionary<string, string>();
 
         private ICommonFunction _commonFunc;
 
@@ -157,6 +158,12 @@
             ChequeLeaves.Add("25", "615290001");
             ChequeLeaves.Add("50", "615290002");
 
+            DocStatus.Add("Submitted", "615290003");
+            DocStatus.Add("Approved", "615290000");
+            DocStatus.Add("Rejected", "615290001");
+            DocStatus.Add("Invalid", "615290002");
+            DocStatus.Add("Resubmitted", "615290004");
+
         }
 
 
@@ -218,7 +225,19 @@
             {
                 if(await SetLeadAccountDDE(_leadDetails, RequestData))
                 {
-                    
+                    if (RequestData.documents.Count > 0)
+                    {
+                        await SetDocumentDDE(RequestData.documents);
+                    }
+
+                    if (RequestData.Nominee.Count > 0)
+                    {
+                        await SetNomineeDDE(RequestData.Nominee);
+                    }
+
+                    accountLeadReturn.ReturnCode = "CRM-SUCCESS";
+                    accountLeadReturn.Message = OutputMSG.Case_Success;
+
                 }
             }
             else
@@ -319,6 +338,10 @@
                 odatab.Add("eqs_accountopeningbranchid@odata.bind", $"eqs_branchs({leadDetails[0]["_eqs_branchid_value"].ToString()})");
 
 
+                odatab.Add("eqs_transactiondate", ddeData.TransactionDate.ToString());
+                odatab.Add("eqs_transactionid", ddeData.TransactionID.ToString());
+                odatab.Add("eqs_nominationsubmitted", (Convert.ToBoolean(ddeData.NominationSubmitted)) ? "true" : "false");
+
 
                 string postDataParametr = JsonConvert.SerializeObject(odatab);
                 string postDataParametr1 = JsonConvert.SerializeObject(odatab1);
@@ -349,7 +372,85 @@
 
         }
 
-      
+        private async Task<bool> SetDocumentDDE(dynamic ddeDocuments)
+        {           
+            try
+            {
+                var res = await this._queryParser.DeleteFromTable("eqs_leaddocuments", "", "_eqs_leadaccountdde_value", this.DDEId, "eqs_leaddocumentid");
+                foreach(var item in ddeDocuments) {
+                    Dictionary<string, string> odatab = new Dictionary<string, string>();
+                    odatab.Add("eqs_leadaccountid@odata.bind", $"eqs_leadaccounts({this.LeadAccountid})");
+                    odatab.Add("eqs_leadaccountdde@odata.bind", $"eqs_ddeaccounts({this.DDEId})");
+
+                    odatab.Add("eqs_doccategory@odata.bind", $"eqs_doccategories({await this._commonFunc.getDocCategoryId(item.CategoryCode.ToString())})");
+                    odatab.Add("eqs_docsubcategory@odata.bind", $"eqs_docsubcategories({await this._commonFunc.getDocSubcatId(item.SubCategoryCode.ToString())})");
+                    odatab.Add("eqs_doctypemasterid@odata.bind", $"eqs_doctypemasters({await this._commonFunc.getDocTypeId(item.TypeMasterID.ToString())})");
+
+                    if (!string.IsNullOrEmpty(item.Status.ToString()))
+                    {
+                        odatab.Add("eqs_docstatuscode", this.DocStatus[item.Status.ToString()]);
+                    }
+                   
+                    string postDataParametr = JsonConvert.SerializeObject(odatab);
+                    var resp = await this._queryParser.HttpApiCall("eqs_leaddocuments()?$select=eqs_leaddocumentid", HttpMethod.Post, postDataParametr);
+                }
+                
+
+                return true;
+            }catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        private async Task<bool> SetNomineeDDE(dynamic ddeNominee)
+        {
+            try
+            {
+                var res = await this._queryParser.DeleteFromTable("eqs_ddeaccountnominees","", "_eqs_leadaccountddeid_value", this.DDEId, "eqs_ddeaccountnomineeid");
+                foreach (var item in ddeNominee)
+                {
+                    Dictionary<string, string> odatab = new Dictionary<string, string>();
+                    
+                    odatab.Add("eqs_nomineename", item.name.ToString());
+                    odatab.Add("eqs_nomineedob", item.DOB.ToString());
+                    
+                    odatab.Add("eqs_nomineeage", item.age.ToString());
+                    odatab.Add("eqs_nomineeucic", item.UCIC.ToString());
+                    odatab.Add("eqs_nomineedisplayname", item.DisplayName.ToString());
+                    odatab.Add("eqs_nomineeaddresssameasprospectcurrentaddres", (Convert.ToBoolean(item.AddresssameasProspects.ToString())) ? "true" : "false");
+                    odatab.Add("eqs_emailid", item.email.ToString());
+                    odatab.Add("eqs_mobile", item.mobile.ToString());
+                    odatab.Add("eqs_landlinenumber", item.Landline.ToString());
+
+                    odatab.Add("eqs_addressline1", item.Address1.ToString());
+                    odatab.Add("eqs_addressline2", item.Address2.ToString());
+                    odatab.Add("eqs_addressline3", item.Address3.ToString());
+                    odatab.Add("eqs_pincode", item.Pin.ToString());
+                    odatab.Add("eqs_district", item.District.ToString());
+                    odatab.Add("eqs_pobox", item.PO.ToString());
+                    odatab.Add("eqs_landmark", item.Landmark.ToString());
+
+                    odatab.Add("eqs_leadaccountddeid@odata.bind", $"eqs_ddeaccounts({this.DDEId})");
+                    odatab.Add("eqs_nomineerelationshipwithaccountholder@odata.bind", $"eqs_relationships({ await this._commonFunc.getRelationShipId(item.RelationshipId.ToString())})");
+                    odatab.Add("eqs_city@odata.bind", $"eqs_cities({await this._commonFunc.getCityId(item.CityCode.ToString())})");
+                    odatab.Add("eqs_state@odata.bind", $"eqs_states({await this._commonFunc.getStateId(item.State.ToString())})");
+                    odatab.Add("eqs_country@odata.bind", $"eqs_countries({await this._commonFunc.getCuntryId(item.CountryCode.ToString())})");
+
+
+                    string postDataParametr = JsonConvert.SerializeObject(odatab);
+                    var resp = await this._queryParser.HttpApiCall("eqs_ddeaccountnominees()?$select=eqs_ddeaccountnomineeid", HttpMethod.Post, postDataParametr);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+
 
         public bool checkappkey(string appkey, string APIKey)
         {

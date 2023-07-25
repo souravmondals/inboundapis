@@ -14,6 +14,8 @@ using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Diagnostics.Metrics;
 using CRMConnect;
+    using Microsoft.Rest.Azure.OData;
+    using System.Net.Http;
 
 
     public class CommonFunction : ICommonFunction
@@ -117,42 +119,7 @@ using CRMConnect;
                 return resourceID;
         }
 
-        public async Task<JArray> getDataFromResponce(List<JObject> RsponsData)
-        {
-            string resourceID = "";
-            foreach (JObject item in RsponsData)
-            {
-                if (Enum.TryParse(item["responsecode"].ToString(), out HttpStatusCode responseStatus) && responseStatus == HttpStatusCode.OK)
-                {
-                    dynamic responseValue = item["responsebody"];
-                    JArray resArray = new JArray();
-                    string urlMetaData = string.Empty;
-                    if (responseValue?.value != null)
-                    {
-                        resArray = (JArray)responseValue?.value;
-                        urlMetaData = responseValue["@odata.context"];
-                    }
-                    else if (responseValue is JArray)
-                    {
-                        resArray = responseValue;
-
-                    }
-                    else
-                    {
-                        resArray.Add(responseValue);
-                        urlMetaData = responseValue["@odata.context"];
-                    }
-
-                    if (resArray != null && resArray.Any())
-                    {
-
-                        return resArray;
-
-                    }
-                }
-            }
-            return new JArray();
-        }
+       
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
@@ -173,9 +140,14 @@ using CRMConnect;
             return TableId;
         }
 
-        public async Task<string> getBranchCode(string BranchID)
+        public async Task<string> getDocCategoryId(string Category_code)
         {
-            return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchidvalue", "eqs_branchid", BranchID);
+            return await this.getIDfromMSDTable("eqs_doccategories", "eqs_doccategoryid", "eqs_doccategorycode", Category_code);
+        }
+
+        public async Task<string> getDocSubcatId(string Subcat_code)
+        {
+            return await this.getIDfromMSDTable("eqs_docsubcategories", "eqs_docsubcategoryid", "eqs_docsubcategorycode", Subcat_code);
         }
 
         public async Task<string> getProductId(string Productcode)
@@ -186,31 +158,31 @@ using CRMConnect;
         public async Task<string> getProductCategoryId(string Productcatcode)
         {
             return await this.getIDfromMSDTable("eqs_productcategories", "eqs_productcategoryid", "eqs_productcategorycode", Productcatcode);
+        }       
+
+        public async Task<string> getDocTypeId(string Type_code)
+        {
+            return await this.getIDfromMSDTable("eqs_doctypemasters", "eqs_doctypemasterid", "eqs_doctypemasteridvalue", Type_code);
         }
 
-        public async Task<string> getAccRelationshipCode(string AccRelationship_id)
+        public async Task<string> getRelationShipId(string RelationShipCode)
         {
-            return await this.getIDfromMSDTable("eqs_accountrelationshipses", "eqs_key", "eqs_accountrelationshipsid", AccRelationship_id);
+            return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationshipid", "eqs_relationship", RelationShipCode);
         }
 
-        public async Task<string> getEntityCode(string Entity_id)
+        public async Task<string> getStateId(string state_code)
         {
-            return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_entitytypekey", "eqs_entitytypeid",  Entity_id);
+            return await this.getIDfromMSDTable("eqs_states", "eqs_stateid", "eqs_statecode", state_code);
         }
 
-        public async Task<string> getSubEntityCode(string SubEntity_id)
+        public async Task<string> getCityId(string City_code)
         {
-            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_key", "eqs_subentitytypeid",  SubEntity_id);
-        }
-        
-        public async Task<string> getRelationshipCode(string Relationship_id)
-        {
-            return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationship", "eqs_relationshipid", Relationship_id);
+            return await this.getIDfromMSDTable("eqs_cities", "eqs_cityid", "eqs_citycode", City_code);
         } 
         
-        public async Task<string> getTitleCode(string title_id)
+        public async Task<string> getCuntryId(string cuntry_code)
         {
-            return await this.getIDfromMSDTable("eqs_titles", "eqs_name", "eqs_titleid", title_id);
+            return await this.getIDfromMSDTable("eqs_countries", "eqs_countryid", "eqs_countrycode", cuntry_code);
         }
 
 
@@ -218,7 +190,7 @@ using CRMConnect;
         {
             string query_url = $"eqs_leadaccounts()?$select=eqs_leadaccountid,eqs_ddefinalid,_eqs_typeofaccountid_value,_eqs_productid_value,_eqs_lead_value&$filter=eqs_crmleadaccountid eq '{LdApplicantId}'";
             var LeadAccountDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var LeadAccount_dtails = await this.getDataFromResponce(LeadAccountDtl);
+            var LeadAccount_dtails = await this._queryParser.getDataFromResponce(LeadAccountDtl);
             return LeadAccount_dtails;
         }
 
@@ -228,7 +200,7 @@ using CRMConnect;
             {
                 string query_url = $"eqs_accountapplicants()?$filter=_eqs_leadaccountid_value eq '{LeadAccId}'";
                 var Applicantdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Applicant_dtails = await this.getDataFromResponce(Applicantdtails);
+                var Applicant_dtails = await this._queryParser.getDataFromResponce(Applicantdtails);
                 return Applicant_dtails;
             }
             catch (Exception ex)
@@ -244,7 +216,7 @@ using CRMConnect;
             {
                 string query_url = $"eqs_customerpreferences()?$filter=_eqs_applicantid_value eq '{applicantid}'";
                 var Customerdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Customer_dtails = await this.getDataFromResponce(Customerdtails);
+                var Customer_dtails = await this._queryParser.getDataFromResponce(Customerdtails);
                 return Customer_dtails;
             }
             catch (Exception ex)
@@ -262,7 +234,7 @@ using CRMConnect;
             {
                 string query_url = $"leads({Lead_id})?";
                 var LeadDetails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Lead_dtails = await this.getDataFromResponce(LeadDetails);
+                var Lead_dtails = await this._queryParser.getDataFromResponce(LeadDetails);
                 return Lead_dtails;
             }
             catch (Exception ex)
@@ -272,7 +244,7 @@ using CRMConnect;
             }
         }
 
-       
+      
 
         public async Task<string> MeargeJsonString(string json1, string json2)
         {

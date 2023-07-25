@@ -14,6 +14,7 @@
     using System.Threading.Tasks;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Rest.Azure.OData;
 
 
     public class QueryParser : IQueryParser
@@ -425,6 +426,85 @@
             }
 
         }
+
+
+        public async Task<bool> DeleteFromTable(string tablename, string tableid = "", string filter = "", string filtervalu = "", string tableselecter = "")
+        {
+            if (!string.IsNullOrEmpty(tableid))
+            {
+                await this.HttpApiCall($"{tablename}({tableid})?", HttpMethod.Delete, "");
+                return true;
+            }
+            else if (!string.IsNullOrEmpty(filter) && !string.IsNullOrEmpty(filtervalu))
+            {
+                HttpClient httpClient = new HttpClient();
+                httpClient.BaseAddress = new Uri(this._keyVaultService.ReadSecret("APIUrl"));
+                List<HttpMessageContent> odataRequestforChild = new List<HttpMessageContent>();
+                List<HttpContent> httpcontent = new List<HttpContent>();
+
+                string query_url = $"{tablename}()?$select={tableselecter}&$filter={filter} eq '{filtervalu}'";
+                var deleteItems = await this.HttpApiCall(query_url, HttpMethod.Get, "");
+                var delete_Items = await this.getDataFromResponce(deleteItems);
+                foreach (var item in delete_Items)
+                {
+                    query_url = httpClient.BaseAddress + $"{tablename}({item[tableselecter]})" + "?";
+                    odataRequestforChild.Add(this.CreateHttpMessageContent(HttpMethod.Delete, query_url, this._log));
+                }
+
+                if (odataRequestforChild.Any())
+                {
+                    odataRequestforChild.ForEach(x =>
+                            httpcontent.Add(x)
+                        );
+                    await this.SendBatchRequestAsync(httpClient, httpcontent, this._log).ConfigureAwait(true);
+                }
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        }
+
+        public async Task<JArray> getDataFromResponce(List<JObject> RsponsData)
+        {
+            string resourceID = "";
+            foreach (JObject item in RsponsData)
+            {
+                if (Enum.TryParse(item["responsecode"].ToString(), out HttpStatusCode responseStatus) && responseStatus == HttpStatusCode.OK)
+                {
+                    dynamic responseValue = item["responsebody"];
+                    JArray resArray = new JArray();
+                    string urlMetaData = string.Empty;
+                    if (responseValue?.value != null)
+                    {
+                        resArray = (JArray)responseValue?.value;
+                        urlMetaData = responseValue["@odata.context"];
+                    }
+                    else if (responseValue is JArray)
+                    {
+                        resArray = responseValue;
+
+                    }
+                    else
+                    {
+                        resArray.Add(responseValue);
+                        urlMetaData = responseValue["@odata.context"];
+                    }
+
+                    if (resArray != null && resArray.Any())
+                    {
+
+                        return resArray;
+
+                    }
+                }
+            }
+            return new JArray();
+        }
+
 
     }
 }

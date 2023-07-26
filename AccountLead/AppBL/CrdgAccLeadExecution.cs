@@ -218,7 +218,7 @@
                 odatab.Add("eqs_ucic", appitem.UCIC);
                 odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({appitem.contactid})");
                 odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({appitem.title})");
-                odatab.Add("eqs_leadsourceid@odata.bind", $"eqs_leadsources({await this._commonFunc.getLeadSourceId("Selfie")})");
+                odatab.Add("eqs_leadsourceid@odata.bind", $"eqs_leadsources({await this._commonFunc.getLeadSourceId(_accountLead.leadsource)})");
                 odatab.Add("leadsourcecode", "15");
                 odatab.Add("firstname", appitem.firstname);
                 odatab.Add("lastname", appitem.lastname);
@@ -382,12 +382,16 @@
                 odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({applicant.entityType})");
                 odatab.Add("eqs_subentity@odata.bind", $"eqs_subentitytypes({applicant.subentityType})");
 
-               
+               if (applicant.isPrimaryHolder == false && !string.IsNullOrEmpty(applicant.relationToPrimaryHolder))
+                {
+
+                    odatab.Add("eqs_relationship@odata.bind", $"eqs_relationships({await this._commonFunc.getRelationshipId(applicant.relationToPrimaryHolder)})");
+                }
 
                 string postDataParametr = JsonConvert.SerializeObject(odatab);
                 var Applicent_details = await this._queryParser.HttpApiCall("eqs_accountapplicants()?$select=eqs_applicantid", HttpMethod.Post, postDataParametr);
-
-                
+                dynamic respons_code = Applicent_details[0];
+                applicents.Add(respons_code.responsebody["eqs_applicantid"].ToString());
             }
 
        
@@ -471,6 +475,15 @@
             else
             {
                 _accountLead.accountType = AccountData.accountType.ToString();
+            }
+
+            if (string.IsNullOrEmpty(AccountData.leadsource.ToString()))
+            {
+                return false;
+            }
+            else
+            {
+                _accountLead.leadsource = AccountData.leadsource.ToString();
             }
 
             if (string.IsNullOrEmpty(AccountData.productCode.ToString()))
@@ -605,8 +618,8 @@
                         accountApplicant.isPrimaryHolder = item.isPrimaryHolder;
                     }
 
-                    
-                   
+                    accountApplicant.relationToPrimaryHolder = item.relationToPrimaryHolder;
+
                     _accountApplicants.Add(accountApplicant);
                 }
                 return true;

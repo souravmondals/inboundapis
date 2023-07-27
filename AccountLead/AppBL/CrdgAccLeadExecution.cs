@@ -586,48 +586,67 @@
 
         private bool ValidateAccountApplicent(dynamic ApplicentData)
         {
-            if (ApplicentData.Count>0) 
+            try
             {
-                foreach (var item in ApplicentData)
+                if (ApplicentData.Count > 0)
                 {
-                    AccountApplicant accountApplicant = new AccountApplicant(); 
-                    if (string.IsNullOrEmpty(item.UCIC.ToString()))
+                    foreach (var item in ApplicentData)
                     {
-                        return false;
-                    }
-                    else
-                    {
-                        accountApplicant.UCIC = item.UCIC.ToString();
-                    }
+                        AccountApplicant accountApplicant = new AccountApplicant();
+                        if (string.IsNullOrEmpty(item.UCIC.ToString()))
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            accountApplicant.UCIC = item.UCIC.ToString();
+                        }
 
-                    if (string.IsNullOrEmpty(item.customerAccountRelation.ToString()))
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        accountApplicant.customerAccountRelation = item.customerAccountRelation;
-                    }
+                        if (string.IsNullOrEmpty(item.customerAccountRelation.ToString()))
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            accountApplicant.customerAccountRelation = item.customerAccountRelation;
+                        }
 
-                    if (string.IsNullOrEmpty(item.isPrimaryHolder.ToString()))
-                    {
-                        return false;
-                    }
-                    else
-                    {
-                        accountApplicant.isPrimaryHolder = item.isPrimaryHolder;
-                    }
+                        if (string.IsNullOrEmpty(item.isPrimaryHolder.ToString()))
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            accountApplicant.isPrimaryHolder = item.isPrimaryHolder;
+                        }
 
-                    accountApplicant.relationToPrimaryHolder = item.relationToPrimaryHolder;
+                        if (!Convert.ToBoolean(item.isPrimaryHolder.ToString()))
+                        {
+                            if (string.IsNullOrEmpty(item.vrelationToPrimaryHolder.ToString()))
+                            {
+                                return false;
+                            }
+                            else
+                            {
+                                accountApplicant.relationToPrimaryHolder = item.relationToPrimaryHolder;
+                            }
 
-                    _accountApplicants.Add(accountApplicant);
+                        }
+
+
+                        _accountApplicants.Add(accountApplicant);
+                    }
+                    return true;
                 }
-                return true;
+                else
+                {
+                    return false;
+                }
             }
-            else
-            {
+            catch(Exception ex) {
                 return false;
             }
+            
            
         }
 

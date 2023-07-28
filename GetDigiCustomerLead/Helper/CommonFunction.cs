@@ -180,9 +180,12 @@
             return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_entitytypekey", "eqs_entitytypeid", entitytypeid);
         } 
         
-        public async Task<string> getApplicentCustId(string ApplicantId)
-        {
-            return await this.getIDfromMSDTable("eqs_accountapplicants", "_eqs_customerid_value", "eqs_applicantid", ApplicantId);
+        public async Task<JArray> getApplicentDetail(string ApplicantId)
+        {           
+            string query_url = $"eqs_accountapplicants()?$select=_eqs_customerid_value,_eqs_entitytypeid_value,eqs_customertypecode,_eqs_titleid_value,eqs_firstname,eqs_middlename,eqs_lastname,eqs_internalpan,eqs_companynamepart1,eqs_companynamepart2,eqs_companynamepart3,eqs_tannumber&$filter=eqs_applicantid eq '{ApplicantId}'";
+            var custDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var cust_dtails = await this._queryParser.getDataFromResponce(custDtl);
+            return cust_dtails;
         }
 
 

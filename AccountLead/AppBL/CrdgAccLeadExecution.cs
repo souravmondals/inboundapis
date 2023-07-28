@@ -622,7 +622,7 @@
 
                         if (!Convert.ToBoolean(item.isPrimaryHolder.ToString()))
                         {
-                            if (string.IsNullOrEmpty(item.vrelationToPrimaryHolder.ToString()))
+                            if (string.IsNullOrEmpty(item.relationToPrimaryHolder.ToString()))
                             {
                                 return false;
                             }

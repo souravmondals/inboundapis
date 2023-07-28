@@ -13,7 +13,7 @@ namespace CustomerLead
         public Task<string> getDocTypeId(string Type_code);
         public Task<string> getRelationShipId(string RelationShipCode);
         public Task<string> getCustomerType(string City_code);
-        public Task<string> getApplicentCustId(string ApplicantId);
+        public Task<JArray> getApplicentDetail(string ApplicantId);
         public Task<string> getTitle(string TitleId);
 
         public Task<JArray> getLeadDetails(string contact_id);

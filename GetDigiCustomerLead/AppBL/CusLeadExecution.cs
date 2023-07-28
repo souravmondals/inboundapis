@@ -136,39 +136,75 @@
         {
             CustomerLeadReturn accountLeadReturn = new CustomerLeadReturn();
 
-            string CustomerId  = await this._commonFunc.getApplicentCustId(customerLeadID);
-            if (!string.IsNullOrEmpty(CustomerId))
+            var Customerdtl  = await this._commonFunc.getApplicentDetail(customerLeadID);
+
+            if (Customerdtl.Count>0)
             {
-
-                var customerDetail = await this._commonFunc.getCustomerDetails(CustomerId);
-                string typeofcustomer = await this._commonFunc.getCustomerType(customerDetail[0]["_eqs_entitytypeid_value"].ToString());
-                if (typeofcustomer=="I")
+                if (Customerdtl[0]["eqs_customertypecode"].ToString() == "789030001")
                 {
-                    AccountApplicantIndv accountApplicantIndv = new AccountApplicantIndv();
+                    string typeofcustomer = await this._commonFunc.getCustomerType(Customerdtl[0]["_eqs_entitytypeid_value"].ToString());
+                    if (typeofcustomer == "I")
+                    {
+                        AccountApplicantIndv accountApplicantIndv = new AccountApplicantIndv();
 
-                    accountApplicantIndv.title = await this._commonFunc.getTitle(customerDetail[0]["_eqs_titleid_value"].ToString());
-                    accountApplicantIndv.firstname = customerDetail[0]["firstname"].ToString();
-                    accountApplicantIndv.middlename = customerDetail[0]["middlename"].ToString();
-                    accountApplicantIndv.lastname = customerDetail[0]["lastname"].ToString();
-                    accountApplicantIndv.pan = customerDetail[0]["eqs_pan"].ToString();
-                    
-                    accountLeadReturn.AccountApplicants = accountApplicantIndv;
+                        accountApplicantIndv.title = await this._commonFunc.getTitle(Customerdtl[0]["_eqs_titleid_value"].ToString());
+                        accountApplicantIndv.firstname = Customerdtl[0]["eqs_firstname"].ToString();
+                        accountApplicantIndv.middlename = Customerdtl[0]["eqs_middlename"].ToString();
+                        accountApplicantIndv.lastname = Customerdtl[0]["eqs_lastname"].ToString();
+                        accountApplicantIndv.pan = Customerdtl[0]["eqs_internalpan"].ToString();
+
+                        accountLeadReturn.AccountApplicants = accountApplicantIndv;
+                    }
+                    else
+                    {
+                        AccountApplicantCorp accountApplicantCorp = new AccountApplicantCorp();
+                        accountApplicantCorp.Companynamepart1 = Customerdtl[0]["eqs_companynamepart1"].ToString();
+                        accountApplicantCorp.Companynamepart2 = Customerdtl[0]["eqs_companynamepart2"].ToString();
+                        accountApplicantCorp.Companynamepart3 = Customerdtl[0]["eqs_companynamepart3"].ToString();
+                        accountApplicantCorp.pan = Customerdtl[0]["eqs_internalpan"].ToString();
+
+                        accountLeadReturn.AccountApplicants = accountApplicantCorp;
+                    }
+                    accountLeadReturn.ReturnCode = "CRM-SUCCESS";
+                    accountLeadReturn.Message = OutputMSG.Case_Success;
                 }
                 else
                 {
-                    AccountApplicantCorp accountApplicantCorp = new AccountApplicantCorp();
-                    accountApplicantCorp.Companynamepart1 = customerDetail[0]["eqs_companyname"].ToString();
-                    accountApplicantCorp.Companynamepart2 = customerDetail[0]["eqs_companyname2"].ToString();
-                    accountApplicantCorp.Companynamepart3 = customerDetail[0]["eqs_companyname3"].ToString();
-                    accountApplicantCorp.pan = customerDetail[0]["eqs_tannumber"].ToString();
+                    string CustomerId = Customerdtl[0]["_eqs_customerid_value"].ToString();
+                    if (!string.IsNullOrEmpty(CustomerId))
+                    {
 
-                    accountLeadReturn.AccountApplicants = accountApplicantCorp;
+                        var customerDetail = await this._commonFunc.getCustomerDetails(CustomerId);
+                        string typeofcustomer = await this._commonFunc.getCustomerType(customerDetail[0]["_eqs_entitytypeid_value"].ToString());
+                        if (typeofcustomer == "I")
+                        {
+                            AccountApplicantIndv accountApplicantIndv = new AccountApplicantIndv();
+
+                            accountApplicantIndv.title = await this._commonFunc.getTitle(customerDetail[0]["_eqs_titleid_value"].ToString());
+                            accountApplicantIndv.firstname = customerDetail[0]["firstname"].ToString();
+                            accountApplicantIndv.middlename = customerDetail[0]["middlename"].ToString();
+                            accountApplicantIndv.lastname = customerDetail[0]["lastname"].ToString();
+                            accountApplicantIndv.pan = customerDetail[0]["eqs_pan"].ToString();
+
+                            accountLeadReturn.AccountApplicants = accountApplicantIndv;
+                        }
+                        else
+                        {
+                            AccountApplicantCorp accountApplicantCorp = new AccountApplicantCorp();
+                            accountApplicantCorp.Companynamepart1 = customerDetail[0]["eqs_companyname"].ToString();
+                            accountApplicantCorp.Companynamepart2 = customerDetail[0]["eqs_companyname2"].ToString();
+                            accountApplicantCorp.Companynamepart3 = customerDetail[0]["eqs_companyname3"].ToString();
+                            accountApplicantCorp.pan = customerDetail[0]["eqs_tannumber"].ToString();
+
+                            accountLeadReturn.AccountApplicants = accountApplicantCorp;
+                        }
+                        accountLeadReturn.ReturnCode = "CRM-SUCCESS";
+                        accountLeadReturn.Message = OutputMSG.Case_Success;
+
+
+                    }
                 }
-                accountLeadReturn.ReturnCode = "CRM-SUCCESS";
-                accountLeadReturn.Message = OutputMSG.Case_Success;
-
-                
-            }
+            }            
             else
             {
                 this._logger.LogInformation("getCustomerLead", "Input parameters are incorrect");

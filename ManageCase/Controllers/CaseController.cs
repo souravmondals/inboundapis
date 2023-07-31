@@ -51,9 +51,13 @@ namespace ManageCase.Controllers
                 Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
                 string response = await _createCaseExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
                 this._createCaseExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
-                return Ok(response);
-                
-                    
+
+                var contentResult = new ContentResult();
+                contentResult.Content = response;
+                contentResult.ContentType = "application/json";
+                return contentResult;
+
+
             }
             catch (Exception ex)
             {

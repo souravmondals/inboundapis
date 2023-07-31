@@ -377,7 +377,11 @@ namespace ManageCase
                                 }
                                 else if (field.CRMType == "615290006")
                                 {
-                                    odatab.Add(field.CRMField, field.CRMValue);
+                                    string dd, mm, yyyy;
+                                    dd = field.CRMValue.Substring(0,2);
+                                    mm = field.CRMValue.Substring(2,2);
+                                    yyyy = field.CRMValue.Substring(4,4);
+                                    odatab.Add(field.CRMField, yyyy + "-" + mm + "-" + dd );
                                 }
                                 else
                                 {

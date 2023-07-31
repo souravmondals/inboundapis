@@ -279,6 +279,27 @@ namespace ManageCase
             return mandatoryFields;
         }
 
+        public async Task<bool> checkDuplicate(string UCIC, string Account, string Classification, string Category, string SubCategory)
+        {
+            string customerid = await this.getCustomerId(UCIC);
+            string Accountid = await this.getAccountId(Account);
+            string ccs_classification = await this.getclassificationId(Classification);
+            string CategoryId = await this.getCategoryId(Category);
+            string SubCategoryId = await this.getSubCategoryId(SubCategory, CategoryId);
+
+            string query_url = $"incidents()?$select=incidentid,statuscode&$filter=_customerid_value eq '{customerid}' and _eqs_account_value eq '{Accountid}' and _ccs_classification_value eq '{ccs_classification}' and _ccs_category_value eq '{CategoryId}' and _ccs_subcategory_value eq '{SubCategoryId}'";
+            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var responsedata = await this._queryParser.getDataFromResponce(responsdtails);
+            if (responsedata.Count > 0)
+            {
+                if (Convert.ToInt64(responsedata[0]["statuscode"].ToString()) < 2)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
 
         public async Task<string> MeargeJsonString(string json1, string json2)
         {

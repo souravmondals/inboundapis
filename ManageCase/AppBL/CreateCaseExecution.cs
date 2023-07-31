@@ -181,6 +181,12 @@ namespace ManageCase
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
                             ldRtPrm.Message = OutputMSG.Incorrect_Input;
                         }
+                        else if (await this._commonFunc.checkDuplicate(CaseData.UCIC.ToString(), CaseData.AccountNumber.ToString(), CaseData.Classification.ToString(), CaseData.Category.ToString(), CaseData.SubCategory.ToString()))
+                        {
+                            this._logger.LogInformation("ValidateCreateCase", "Input parameters are incorrect");
+                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                            ldRtPrm.Message = "Case already exists in the system";
+                        }
                         else
                         {
                             ldRtPrm = await this.CreateCase(CaseData);

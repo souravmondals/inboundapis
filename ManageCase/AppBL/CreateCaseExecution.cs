@@ -121,10 +121,9 @@ namespace ManageCase
                 {
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID) && !string.IsNullOrEmpty(channel) && channel != "")
                     {
-                        int ValidationError = 0;
+                        int ValidationError = 0;                       
 
-                        
-                        
+
                         if (CaseData.UCIC == null || string.IsNullOrEmpty(CaseData.UCIC.ToString()) || CaseData.UCIC.ToString() == "")
                         {
                             ValidationError = 1;                                
@@ -360,7 +359,7 @@ namespace ManageCase
                             mandatoryFields.Where(x => (x.InputField == keyName)).Single().CRMValue = ValName;
                         }
                     }
-                    
+                    var value = await this._queryParser.getOptionSetTextToValue("incident", "statuscode", "Researching");
                     foreach (var field in mandatoryFields)
                     {
                         if (field.CRMValue != "" || !string.IsNullOrEmpty(field.CRMValue))
@@ -372,7 +371,19 @@ namespace ManageCase
                             }
                             else
                             {
-                                odatab.Add(field.CRMField, field.CRMValue);
+                                if (field.CRMType== "615290001")
+                                {
+                                    odatab.Add(field.CRMField, await this._queryParser.getOptionSetTextToValue("incident", field.CRMField, field.CRMValue));
+                                }
+                                else if (field.CRMType == "615290006")
+                                {
+                                    odatab.Add(field.CRMField, field.CRMValue);
+                                }
+                                else
+                                {
+                                    odatab.Add(field.CRMField, field.CRMValue);
+                                }
+                               
                             }
                             
                         }
@@ -525,7 +536,7 @@ namespace ManageCase
                         }
 
                         var caseresponsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                        var CaseList = await this._commonFunc.getDataFromResponce(caseresponsdtails);
+                        var CaseList = await this._queryParser.getDataFromResponce(caseresponsdtails);
                         foreach (var caseDetails in CaseList)
                         {
                             CaseDetails case_details = new CaseDetails();

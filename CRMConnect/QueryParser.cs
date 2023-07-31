@@ -428,6 +428,31 @@
         }
 
 
+        public async Task<string> getOptionSetTextToValue(string tableName, string fieldName, string OptionText)
+        {
+            Dictionary<string, string> optionSet, optionSet1;
+
+            if (!this.GetMvalue<Dictionary<string, string>>(tableName + "_" + fieldName, out optionSet1))
+            {
+                string query_url = $"stringmaps()?$select=value,attributevalue&$filter=objecttypecode eq '{tableName}' and attributename eq '{fieldName}'";
+                var responsdtails = await this.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Optiondata = await this.getDataFromResponce(responsdtails);
+                optionSet = new Dictionary<string, string>();
+                foreach (var item in Optiondata)
+                {
+                    optionSet.Add(item["value"].ToString(), item["attributevalue"].ToString());
+                }
+                this.SetMvalue<Dictionary<string, string>>(tableName + "_" + fieldName, 1400, optionSet);
+            }
+            else
+            {
+                optionSet = optionSet1;
+            }
+            
+
+            return optionSet[OptionText];
+        }
+
         public async Task<bool> DeleteFromTable(string tablename, string tableid = "", string filter = "", string filtervalu = "", string tableselecter = "")
         {
             if (!string.IsNullOrEmpty(tableid))
@@ -503,6 +528,26 @@
                 }
             }
             return new JArray();
+        }
+
+        public bool GetMvalue<T>(string keyname, out T? Outvalue)
+        {
+            if (!this._cache.TryGetValue<T>(keyname, out Outvalue))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public void SetMvalue<T>(string keyname, double timevalid, T inputvalue)
+        {
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(DateTimeOffset.Now.AddMinutes(timevalid));
+
+            this._cache.Set<T>(keyname, inputvalue, cacheEntryOptions);
         }
 
 

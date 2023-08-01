@@ -158,6 +158,7 @@
                     else
                     {
                         AccountApplicantCorp accountApplicantCorp = new AccountApplicantCorp();
+                        accountApplicantCorp.title = await this._commonFunc.getTitle(Customerdtl[0]["_eqs_titleid_value"].ToString());
                         accountApplicantCorp.Companynamepart1 = Customerdtl[0]["eqs_companynamepart1"].ToString();
                         accountApplicantCorp.Companynamepart2 = Customerdtl[0]["eqs_companynamepart2"].ToString();
                         accountApplicantCorp.Companynamepart3 = Customerdtl[0]["eqs_companynamepart3"].ToString();

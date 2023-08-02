@@ -299,7 +299,7 @@
                     _accountApplicant.relationToPrimaryHolder = await this._commonFunc.getRelationshipCode(applicant["_eqs_relationship_value"].ToString());
                 }
 
-
+                /*
                 var applicentPreferences = await this._commonFunc.getPreferences(applicant["eqs_accountapplicantid"].ToString());
 
                 if (applicentPreferences.Count > 0)
@@ -328,6 +328,7 @@
 
                     _accountApplicant.preferences = preferences;
                 }
+                */
 
                 _accountApplicants.Add(_accountApplicant);
 

@@ -69,7 +69,7 @@ namespace FetchAccountLead
         public string isStaff { get; set; }
         public string relationToPrimaryHolder { get; set; }
         
-        public Preferences preferences { get; set; }
+      //  public Preferences preferences { get; set; }
 
     }
 

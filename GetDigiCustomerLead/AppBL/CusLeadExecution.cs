@@ -86,7 +86,7 @@
         public async Task<CustomerLeadReturn> ValidateInput(dynamic RequestData)
         {
             CustomerLeadReturn ldRtPrm = new CustomerLeadReturn();
-            RequestData = await this.getRequestData(RequestData, "GetDigiCustomerLead");
+            RequestData = await this.getRequestData(RequestData, "GetDigiCustomerLeadNSDL");
             try
             { 
 

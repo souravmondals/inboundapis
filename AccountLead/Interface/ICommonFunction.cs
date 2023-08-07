@@ -14,7 +14,7 @@ namespace AccountLead
         public Task<string> getRelationshipId(string Relationship_code);
         public Task<string> getLeadSourceId(string LeadSource_code);
 
-        public Task<JArray> getContactData(string contact_id);
+        public Task<JArray> getAccountLeadData(string contact_id);
         public Task<JArray> getDataFromResponce(List<JObject> RsponsData);
         public Task<string> MeargeJsonString(string json1, string json2);
         public bool GetMvalue<T>(string keyname, out T? Outvalue);

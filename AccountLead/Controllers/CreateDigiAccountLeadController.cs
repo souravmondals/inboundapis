@@ -46,7 +46,7 @@
                 
                 _crdgaccleadExecution.API_Name = "CreateDigiAccountLead";
                 _crdgaccleadExecution.Input_payload = request.ToString();
-                AccountLeadReturn AccountDetails = await _crdgaccleadExecution.ValidateLeadtInput(request);
+                AccountByLeadReturn AccountDetails = await _crdgaccleadExecution.ValidateLeadtInput(request);
 
                 watch.Stop();
                 AccountDetails.TransactionID = this._crdgaccleadExecution.Transaction_ID;

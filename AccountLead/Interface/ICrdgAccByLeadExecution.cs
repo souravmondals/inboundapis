@@ -1,6 +1,6 @@
 ﻿namespace AccountLead
 {
-    public interface ICrdgAccLeadExecution
+    public interface ICrdgAccByLeadExecution
     {
         public string API_Name { set; }
         public string Input_payload { set; }

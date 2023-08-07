@@ -98,9 +98,9 @@
         }
 
 
-        public async Task<AccountLeadReturn> ValidateLeadtInput(dynamic RequestData)
+        public async Task<AccountByLeadReturn> ValidateLeadtInput(dynamic RequestData)
         {
-            AccountLeadReturn ldRtPrm = new AccountLeadReturn();
+            AccountByLeadReturn ldRtPrm = new AccountByLeadReturn();
             RequestData = await this.getRequestData(RequestData, "CreateDigiAccountLead");
             try
             { 
@@ -154,9 +154,9 @@
         }
 
 
-        private async Task<AccountLeadReturn> CreateAccountLead()
+        private async Task<AccountByLeadReturn> CreateAccountLead()
         {
-            AccountLeadReturn accountLeadReturn = new AccountLeadReturn();
+            AccountByLeadReturn accountLeadReturn = new AccountByLeadReturn();
             if(await CreateLead())
             {
                 if (await LeadAccountCreation())

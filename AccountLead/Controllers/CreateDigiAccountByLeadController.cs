@@ -20,14 +20,14 @@
     public class CreateDigiAccountByLeadController : ControllerBase
     {
 
-        private readonly ICrdgAccLeadExecution _crdgaccleadExecution;
+        private readonly ICrdgAccByLeadExecution _crdgaccleadbyExecution;
         private Stopwatch watch;
 
-        public CreateDigiAccountByLeadController(ICrdgAccLeadExecution crdgaccleadExecution)
+        public CreateDigiAccountByLeadController(ICrdgAccByLeadExecution crdgaccbyleadExecution)
         {
             watch = new System.Diagnostics.Stopwatch();
             watch.Start();
-            this._crdgaccleadExecution = crdgaccleadExecution;
+            this._crdgaccleadbyExecution = crdgaccbyleadExecution;
         }
 
 
@@ -41,16 +41,16 @@
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
 
 
-                _crdgaccleadExecution.API_Name = "CreateDigiAccountByLead";
-                _crdgaccleadExecution.Input_payload = request.ToString();
-                AccountLeadReturn AccountDetails = await _crdgaccleadExecution.ValidateLeadtInput(request);
+                _crdgaccleadbyExecution.API_Name = "CreateDigiAccountByLead";
+                _crdgaccleadbyExecution.Input_payload = request.ToString();
+                AccountByLeadReturn AccountDetails = await _crdgaccleadbyExecution.ValidateLeadtInput(request);
 
                 watch.Stop();
-                AccountDetails.TransactionID = this._crdgaccleadExecution.Transaction_ID;
+                AccountDetails.TransactionID = this._crdgaccleadbyExecution.Transaction_ID;
                 AccountDetails.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
-                string response = await _crdgaccleadExecution.EncriptRespons(JsonConvert.SerializeObject(AccountDetails));
-                this._crdgaccleadExecution.CRMLog(JsonConvert.SerializeObject(request), response, AccountDetails.ReturnCode);
+                string response = await _crdgaccleadbyExecution.EncriptRespons(JsonConvert.SerializeObject(AccountDetails));
+                this._crdgaccleadbyExecution.CRMLog(JsonConvert.SerializeObject(request), response, AccountDetails.ReturnCode);
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

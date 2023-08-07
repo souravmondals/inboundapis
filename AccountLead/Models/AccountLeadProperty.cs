@@ -18,7 +18,7 @@ namespace AccountLead
 
     }
     
-    public class AccountLeadReturn
+    public class AccountByLeadReturn
     {
         public string AccountLeadId { get; set; }
         public List<string> Applicants { get; set; }

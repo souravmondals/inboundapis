@@ -207,9 +207,20 @@ using CRMConnect;
         /*--------------------------------*/
 
 
-        public async Task<string> getEntityId(string Entity_code)
+        public async Task<JArray> getAccountNominee(string ddeaccountid)
         {
-            return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_entitytypeid", "eqs_entitytypekey", Entity_code);
+            string query_url = $"eqs_ddeaccountnominees()?$select=eqs_nomineename,eqs_emailid,eqs_mobile,eqs_nomineedob,eqs_addressline1,eqs_addressline2,eqs_addressline3,eqs_pincode,_eqs_city_value,_eqs_state_value,_eqs_country_value,eqs_guardianname,eqs_guardianmobile,eqs_guardianaddressline1,eqs_guardianaddressline2,eqs_guardianaddressline3,_eqs_guardiancity_value,_eqs_guardianstate_value,_eqs_guardiancountry_value,eqs_guardianpincode&$filter=_eqs_leadaccountddeid_value eq '{ddeaccountid}'";
+            var Nomineedtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var Nominee_dtails = await this.getDataFromResponce(Nomineedtails);
+            return Nominee_dtails;
+        }
+
+        public async Task<JArray> getAccountApplicd(string leadaccountid)
+        {
+            string query_url = $"eqs_accountapplicants()?$select=eqs_customer,eqs_name,eqs_isprimaryholder,_eqs_accountrelationship_value&$filter=_eqs_leadaccountid_value eq '{leadaccountid}'";
+            var Applicentdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var Applicent_dtails = await this.getDataFromResponce(Applicentdtails);
+            return Applicent_dtails;
         }
 
         public async Task<JArray> getAccountLeadData(string AccountID)
@@ -217,7 +228,7 @@ using CRMConnect;
             try
             {
                 string leadaccount_id = await this.getIDfromMSDTable("eqs_leadaccounts", "eqs_leadaccountid", "eqs_crmleadaccountid", AccountID);
-                string query_url = $"eqs_ddeaccounts()?$filter=_eqs_leadaccountid_value eq '{leadaccount_id}' and eqs_ddeoperatorname eq 'Final'";
+                string query_url = $"eqs_ddeaccounts()?$select=eqs_ddeaccountid,_eqs_leadaccountid_value,eqs_accountownershipcode,_eqs_productid_value&$filter=_eqs_leadaccountid_value eq '{leadaccount_id}' and eqs_ddeoperatorname eq 'Final'";
                 var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                 var Account_dtails = await this.getDataFromResponce(Accountdtails);
                 return Account_dtails;
@@ -229,41 +240,30 @@ using CRMConnect;
             }
         }
 
-        public async Task<JArray> getApplicantDetails(string ApplicantId)
+        public async Task<string> getCityName(string CityId)
         {
-            try
-            {
-                string query_url = $"eqs_accountapplicants()?$select=_eqs_entitytypeid_value,eqs_gendercode,eqs_leadage,_eqs_subentity_value,eqs_customersegment,eqs_isstaffcode&$filter=eqs_applicantid eq '{ApplicantId}'";
-                var Applicantdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Applicant_dtails = await this.getDataFromResponce(Applicantdtails);
-                return Applicant_dtails;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("getApplicantDetails", ex.Message);
-                throw ex;
-            }
+            return await this.getIDfromMSDTable("eqs_cities", "eqs_name", "eqs_cityid", CityId);
+        }
+        public async Task<string> getStateName(string StateId)
+        {
+            return await this.getIDfromMSDTable("eqs_states", "eqs_name", "eqs_stateid", StateId);
+        }
+        public async Task<string> getCountryName(string CountryId)
+        {
+            return await this.getIDfromMSDTable("eqs_countries", "eqs_name", "eqs_countryid", CountryId);
+        } 
+        
+        public async Task<string> getAccountRelation(string accRelationId)
+        {
+            return await this.getIDfromMSDTable("eqs_accountrelationshipses", "eqs_key", "eqs_accountrelationshipsid", accRelationId);
+        }
+        public async Task<string> getProductCode(string ProductId)
+        {
+            return await this.getIDfromMSDTable("eqs_products", "eqs_productcode", "eqs_productid", ProductId);
         }
 
-        public async Task<JArray> getCustomerDetails(string CustomerId)
-        {
-            try
-            {
-                string query_url = $"contacts()?$select=_eqs_entitytypeid_value,eqs_gender,eqs_age,_eqs_subentitytypeid_value,eqs_customersegment,eqs_isstafffcode&$filter=eqs_customerid eq '{CustomerId}'";
-                var Customerdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Customer_dtails = await this.getDataFromResponce(Customerdtails);
-                return Customer_dtails;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("getCustomerDetails", ex.Message);
-                throw ex;
-            }
-        }
-        public async Task<string> getSubEntityId(string SubEntity_code)
-        {
-            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_subentitytypeid", "eqs_key", SubEntity_code);
-        }
+        
+        
 
 
         public async Task<string> MeargeJsonString(string json1, string json2)

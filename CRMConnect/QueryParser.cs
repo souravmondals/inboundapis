@@ -15,6 +15,8 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Rest.Azure.OData;
+    using System;
+    using Azure.Core;
 
 
     public class QueryParser : IQueryParser
@@ -64,6 +66,23 @@
                     );
             List<JObject> results = await this.SendBatchRequestAsync(httpClient, httpcontent, this._log).ConfigureAwait(true);
             return results;
+        }
+
+        public async Task<string> HttpCBSApiCall(string odataQuery, HttpMethod httpMethod, string parameterToPost = "")
+        {
+            HttpClient httpClient = new HttpClient();
+            string requestUri = this._keyVaultService.ReadSecret("CBSCreateAccount");
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(httpMethod, requestUri);
+            StringContent stringContent = new StringContent(parameterToPost);
+            stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;type=entry");
+            requestMessage.Content = stringContent;
+            var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
+            string responJsonText = await response.Content.ReadAsStringAsync();
+
+            //HttpResponseMessage respon = await httpClient.PostAsync(requestUri, new StringContent(parameterToPost, System.Text.Encoding.UTF8, "application/json"));
+            //string responJsonText = await respon.Content.ReadAsStringAsync();
+            return responJsonText;
         }
 
 

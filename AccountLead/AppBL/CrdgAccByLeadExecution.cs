@@ -16,6 +16,7 @@
     using System;
     using System.Security.Cryptography.Xml;
     using Azure;
+    using Microsoft.Identity.Client;
 
     public class CrdgAccByLeadExecution : ICrdgAccByLeadExecution
     {
@@ -134,22 +135,131 @@
         private async Task<AccountByLeadReturn> CreateAccountByLead(string accountLead)
         {
             AccountByLeadReturn accountLeadReturn = new AccountByLeadReturn();
+            try
+            {               
 
-            Dictionary<string, string> odatab = new Dictionary<string, string>();
-            
-            var AccountApplicent = this._commonFunc.getAccountLeadData(accountLead);
+                string RequestTemplate = "{\"recordId\":\"c15608b5-ab61-492b-99cb-ae032b5868fd\",\"apiLink\":\"https://wsuat.equitasbank.com/accountcreate/v1.0.0/create\",\"JsonInput\":{\"createAccountRequest\":{\"msgHdr\":{\"channelID\":\"FOS\",\"transactionType\":\"create\",\"transactionSubType\":\"account\",\"conversationID\":\"\",\"externalReferenceId\":\"\",\"isAsync\":false,\"authInfo\":{\"branchID\":\"1002\",\"userID\":\"IBUSER\",\"token\":\"1002\"}},\"msgBdy\":{\"accountNo\":\"\",\"accountNominee\":{\"city\":\"CHENNAI\",\"country\":\"IN\",\"dateOfBirth\":\"19880613\",\"isNomineeDisplay\":\"true\",\"isNomineeBankCustomer\":\"false\",\"nominee\":{\"phone\":{\"country\":\"91\",\"area\":\"45\",\"number\":\"\",\"extn\":\"3245\"},\"address\":{\"line1\":\"Adrs1\",\"line2\":\"Adrs2\",\"line3\":\"Adrs3\"},\"emailId\":\"bhr@gml.com\",\"name\":\"BHR\"},\"guardian\":{\"phone\":{\"area\":\"\",\"number\":\"\"},\"address\":{\"line1\":\"\",\"line2\":\"\",\"line3\":\"\",\"line4\":\"\",\"city\":\"\",\"area\":\"\",\"state\":\"\",\"country\":\"\",\"zip\":\"\"},\"emailId\":\"\",\"name\":\"\"},\"refGuardPhnCountry\":\"\",\"refGuardPhnExtn\":\"\",\"relAcctHolder\":\"15\",\"relationGuardian\":\"\",\"shareAmount\":100,\"sharePercentage\":100,\"state\":\"TAMIL NADU\",\"zip\":\"600040\",\"customerId\":\"\"},\"branchCode\":9999,\"customerAndRelation\":[{\"customerId\":\"13973781\",\"customerName\":\"Mayank Account Creation Test\",\"relation\":\"SOW\"}],\"customerID\":\"13973781\",\"isJointHolder\":\"true\",\"isRestrictAcct\":false,\"transactionType\":\"A\",\"minorAcctStatus\":false,\"productCode\":\"1025\",\"tdaccountPayinRequest\":{\"depositAmount\":0,\"fromAccountNo\":\"\",\"termDays\":0,\"termMonths\":0},\"rdaccountPayinRequest\":{\"installmentAmount\":0,\"payoutAccountNo\":\"\",\"termMonths\":0}}}}}";
+                dynamic Request_Template = JsonConvert.DeserializeObject(RequestTemplate);
+                dynamic msgHdr = Request_Template.JsonInput.createAccountRequest.msgHdr;
+                dynamic msgBdy = Request_Template.JsonInput.createAccountRequest.msgBdy;
+                Guid ReferenceId = Guid.NewGuid();
+                msgHdr.conversationID = ReferenceId.ToString().Replace("-","");
+                msgHdr.externalReferenceId = ReferenceId.ToString().Replace("-", "");
+                Request_Template.JsonInput.createAccountRequest.msgHdr = msgHdr;
 
-           
+                Dictionary<string, string> odatab = new Dictionary<string, string>();
 
-            string postDataParametr = JsonConvert.SerializeObject(odatab);
+                var AccountDDE = await this._commonFunc.getAccountLeadData(accountLead);
+                if (AccountDDE.Count > 0)
+                {
+                    var Nominee = await this._commonFunc.getAccountNominee(AccountDDE[0]["eqs_ddeaccountid"].ToString());
+                    var AccApplicent = await this._commonFunc.getAccountApplicd(AccountDDE[0]["_eqs_leadaccountid_value"].ToString());
 
-            var Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
+                    if (Nominee.Count > 0)
+                    {
+                        if (!string.IsNullOrEmpty(Nominee[0]["_eqs_city_value"].ToString()))
+                        {
+                            msgBdy.accountNominee.city = await this._commonFunc.getCityName(Nominee[0]["_eqs_city_value"].ToString());
+                        }
 
+                        if (!string.IsNullOrEmpty(Nominee[0]["_eqs_state_value"].ToString()))
+                        {
+                            msgBdy.accountNominee.state = "TAMIL NADU";  //await this._commonFunc.getStateName(Nominee[0]["_eqs_state_value"].ToString());
+                        }
 
+                        if (!string.IsNullOrEmpty(Nominee[0]["_eqs_country_value"].ToString()))
+                        {
+                            msgBdy.accountNominee.country = "IN";    //await this._commonFunc.getCountryName(Nominee[0]["_eqs_country_value"].ToString());
+                        }
 
-            
+                        string dd = Nominee[0]["eqs_nomineedob"].ToString().Substring(0, 2);
+                        string mm = Nominee[0]["eqs_nomineedob"].ToString().Substring(3, 2);
+                        string yy = Nominee[0]["eqs_nomineedob"].ToString().Substring(6, 4);
+                        msgBdy.accountNominee.dateOfBirth = yy + mm + dd;
+                        msgBdy.accountNominee.nominee.phone.number = Nominee[0]["eqs_mobile"].ToString();
+
+                        msgBdy.accountNominee.nominee.address.line1 = Nominee[0]["eqs_addressline1"].ToString();
+                        msgBdy.accountNominee.nominee.address.line2 = Nominee[0]["eqs_addressline2"].ToString();
+                        msgBdy.accountNominee.nominee.address.line3 = Nominee[0]["eqs_addressline3"].ToString();
+
+                        msgBdy.accountNominee.nominee.emailId = Nominee[0]["eqs_emailid"].ToString();
+                        msgBdy.accountNominee.nominee.name = Nominee[0]["eqs_nomineename"].ToString();
+
+                        if (!string.IsNullOrEmpty(Nominee[0]["eqs_guardianname"].ToString()))
+                        {
+                            msgBdy.accountNominee.guardian.name = Nominee[0]["eqs_guardianname"].ToString();
+                            msgBdy.accountNominee.guardian.phone.number = Nominee[0]["eqs_guardianmobile"].ToString();
+
+                            msgBdy.accountNominee.guardian.address.line1 = Nominee[0]["eqs_guardianaddressline1"].ToString();
+                            msgBdy.accountNominee.guardian.address.line2 = Nominee[0]["eqs_guardianaddressline2"].ToString();
+                            msgBdy.accountNominee.guardian.address.line3 = Nominee[0]["eqs_guardianaddressline3"].ToString();
+
+                            if (!string.IsNullOrEmpty(Nominee[0]["_eqs_guardiancity_value"].ToString()))
+                            {
+                                msgBdy.accountNominee.guardian.address.city = await this._commonFunc.getCityName(Nominee[0]["_eqs_guardiancity_value"].ToString());
+                            }
+
+                            if (!string.IsNullOrEmpty(Nominee[0]["_eqs_guardianstate_value"].ToString()))
+                            {
+                                msgBdy.accountNominee.guardian.address.state = await this._commonFunc.getStateName(Nominee[0]["_eqs_guardianstate_value"].ToString());
+                            }
+
+                            if (!string.IsNullOrEmpty(Nominee[0]["_eqs_guardiancountry_value"].ToString()))
+                            {
+                                msgBdy.accountNominee.guardian.address.country = await this._commonFunc.getCountryName(Nominee[0]["_eqs_guardiancountry_value"].ToString());
+                            }
+                            msgBdy.accountNominee.guardian.address.zip = Nominee[0]["eqs_guardianpincode"].ToString();
+                        }
+
+                        msgBdy.accountNominee.zip = Nominee[0]["eqs_pincode"].ToString();
+                    }
+
+                    List<ApplicentRelation> relationList = new List<ApplicentRelation>();
+                    foreach (var item in AccApplicent)
+                    {
+                        ApplicentRelation applicentRelation = new ApplicentRelation();
+                        applicentRelation.customerId = item["eqs_customer"].ToString();
+                        applicentRelation.customerName = item["eqs_name"].ToString();
+                        applicentRelation.relation = await this._commonFunc.getAccountRelation(item["_eqs_accountrelationship_value"].ToString());
+
+                        if (item["eqs_isprimaryholder"].ToString() == "789030001")
+                        {
+                            msgBdy.customerID = item["eqs_customer"].ToString();
+                        }
+                        relationList.Add(applicentRelation);
+                    }
+
+                    msgBdy.customerAndRelation = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(relationList));
+                    msgBdy.isJointHolder = (AccountDDE[0]["eqs_accountownershipcode"].ToString() == "615290001") ? "true" : "false";
+                    msgBdy.productCode = await this._commonFunc.getProductCode(AccountDDE[0]["_eqs_productid_value"].ToString());
+
+                    Request_Template.JsonInput.createAccountRequest.msgBdy = msgBdy;
+
+                    string postDataParametr = JsonConvert.SerializeObject(Request_Template);
+                    string Lead_details = await this._queryParser.HttpCBSApiCall("", HttpMethod.Post, postDataParametr);
+                    dynamic responsD = JsonConvert.DeserializeObject(Lead_details);
+                    
+                    accountLeadReturn.AccountNo = responsD.createAccountResponse.msgBdy.accountNo.ToString();
+                    accountLeadReturn.Message = OutputMSG.Case_Success;
+                    accountLeadReturn.ReturnCode = "CRM-SUCCESS";
+
+                }
+                else
+                {
+                    accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+                    accountLeadReturn.ReturnCode = "CRM-ERROR-101";
+                }
+               
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("CreateAccountByLead", ex.Message);
+                accountLeadReturn.Message = OutputMSG.Incorrect_Input;
+                accountLeadReturn.ReturnCode = "CRM-ERROR-102";
+            }
 
             return accountLeadReturn;
+
         }
 
 

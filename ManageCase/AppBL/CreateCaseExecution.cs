@@ -321,6 +321,7 @@ namespace ManageCase
                 LeadMsdProperty case_Property = new LeadMsdProperty();
                 CaseProperty csProperty = new CaseProperty();
                 Dictionary<string, string> odatab = new Dictionary<string, string>();
+                Dictionary<string, double> odatab1 = new Dictionary<string, double>();
                 string postDataParametr, postDataParametr1;
                 List<JObject> case_details = new List<JObject>();
 
@@ -374,6 +375,10 @@ namespace ManageCase
                                 if (field.CRMType== "615290001")
                                 {
                                     odatab.Add(field.CRMField, await this._queryParser.getOptionSetTextToValue("incident", field.CRMField, field.CRMValue));
+                                }
+                                else if (field.CRMType == "615290007")
+                                {
+                                    odatab1.Add(field.CRMField, Convert.ToDouble(field.CRMValue.ToString()));
                                 }
                                 else if (field.CRMType == "615290006")
                                 {
@@ -444,6 +449,8 @@ namespace ManageCase
                 postDataParametr = JsonConvert.SerializeObject(case_Property);
                 postDataParametr1 = JsonConvert.SerializeObject(odatab);
 
+                postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+                postDataParametr1 = JsonConvert.SerializeObject(odatab1);
                 postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
                 case_details = await this._queryParser.HttpApiCall("incidents?$select=ticketnumber", HttpMethod.Post, postDataParametr);

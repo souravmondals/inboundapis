@@ -449,27 +449,37 @@
 
         public async Task<string> getOptionSetTextToValue(string tableName, string fieldName, string OptionText)
         {
-            Dictionary<string, string> optionSet, optionSet1;
+            try
+            {
+                Dictionary<string, string> optionSet, optionSet1;
 
-            if (!this.GetMvalue<Dictionary<string, string>>(tableName + "_" + fieldName, out optionSet1))
-            {
-                string query_url = $"stringmaps()?$select=value,attributevalue&$filter=objecttypecode eq '{tableName}' and attributename eq '{fieldName}'";
-                var responsdtails = await this.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Optiondata = await this.getDataFromResponce(responsdtails);
-                optionSet = new Dictionary<string, string>();
-                foreach (var item in Optiondata)
+                if (!this.GetMvalue<Dictionary<string, string>>(tableName + "_" + fieldName, out optionSet1))
                 {
-                    optionSet.Add(item["value"].ToString(), item["attributevalue"].ToString());
+                    string query_url = $"stringmaps()?$select=value,attributevalue&$filter=objecttypecode eq '{tableName}' and attributename eq '{fieldName}'";
+                    var responsdtails = await this.HttpApiCall(query_url, HttpMethod.Get, "");
+                    var Optiondata = await this.getDataFromResponce(responsdtails);
+                    optionSet = new Dictionary<string, string>();
+                    foreach (var item in Optiondata)
+                    {
+                        optionSet.Add(item["value"].ToString(), item["attributevalue"].ToString());
+                    }
+                    this.SetMvalue<Dictionary<string, string>>(tableName + "_" + fieldName, 1400, optionSet);
                 }
-                this.SetMvalue<Dictionary<string, string>>(tableName + "_" + fieldName, 1400, optionSet);
+                else
+                {
+                    optionSet = optionSet1;
+                }
+
+                return optionSet[OptionText];
             }
-            else
+            catch(Exception ex)
             {
-                optionSet = optionSet1;
+                return ex.Message;
             }
+           
             
 
-            return optionSet[OptionText];
+            
         }
 
         public async Task<bool> DeleteFromTable(string tablename, string tableid = "", string filter = "", string filtervalu = "", string tableselecter = "")

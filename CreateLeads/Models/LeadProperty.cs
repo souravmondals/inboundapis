@@ -7,7 +7,7 @@ namespace CreateLeads
     public class LeadMsdProperty
     {
        // public string leadid { get; set; }
-        public int eqs_leadchannel { get; set; }     
+        public string eqs_leadchannel { get; set; }     
         public string firstname { get; set; }
         public string middlename { get; set; }
         public string lastname { get; set; }

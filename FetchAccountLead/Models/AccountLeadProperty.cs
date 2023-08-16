@@ -69,7 +69,7 @@ namespace FetchAccountLead
         public string isStaff { get; set; }
         public string relationToPrimaryHolder { get; set; }
         
-        public Preferences preferences { get; set; }
+      //  public Preferences preferences { get; set; }
 
     }
 
@@ -106,6 +106,8 @@ namespace FetchAccountLead
         public string productCode { get; set; }
         public string productCategory { get; set; }
         public string accountOpeningFlow { get; set; }
+        public string tenureinmonths { get; set; }
+        public string tenureindays { get; set; }
         public string sourceBranch { get; set; }
         public string initialDepositType { get; set; }
         public string fieldEmployeeCode { get; set; }

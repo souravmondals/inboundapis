@@ -307,6 +307,9 @@
 
             odatab.Add("eqs_sweepfacility", _accountLead.sweepFacility.ToString().ToLower());
 
+            odatab.Add("eqs_tenureinmonths", _accountLead.tenureInMonths);
+            odatab.Add("eqs_tenureindays", _accountLead.tenureInDays);
+
             string postDataParametr = JsonConvert.SerializeObject(odatab);
 
             odatab1.Add("eqs_rateofinterest", Convert.ToDouble(_accountLead.rateOfInterest.ToString()));

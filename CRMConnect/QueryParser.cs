@@ -15,6 +15,10 @@
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Rest.Azure.OData;
+    using System;
+    using System.Xml;
+    using Azure.Core;
+    using System.Reflection.PortableExecutable;
 
 
     public class QueryParser : IQueryParser
@@ -64,6 +68,34 @@
                     );
             List<JObject> results = await this.SendBatchRequestAsync(httpClient, httpcontent, this._log).ConfigureAwait(true);
             return results;
+        }
+
+        public async Task<string> HttpCBSApiCall(string Token, HttpMethod httpMethod, string parameterToPost = "")
+        {
+            HttpClient httpClient = new HttpClient();
+            string requestUri = this._keyVaultService.ReadSecret("CBSCreateAccount");
+
+            HttpRequestMessage requestMessage = new HttpRequestMessage(httpMethod, requestUri);
+            StringContent stringContent = new StringContent(parameterToPost);
+            stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;type=entry");
+            requestMessage.Content = stringContent;
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+
+            var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
+            string responJsonText = await response.Content.ReadAsStringAsync();
+            dynamic responsej = JsonConvert.DeserializeObject(responJsonText);
+            string xmlData = await PayloadDecryption(responsej.req_root.body.payload.ToString());
+            string xpath = "PIDBlock/payload";
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlData);
+            var nodes = xmlDoc.SelectSingleNode(xpath);
+            foreach (XmlNode childrenNode in nodes)
+            {
+                responJsonText = childrenNode.Value.ToString();
+            }
+            //HttpResponseMessage respon = await httpClient.PostAsync(requestUri, new StringContent(parameterToPost, System.Text.Encoding.UTF8, "application/json"));
+            //string responJsonText = await respon.Content.ReadAsStringAsync();
+            return responJsonText;
         }
 
 
@@ -313,6 +345,50 @@
         }
 
 
+        public async Task<string> getAccessToken()
+        {
+            string Token_Id;
+            string TokenId;
+            if (!this.GetMvalue<string>("wso2token", out Token_Id))
+            {
+                HttpClient httpClient = new HttpClient();
+                string requestUri = this._keyVaultService.ReadSecret("wso2AuthUrl");
+
+                string username = "fczCFBi5kj61hhqgLmkJFM6xx6ga";
+                string password = "fbBXASoCUv8EM7nAVmBZ26CIWVIa";
+                string encoded = System.Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(username + ":" + password));
+
+                List<KeyValuePair<string, string>> Data = new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                };
+
+                var content = new FormUrlEncodedContent(Data);
+                content.Headers.Clear();
+                content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                requestMessage.Headers.Add("Authorization", "Basic " + encoded);
+                requestMessage.Content = content;
+
+                var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
+                string responJsonText = await response.Content.ReadAsStringAsync();
+                dynamic responsej = JsonConvert.DeserializeObject(responJsonText);
+
+                TokenId = responsej.access_token.ToString();
+
+
+                this.SetMvalue<string>("wso2token", 3600, TokenId);
+            }
+            else
+            {
+                TokenId = Token_Id;
+            }
+
+
+            return TokenId;
+        }
+
+
         private HttpResponseMessage DeserializeToResponse(Stream stream, ILogger log)
         {
             try
@@ -428,6 +504,41 @@
         }
 
 
+        public async Task<string> getOptionSetTextToValue(string tableName, string fieldName, string OptionText)
+        {
+            try
+            {
+                Dictionary<string, string> optionSet, optionSet1;
+
+                if (!this.GetMvalue<Dictionary<string, string>>(tableName + "_" + fieldName, out optionSet1))
+                {
+                    string query_url = $"stringmaps()?$select=value,attributevalue&$filter=objecttypecode eq '{tableName}' and attributename eq '{fieldName}'";
+                    var responsdtails = await this.HttpApiCall(query_url, HttpMethod.Get, "");
+                    var Optiondata = await this.getDataFromResponce(responsdtails);
+                    optionSet = new Dictionary<string, string>();
+                    foreach (var item in Optiondata)
+                    {
+                        optionSet.Add(item["value"].ToString(), item["attributevalue"].ToString());
+                    }
+                    this.SetMvalue<Dictionary<string, string>>(tableName + "_" + fieldName, 1400, optionSet);
+                }
+                else
+                {
+                    optionSet = optionSet1;
+                }
+
+                return optionSet[OptionText];
+            }
+            catch(Exception ex)
+            {
+                return ex.Message;
+            }
+           
+            
+
+            
+        }
+
         public async Task<bool> DeleteFromTable(string tablename, string tableid = "", string filter = "", string filtervalu = "", string tableselecter = "")
         {
             if (!string.IsNullOrEmpty(tableid))
@@ -503,6 +614,26 @@
                 }
             }
             return new JArray();
+        }
+
+        public bool GetMvalue<T>(string keyname, out T? Outvalue)
+        {
+            if (!this._cache.TryGetValue<T>(keyname, out Outvalue))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public void SetMvalue<T>(string keyname, double timevalid, T inputvalue)
+        {
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(DateTimeOffset.Now.AddMinutes(timevalid));
+
+            this._cache.Set<T>(keyname, inputvalue, cacheEntryOptions);
         }
 
 

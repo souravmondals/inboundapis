@@ -121,10 +121,9 @@ namespace ManageCase
                 {
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID) && !string.IsNullOrEmpty(channel) && channel != "")
                     {
-                        int ValidationError = 0;
+                        int ValidationError = 0;                       
 
-                        
-                        
+
                         if (CaseData.UCIC == null || string.IsNullOrEmpty(CaseData.UCIC.ToString()) || CaseData.UCIC.ToString() == "")
                         {
                             ValidationError = 1;                                
@@ -322,6 +321,7 @@ namespace ManageCase
                 LeadMsdProperty case_Property = new LeadMsdProperty();
                 CaseProperty csProperty = new CaseProperty();
                 Dictionary<string, string> odatab = new Dictionary<string, string>();
+                Dictionary<string, double> odatab1 = new Dictionary<string, double>();
                 string postDataParametr, postDataParametr1;
                 List<JObject> case_details = new List<JObject>();
 
@@ -360,7 +360,7 @@ namespace ManageCase
                             mandatoryFields.Where(x => (x.InputField == keyName)).Single().CRMValue = ValName;
                         }
                     }
-                    
+                    var value = await this._queryParser.getOptionSetTextToValue("incident", "statuscode", "Researching");
                     foreach (var field in mandatoryFields)
                     {
                         if (field.CRMValue != "" || !string.IsNullOrEmpty(field.CRMValue))
@@ -372,7 +372,27 @@ namespace ManageCase
                             }
                             else
                             {
-                                odatab.Add(field.CRMField, field.CRMValue);
+                                if (field.CRMType== "615290001")
+                                {
+                                    odatab.Add(field.CRMField, await this._queryParser.getOptionSetTextToValue("incident", field.CRMField, field.CRMValue));
+                                }
+                                else if (field.CRMType == "615290007")
+                                {
+                                    odatab1.Add(field.CRMField, Convert.ToDouble(field.CRMValue.ToString()));
+                                }
+                                else if (field.CRMType == "615290006")
+                                {
+                                    string dd, mm, yyyy;
+                                    dd = field.CRMValue.Substring(0,2);
+                                    mm = field.CRMValue.Substring(2,2);
+                                    yyyy = field.CRMValue.Substring(4,4);
+                                    odatab.Add(field.CRMField, yyyy + "-" + mm + "-" + dd );
+                                }
+                                else
+                                {
+                                    odatab.Add(field.CRMField, field.CRMValue);
+                                }
+                               
                             }
                             
                         }
@@ -429,6 +449,8 @@ namespace ManageCase
                 postDataParametr = JsonConvert.SerializeObject(case_Property);
                 postDataParametr1 = JsonConvert.SerializeObject(odatab);
 
+                postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+                postDataParametr1 = JsonConvert.SerializeObject(odatab1);
                 postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
                 case_details = await this._queryParser.HttpApiCall("incidents?$select=ticketnumber", HttpMethod.Post, postDataParametr);
@@ -525,7 +547,7 @@ namespace ManageCase
                         }
 
                         var caseresponsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                        var CaseList = await this._commonFunc.getDataFromResponce(caseresponsdtails);
+                        var CaseList = await this._queryParser.getDataFromResponce(caseresponsdtails);
                         foreach (var caseDetails in CaseList)
                         {
                             CaseDetails case_details = new CaseDetails();

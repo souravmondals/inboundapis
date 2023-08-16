@@ -55,7 +55,7 @@ namespace CreateLeads
         }
 
         private readonly IKeyVaultService _keyVaultService;
-        Dictionary<string, int> Channel = new Dictionary<string, int>();
+       
         Dictionary<string, int> LeadStatus = new Dictionary<string, int>();
         private ICommonFunction _commonFunc;
 
@@ -67,13 +67,7 @@ namespace CreateLeads
             this._queryParser = queryParser;
             this._commonFunc = commonFunction;
 
-            this.Channel.Add("ESFB Website", 6);
-            this.Channel.Add("ChatBot", 8);
-            this.Channel.Add("Email", 3);
-            this.Channel.Add("Mobile Banking", 4);
-            this.Channel.Add("Internet Banking", 5);
-           // this.Channel.Add("Selfie", 15);
-
+           
             this.LeadStatus.Add("Open", 0);
             this.LeadStatus.Add("Onboarded", 1);
             this.LeadStatus.Add("Not Onboarded", 2);
@@ -87,7 +81,8 @@ namespace CreateLeads
             LeadReturnParam ldRtPrm = new LeadReturnParam();
             try
             {
-                string channel = LeadData.ChannelType;
+                
+                string channel = LeadData.ChannelType; 
 
                 if (!string.IsNullOrEmpty(this.Transaction_ID) && !string.IsNullOrEmpty(this.Channel_ID) && !string.IsNullOrEmpty(this.appkey) && this.appkey != "" && checkappkey(this.appkey))
                 {
@@ -252,7 +247,7 @@ namespace CreateLeads
             string postDataParametr, postDataParametr1;
             List<JObject> Lead_details = new List<JObject>();
 
-            lead_Property.leadsourcecode = this.Channel[LeadData.ChannelType.ToString()];
+            lead_Property.eqs_leadchannel = await this._queryParser.getOptionSetTextToValue("lead", "eqs_leadchannel", LeadData.ChannelType.ToString());
             try
             {
                 if (string.Equals(LeadData.ChannelType.ToString(), "ESFB Website"))

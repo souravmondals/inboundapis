@@ -21,7 +21,7 @@ namespace ManageCase
         public Task<string> getSubCategoryId(string CustomerCode, string CategoryId);
         public Task<string> getSubCategoryName(string SubCategoryId);
         public Task<bool> checkDuplicate(string UCIC, string Account, string Classification, string Category, string SubCategory);
-        public Task<JArray> getDataFromResponce(List<JObject> RsponsData);
+   
         public Task<string> MeargeJsonString(string json1, string json2);
         public Task<List<MandatoryField>> getMandatoryFields(string subCategoryID);
         public Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue);

@@ -244,6 +244,8 @@
             _accountLead.accountOpeningFlow = this.KitOption[LeadData[0]["eqs_instakitoptioncode"].ToString()];
             _accountLead.initialDepositType = this.DepositMode[LeadData[0]["eqs_initialdepositmodecode"].ToString()];
             _accountLead.fdAccOpeningDate = LeadData[0]["eqs_fdvaluedate"].ToString();
+            _accountLead.tenureinmonths = LeadData[0]["eqs_tenureinmonths"].ToString();
+            _accountLead.tenureindays = LeadData[0]["eqs_tenureindays"].ToString();
             _accountLead.fieldEmployeeCode = LeadData[0]["eqs_sourcebyemployeecode"].ToString();
             _accountLead.applicationDate = LeadData[0]["eqs_applicationdate"].ToString();
             _accountLead.fundsTobeDebitedFrom = LeadData[0]["eqs_fundstobedebitedfrom"].ToString();
@@ -297,7 +299,7 @@
                     _accountApplicant.relationToPrimaryHolder = await this._commonFunc.getRelationshipCode(applicant["_eqs_relationship_value"].ToString());
                 }
 
-
+                /*
                 var applicentPreferences = await this._commonFunc.getPreferences(applicant["eqs_accountapplicantid"].ToString());
 
                 if (applicentPreferences.Count > 0)
@@ -326,6 +328,7 @@
 
                     _accountApplicant.preferences = preferences;
                 }
+                */
 
                 _accountApplicants.Add(_accountApplicant);
 

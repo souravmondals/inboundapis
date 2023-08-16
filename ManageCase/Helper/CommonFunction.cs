@@ -116,42 +116,7 @@ namespace ManageCase
                 return resourceID;
         }
 
-        public async Task<JArray> getDataFromResponce(List<JObject> RsponsData)
-        {
-            string resourceID = "";
-            foreach (JObject item in RsponsData)
-            {
-                if (Enum.TryParse(item["responsecode"].ToString(), out HttpStatusCode responseStatus) && responseStatus == HttpStatusCode.OK)
-                {
-                    dynamic responseValue = item["responsebody"];
-                    JArray resArray = new JArray();
-                    string urlMetaData = string.Empty;
-                    if (responseValue?.value != null)
-                    {
-                        resArray = (JArray)responseValue?.value;
-                        urlMetaData = responseValue["@odata.context"];
-                    }
-                    else if (responseValue is JArray)
-                    {
-                        resArray = responseValue;
-
-                    }
-                    else
-                    {
-                        resArray.Add(responseValue);
-                        urlMetaData = responseValue["@odata.context"];
-                    }
-
-                    if (resArray != null && resArray.Any())
-                    {
-
-                        return resArray;
-
-                    }
-                }
-            }
-            return new JArray();
-        }
+       
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
@@ -251,7 +216,7 @@ namespace ManageCase
         {
             string query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value,eqs_casepayload,description,prioritycode,_eqs_casechannel_value,_eqs_casesource_value,_eqs_account_value,_customerid_value&$filter=ticketnumber eq '{CaseID}'";
             var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var inputFields = await this.getDataFromResponce(responsdtails);
+            var inputFields = await this._queryParser.getDataFromResponce(responsdtails);
             return inputFields;
         }
 
@@ -260,7 +225,7 @@ namespace ManageCase
             List<MandatoryField> mandatoryFields= new List<MandatoryField>();
             string query_url = $"eqs_keyvaluerepositories()?$select=eqs_key,eqs_value,eqs_datatype,eqs_referencefield,eqs_entityname,eqs_entityid&$filter=_eqs_subcategory_value eq '{subCategoryID}'";
             var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var inputFields = await this.getDataFromResponce(responsdtails);
+            var inputFields = await this._queryParser.getDataFromResponce(responsdtails);
 
             foreach (var field in inputFields)
             {

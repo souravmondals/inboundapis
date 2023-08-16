@@ -3,11 +3,11 @@ using System.Text.Json.Serialization;
 
 namespace AccountLead
 {
-       
+
     public class LeadParam
     {
         public string leadid { get; set; }
-        public string Lead_id { get; set; }      
+        public string Lead_id { get; set; }
         public string eqs_ucic { get; set; }
         public string productCategory { get; set; }
         public string productid { get; set; }
@@ -17,16 +17,33 @@ namespace AccountLead
         public string LeadAccount_id { get; set; }
 
     }
-    
+
     public class AccountLeadReturn
     {
         public string AccountLeadId { get; set; }
         public List<string> Applicants { get; set; }
-        public string ReturnCode { get; set; } 
+        public string ReturnCode { get; set; }
         public string Message { get; set; }
         public string TransactionID { get; set; }
         public string ExecutionTime { get; set; }
 
+    }
+
+    public class AccountByLeadReturn
+    {
+        public string AccountNo { get; set; }
+        public string ReturnCode { get; set; }
+        public string Message { get; set; }
+        public string TransactionID { get; set; }
+        public string ExecutionTime { get; set; }
+
+    }
+
+    public class ApplicentRelation
+    {
+        public string customerId { get; set; }
+        public string customerName { get; set; }
+        public string relation { get; set; }
     }
 
     public class AccountApplicant

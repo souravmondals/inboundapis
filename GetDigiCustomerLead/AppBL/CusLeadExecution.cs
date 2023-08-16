@@ -86,7 +86,7 @@
         public async Task<CustomerLeadReturn> ValidateInput(dynamic RequestData)
         {
             CustomerLeadReturn ldRtPrm = new CustomerLeadReturn();
-            RequestData = await this.getRequestData(RequestData, "GetDigiCustomerLead");
+            RequestData = await this.getRequestData(RequestData, "GetDigiCustomerLeadNSDL");
             try
             { 
 
@@ -158,10 +158,11 @@
                     else
                     {
                         AccountApplicantCorp accountApplicantCorp = new AccountApplicantCorp();
+                        accountApplicantCorp.title = await this._commonFunc.getTitle(Customerdtl[0]["_eqs_titleid_value"].ToString());
                         accountApplicantCorp.Companynamepart1 = Customerdtl[0]["eqs_companynamepart1"].ToString();
                         accountApplicantCorp.Companynamepart2 = Customerdtl[0]["eqs_companynamepart2"].ToString();
                         accountApplicantCorp.Companynamepart3 = Customerdtl[0]["eqs_companynamepart3"].ToString();
-                        accountApplicantCorp.pan = Customerdtl[0]["eqs_internalpan"].ToString();
+                        accountApplicantCorp.pan = Customerdtl[0]["eqs_tannumber"].ToString();
 
                         accountLeadReturn.AccountApplicants = accountApplicantCorp;
                     }
@@ -209,7 +210,7 @@
             {
                 this._logger.LogInformation("getCustomerLead", "Input parameters are incorrect");
                 accountLeadReturn.ReturnCode = "CRM-ERROR-102";
-                accountLeadReturn.Message = OutputMSG.Incorrect_Input;
+                accountLeadReturn.Message = OutputMSG.Resource_n_Found;
             }
 
             return accountLeadReturn;

@@ -16,7 +16,9 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Rest.Azure.OData;
     using System;
+    using System.Xml;
     using Azure.Core;
+    using System.Reflection.PortableExecutable;
 
 
     public class QueryParser : IQueryParser
@@ -68,7 +70,7 @@
             return results;
         }
 
-        public async Task<string> HttpCBSApiCall(string odataQuery, HttpMethod httpMethod, string parameterToPost = "")
+        public async Task<string> HttpCBSApiCall(string Token, HttpMethod httpMethod, string parameterToPost = "")
         {
             HttpClient httpClient = new HttpClient();
             string requestUri = this._keyVaultService.ReadSecret("CBSCreateAccount");
@@ -77,9 +79,20 @@
             StringContent stringContent = new StringContent(parameterToPost);
             stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;type=entry");
             requestMessage.Content = stringContent;
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+
             var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
             string responJsonText = await response.Content.ReadAsStringAsync();
-
+            dynamic responsej = JsonConvert.DeserializeObject(responJsonText);
+            string xmlData = await PayloadDecryption(responsej.req_root.body.payload.ToString());
+            string xpath = "PIDBlock/payload";
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlData);
+            var nodes = xmlDoc.SelectSingleNode(xpath);
+            foreach (XmlNode childrenNode in nodes)
+            {
+                responJsonText = childrenNode.Value.ToString();
+            }
             //HttpResponseMessage respon = await httpClient.PostAsync(requestUri, new StringContent(parameterToPost, System.Text.Encoding.UTF8, "application/json"));
             //string responJsonText = await respon.Content.ReadAsStringAsync();
             return responJsonText;
@@ -329,6 +342,50 @@
                 _errorLogger.LogError("HandleResponses", $"Error from HandleResponses: {ex.Message}");
                 throw;
             }
+        }
+
+
+        public async Task<string> getAccessToken()
+        {
+            string Token_Id;
+            string TokenId;
+            if (!this.GetMvalue<string>("wso2token", out Token_Id))
+            {
+                HttpClient httpClient = new HttpClient();
+                string requestUri = this._keyVaultService.ReadSecret("wso2AuthUrl");
+
+                string username = "fczCFBi5kj61hhqgLmkJFM6xx6ga";
+                string password = "fbBXASoCUv8EM7nAVmBZ26CIWVIa";
+                string encoded = System.Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(username + ":" + password));
+
+                List<KeyValuePair<string, string>> Data = new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                };
+
+                var content = new FormUrlEncodedContent(Data);
+                content.Headers.Clear();
+                content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                requestMessage.Headers.Add("Authorization", "Basic " + encoded);
+                requestMessage.Content = content;
+
+                var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
+                string responJsonText = await response.Content.ReadAsStringAsync();
+                dynamic responsej = JsonConvert.DeserializeObject(responJsonText);
+
+                TokenId = responsej.access_token.ToString();
+
+
+                this.SetMvalue<string>("wso2token", 3600, TokenId);
+            }
+            else
+            {
+                TokenId = Token_Id;
+            }
+
+
+            return TokenId;
         }
 
 

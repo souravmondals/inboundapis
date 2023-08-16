@@ -1,31 +1,35 @@
 ﻿namespace AccountLead
 {
 
-using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Identity.Client;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json.Linq;
-using System.Net;
-using System.Diagnostics.Metrics;
-using CRMConnect;
-
+    using Microsoft.Extensions.Caching.Memory;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.Identity.Client;
+    using Microsoft.AspNetCore.Http;
+    using Newtonsoft.Json.Linq;
+    using System.Net;
+    using System.Diagnostics.Metrics;
+    using CRMConnect;
+    using System.Text;
+    using System.Net.Http;
+    using Newtonsoft.Json;
+    using Azure.Core;
 
     public class CommonFunction : ICommonFunction
     {
         public IQueryParser _queryParser;
         private ILoggers _logger;
         public IMemoryCache _cache;
+      
         public CommonFunction(IMemoryCache cache, ILoggers logger, IQueryParser queryParser)
         {
             this._queryParser = queryParser;
             this._logger = logger;
-            this._cache = cache;
+            this._cache = cache;         
         }
         public async Task<string> AcquireNewTokenAsync()
         {
@@ -156,9 +160,20 @@ using CRMConnect;
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
-            string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
-            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+            string Table_Id;
+            string TableId;
+            if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+            {
+                string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
+                var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+
+                this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+            }
+            else
+            {
+                TableId = Table_Id;
+            }
             return TableId;
         }
 
@@ -206,6 +221,7 @@ using CRMConnect;
 
         /*--------------------------------*/
 
+       
 
         public async Task<JArray> getAccountNominee(string ddeaccountid)
         {

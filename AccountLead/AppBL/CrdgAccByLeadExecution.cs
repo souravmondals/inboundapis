@@ -17,6 +17,7 @@
     using System.Security.Cryptography.Xml;
     using Azure;
     using Microsoft.Identity.Client;
+    using Microsoft.Azure.KeyVault.Models;
 
     public class CrdgAccByLeadExecution : ICrdgAccByLeadExecution
     {
@@ -138,14 +139,15 @@
             try
             {               
 
-                string RequestTemplate = "{\"recordId\":\"c15608b5-ab61-492b-99cb-ae032b5868fd\",\"apiLink\":\"https://wsuat.equitasbank.com/accountcreate/v1.0.0/create\",\"JsonInput\":{\"createAccountRequest\":{\"msgHdr\":{\"channelID\":\"FOS\",\"transactionType\":\"create\",\"transactionSubType\":\"account\",\"conversationID\":\"\",\"externalReferenceId\":\"\",\"isAsync\":false,\"authInfo\":{\"branchID\":\"1002\",\"userID\":\"IBUSER\",\"token\":\"1002\"}},\"msgBdy\":{\"accountNo\":\"\",\"accountNominee\":{\"city\":\"CHENNAI\",\"country\":\"IN\",\"dateOfBirth\":\"19880613\",\"isNomineeDisplay\":\"true\",\"isNomineeBankCustomer\":\"false\",\"nominee\":{\"phone\":{\"country\":\"91\",\"area\":\"45\",\"number\":\"\",\"extn\":\"3245\"},\"address\":{\"line1\":\"Adrs1\",\"line2\":\"Adrs2\",\"line3\":\"Adrs3\"},\"emailId\":\"bhr@gml.com\",\"name\":\"BHR\"},\"guardian\":{\"phone\":{\"area\":\"\",\"number\":\"\"},\"address\":{\"line1\":\"\",\"line2\":\"\",\"line3\":\"\",\"line4\":\"\",\"city\":\"\",\"area\":\"\",\"state\":\"\",\"country\":\"\",\"zip\":\"\"},\"emailId\":\"\",\"name\":\"\"},\"refGuardPhnCountry\":\"\",\"refGuardPhnExtn\":\"\",\"relAcctHolder\":\"15\",\"relationGuardian\":\"\",\"shareAmount\":100,\"sharePercentage\":100,\"state\":\"TAMIL NADU\",\"zip\":\"600040\",\"customerId\":\"\"},\"branchCode\":9999,\"customerAndRelation\":[{\"customerId\":\"13973781\",\"customerName\":\"Mayank Account Creation Test\",\"relation\":\"SOW\"}],\"customerID\":\"13973781\",\"isJointHolder\":\"true\",\"isRestrictAcct\":false,\"transactionType\":\"A\",\"minorAcctStatus\":false,\"productCode\":\"1025\",\"tdaccountPayinRequest\":{\"depositAmount\":0,\"fromAccountNo\":\"\",\"termDays\":0,\"termMonths\":0},\"rdaccountPayinRequest\":{\"installmentAmount\":0,\"payoutAccountNo\":\"\",\"termMonths\":0}}}}}";
+                string Token = await this._queryParser.getAccessToken();
+                string RequestTemplate = "{\"createAccountRequest\":{\"msgHdr\":{\"channelID\":\"FOS\",\"transactionType\":\"create\",\"transactionSubType\":\"account\",\"conversationID\":\"FOS2023071305441888603509\",\"externalReferenceId\":\"FOS2023071305441888603509\",\"isAsync\":false,\"authInfo\":{\"branchID\":\"1002\",\"userID\":\"IBUSER\",\"token\":\"1002\"}},\"msgBdy\":{\"accountNo\":\"\",\"accountNominee\":{\"city\":\"CHENNAI\",\"country\":\"IN\",\"dateOfBirth\":\"19880514\",\"isNomineeDisplay\":\"false\",\"isNomineeBankCustomer\":\"false\",\"nominee\":{\"phone\":{\"country\":\"9834\",\"area\":\"91\",\"number\":\"7678982345\",\"extn\":\"2342\"},\"address\":{\"line1\":\"Adrs1\",\"line2\":\"Adrs2\",\"line3\":\"Adrs3\"},\"emailId\":\"bhr@gml.com\",\"name\":\"BHR\"},\"guardian\":{\"phone\":{\"area\":\"293\",\"number\":\"\"},\"address\":{\"line1\":\"Gadds1\",\"line2\":\"Gadds2\",\"line3\":\"Gadds3\",\"line4\":\"string\",\"city\":\"CHENNAI\",\"area\":\"string\",\"state\":\"TAMIL NADU\",\"country\":\"IN\",\"zip\":\"600040\"},\"emailId\":\"jnas@s1.com\",\"name\":\"Grdnbhr\"},\"refGuardPhnCountry\":\"424\",\"refGuardPhnExtn\":\"334534\",\"relAcctHolder\":\"15\",\"relationGuardian\":\"\",\"shareAmount\":100,\"sharePercentage\":100,\"state\":\"TAMIL NADU\",\"zip\":\"600041\",\"customerId\":\"\"},\"branchCode\":9999,\"customerAndRelation\":[{\"customerId\":\"13972557\",\"customerName\":\"MayankAccountCreationTest\",\"relation\":\"JAF\"},{\"customerId\":\"13972559\",\"customerName\":\"SendoryApplicant\",\"relation\":\"NOM\"}],\"customerID\":\"13972557\",\"isJointHolder\":\"true\",\"isRestrictAcct\":false,\"transactionType\":\"A\",\"minorAcctStatus\":false,\"productCode\":\"1025\",\"tdaccountPayinRequest\":{\"depositAmount\":0,\"fromAccountNo\":\"\",\"termDays\":0,\"termMonths\":0},\"rdaccountPayinRequest\":{\"installmentAmount\":0,\"payoutAccountNo\":\"\",\"termMonths\":0}}}}";
                 dynamic Request_Template = JsonConvert.DeserializeObject(RequestTemplate);
-                dynamic msgHdr = Request_Template.JsonInput.createAccountRequest.msgHdr;
-                dynamic msgBdy = Request_Template.JsonInput.createAccountRequest.msgBdy;
+                dynamic msgHdr = Request_Template.createAccountRequest.msgHdr;
+                dynamic msgBdy = Request_Template.createAccountRequest.msgBdy;
                 Guid ReferenceId = Guid.NewGuid();
                 msgHdr.conversationID = ReferenceId.ToString().Replace("-","");
                 msgHdr.externalReferenceId = ReferenceId.ToString().Replace("-", "");
-                Request_Template.JsonInput.createAccountRequest.msgHdr = msgHdr;
+                Request_Template.createAccountRequest.msgHdr = msgHdr;
 
                 Dictionary<string, string> odatab = new Dictionary<string, string>();
 
@@ -233,15 +235,23 @@
                     msgBdy.isJointHolder = (AccountDDE[0]["eqs_accountownershipcode"].ToString() == "615290001") ? "true" : "false";
                     msgBdy.productCode = await this._commonFunc.getProductCode(AccountDDE[0]["_eqs_productid_value"].ToString());
 
-                    Request_Template.JsonInput.createAccountRequest.msgBdy = msgBdy;
+                    Request_Template.createAccountRequest.msgBdy = msgBdy;
 
-                    string postDataParametr = JsonConvert.SerializeObject(Request_Template);
-                    string Lead_details = await this._queryParser.HttpCBSApiCall("", HttpMethod.Post, postDataParametr);
+                    string postDataParametr = await EncriptRespons(JsonConvert.SerializeObject(Request_Template));
+                    string Lead_details = await this._queryParser.HttpCBSApiCall(Token, HttpMethod.Post, postDataParametr);
                     dynamic responsD = JsonConvert.DeserializeObject(Lead_details);
                     
-                    accountLeadReturn.AccountNo = responsD.createAccountResponse.msgBdy.accountNo.ToString();
-                    accountLeadReturn.Message = OutputMSG.Case_Success;
-                    accountLeadReturn.ReturnCode = "CRM-SUCCESS";
+                    if(responsD.msgHdr != null && responsD.msgHdr.result.ToString() == "ERROR")
+                    {
+                        accountLeadReturn.Message = responsD.msgHdr.error[0].reason.ToString();
+                        accountLeadReturn.ReturnCode = "CRM-ERROR-102";
+                    }
+                    else
+                    {
+                        accountLeadReturn.AccountNo = responsD.createAccountResponse.msgBdy.accountNo.ToString();
+                        accountLeadReturn.Message = OutputMSG.Case_Success;
+                        accountLeadReturn.ReturnCode = "CRM-SUCCESS";
+                    }                    
 
                 }
                 else

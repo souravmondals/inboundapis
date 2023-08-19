@@ -150,15 +150,20 @@ using CRMConnect;
             return await this.getIDfromMSDTable("eqs_docsubcategories", "eqs_docsubcategoryid", "eqs_docsubcategorycode", Subcat_code);
         }
 
-        public async Task<string> getProductId(string Productcode)
+        public async Task<string> getApplicentID(string applicentcode)
         {
-            return await this.getIDfromMSDTable("eqs_products", "eqs_productid", "eqs_productcode", Productcode);
+            return await this.getIDfromMSDTable("eqs_accountapplicants", "eqs_accountapplicantid", "eqs_applicantid", applicentcode);
         }
         
-        public async Task<string> getProductCategoryId(string Productcatcode)
+        public async Task<string> getDebitCardID(string DebitCardcode)
         {
-            return await this.getIDfromMSDTable("eqs_productcategories", "eqs_productcategoryid", "eqs_productcategorycode", Productcatcode);
-        }       
+            return await this.getIDfromMSDTable("eqs_debitcards", "eqs_debitcardid", "eqs_cardid", DebitCardcode);
+        }
+
+        public async Task<string> getNomineeID(string ddeID)
+        {
+            return await this.getIDfromMSDTable("eqs_ddeaccountnominees", "eqs_ddeaccountnomineeid", "_eqs_leadaccountddeid_value", ddeID);
+        }
 
         public async Task<string> getDocTypeId(string Type_code)
         {
@@ -183,6 +188,11 @@ using CRMConnect;
         public async Task<string> getCuntryId(string cuntry_code)
         {
             return await this.getIDfromMSDTable("eqs_countries", "eqs_countryid", "eqs_countrycode", cuntry_code);
+        }
+        
+        public async Task<string> getPreferenceID(string PrederenceId, string DDEID)
+        {            
+            return await this.getIDfromMSDTable("eqs_customerpreferences", "eqs_customerpreferenceid", $"_eqs_leadaccountdde_value eq '{DDEID}' and eqs_preferenceid", PrederenceId);
         }
 
 

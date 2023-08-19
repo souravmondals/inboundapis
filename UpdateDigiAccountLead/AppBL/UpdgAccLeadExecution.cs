@@ -67,16 +67,10 @@
         private LeadDetails _leadParam;
         private List<AccountApplicant> _accountApplicants;
 
-        Dictionary<string, string> AccountType = new Dictionary<string, string>();
-        Dictionary<string, string> KitOption = new Dictionary<string, string>();
-        Dictionary<string, string> DepositMode = new Dictionary<string, string>();
+       
+        Dictionary<string, string> KitOption = new Dictionary<string, string>();     
         Dictionary<string, string> Operations = new Dictionary<string, string>();
-        Dictionary<string, string> LOB = new Dictionary<string, string>();
-        Dictionary<string, string> AOBO = new Dictionary<string, string>();
         Dictionary<string, string> purpose = new Dictionary<string, string>();
-        Dictionary<string, string> FundSource = new Dictionary<string, string>();
-        Dictionary<string, string> currency = new Dictionary<string, string>();
-        Dictionary<string, string> ChequeLeaves = new Dictionary<string, string>();
         Dictionary<string, string> DocStatus = new Dictionary<string, string>();
 
         private ICommonFunction _commonFunc;
@@ -94,44 +88,22 @@
             _accountLead = new LeadAccount();
             _accountApplicants = new List<AccountApplicant>();
 
-            AccountType.Add("Single", "615290000");
-            AccountType.Add("Joint", "615290001");
+          
 
             KitOption.Add("Non Insta Kit", "615290000");
             KitOption.Add("Insta Kit", "615290001");
             KitOption.Add("Instant A/C No kit", "615290002");
 
-            DepositMode.Add("Cheque", "789030000");
-            DepositMode.Add("Cash", "789030001");
-            DepositMode.Add("Remittance (NRI)", "789030002");
-            DepositMode.Add("Cheque from Existing NRI Account", "789030003");
-            DepositMode.Add("IP waiver", "789030004");
-            DepositMode.Add("Fund Transfer", "789030005");
+           
 
             Operations.Add("Jointly", "615290004");
             Operations.Add("Either or survivor", "615290005");
             Operations.Add("Anyone", "615290006");
             Operations.Add("Former or Survivor", "615290007");
 
-            LOB.Add("Not Applicable", "615290000");
-            LOB.Add("Equitas LOB", "615290001");
-            LOB.Add("Business Banking", "615290002");
-            LOB.Add("Emerging Enterprise Banking", "615290003");
-            LOB.Add("Outreach Banking", "615290004");
-            LOB.Add("Liability Sales", "615290005");
-            LOB.Add("Alternate Channels", "615290006");
-            LOB.Add("Treasury", "615290007");
-            LOB.Add("Centralised Processing Center Assets", "615290008");
-            LOB.Add("Branch Banking", "615290009");
-            LOB.Add("SME Banking", "615290010");
-            LOB.Add("Centralised Processing Center Liabilities", "615290011");
-            LOB.Add("Corporate Banking", "615290012");
-            LOB.Add("Head Office", "615290013");
-            LOB.Add("AgriMicroEnterprise and Inclusive Banking", "615290014");
+           
 
-            AOBO.Add("Not Applicable", "789030000");
-            AOBO.Add("MSE", "789030001");
-            AOBO.Add("CPB", "789030002");
+          
 
             purpose.Add("Saving","789030000");
             purpose.Add("Repayment Of Loan","789030001");
@@ -145,18 +117,8 @@
             purpose.Add("Buying Home Needs", "789030009");
             purpose.Add("Purchase Of Gold", "789030010");
 
-            FundSource.Add("Salary", "789030000");
-            FundSource.Add("Savings", "789030001");
-            FundSource.Add("Parents", "789030002");
-            FundSource.Add("ental / Dividends", "789030003");
-            FundSource.Add("Others", "789030004");
-
-            currency.Add("INR", "615290000");
-            currency.Add("USD", "615290001");
-
-            ChequeLeaves.Add("10", "615290000");
-            ChequeLeaves.Add("25", "615290001");
-            ChequeLeaves.Add("50", "615290002");
+         
+           
 
             DocStatus.Add("Submitted", "615290003");
             DocStatus.Add("Approved", "615290000");
@@ -223,17 +185,25 @@
             var _leadDetails  = await this._commonFunc.getLeadAccountDetails(RequestData.LeadAccountId.ToString());
             if (_leadDetails.Count>0)
             {
-                if(await SetLeadAccountDDE(_leadDetails, RequestData))
+                List<string> Preferences;
+                
+                if (await SetLeadAccountDDE(_leadDetails, RequestData))
                 {
+                    
                     if (RequestData.documents.Count > 0)
                     {
                         await SetDocumentDDE(RequestData.documents);
                     }
 
-                    if (RequestData.Nominee.Count > 0)
+                    if (RequestData.Preferences.Count > 0)
                     {
-                        await SetNomineeDDE(RequestData.Nominee);
+                        Preferences = await SetPreferencesDDE(RequestData.Preferences);
                     }
+                   
+
+                    
+                    await SetNomineeDDE(RequestData.Nominee);
+                    
 
                     accountLeadReturn.ReturnCode = "CRM-SUCCESS";
                     accountLeadReturn.Message = OutputMSG.Case_Success;
@@ -272,34 +242,15 @@
                 odatab.Add("eqs_leadaccountid@odata.bind", $"eqs_leadaccounts({LeadAccount[0]["eqs_leadaccountid"].ToString()})");
                 this.LeadAccountid = LeadAccount[0]["eqs_leadaccountid"].ToString();
 
-                if (!string.IsNullOrEmpty(ddeData.productCategory.ToString()))
-                {
-                    string catId = await this._commonFunc.getProductCategoryId(ddeData.productCategory.ToString());
-                    odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({catId})");
-                }
-                else
-                {
-                    odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({LeadAccount[0]["_eqs_typeofaccountid_value"].ToString()})");
-                }
-
-                if (!string.IsNullOrEmpty(ddeData.productCode.ToString()))
-                {
-                    string proId = await this._commonFunc.getProductId(ddeData.productCode.ToString());
-                    odatab.Add("eqs_productid@odata.bind", $"eqs_productcategories({proId})");
-                }
-                else
-                {
-                    odatab.Add("eqs_productid@odata.bind", $"eqs_products({LeadAccount[0]["_eqs_productid_value"].ToString()})");
-                }
-
                 
-
+                odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({LeadAccount[0]["_eqs_typeofaccountid_value"].ToString()})");                            
+                odatab.Add("eqs_productid@odata.bind", $"eqs_products({LeadAccount[0]["_eqs_productid_value"].ToString()})");
                 odatab.Add("eqs_ddeoperatorname", "Final");
 
                 odatab.Add("eqs_isnomineedisplay", (Convert.ToBoolean(ddeData.IsNomineeDisplay)) ? "789030001" : "789030000");
                 odatab.Add("eqs_isnomineebankcustomer", (Convert.ToBoolean(ddeData.IsNomineeBankCustomer)) ? "789030001" : "789030000");
-                odatab.Add("eqs_sweepfacility", (Convert.ToBoolean(ddeData.SweepFacility)) ? "true" : "false");
-                odatab.Add("eqs_producteligibilityflag", (Convert.ToBoolean(ddeData.ProductEligibilityFlag)) ? "true" : "false");
+                //odatab.Add("eqs_sweepfacility", (Convert.ToBoolean(ddeData.SweepFacility)) ? "true" : "false");
+                //odatab.Add("eqs_producteligibilityflag", (Convert.ToBoolean(ddeData.ProductEligibilityFlag)) ? "true" : "false");
 
                 odatab.Add("eqs_lgcode", ddeData.LGCode.ToString());
                 odatab.Add("eqs_lccode", ddeData.LCCode.ToString());
@@ -309,23 +260,26 @@
                 odatab.Add("eqs_purposeofopeningaccountcode", this.purpose[ddeData.OpeningAccountPurpose.ToString()]);
 
                 odatab.Add("eqs_instakitcode", this.KitOption[ddeData.InstaKit.ToString()]);
-                odatab.Add("eqs_accountownershipcode", this.AccountType[ddeData.accountType.ToString()]);
-                odatab.Add("eqs_initialdepositmodecode", this.DepositMode[ddeData.initialDepositType.ToString()]);
-                odatab.Add("eqs_accounttitle", ddeData.AccountTitle.ToString());
                 odatab.Add("eqs_modeofoperationcode", this.Operations[ddeData.ModeofOperation.ToString()]);
-                odatab.Add("eqs_lobtypecode", this.LOB[ddeData.LOB.ToString()]);
+
+
+                //odatab.Add("eqs_accountownershipcode", this.AccountType[ddeData.accountType.ToString()]);
+                //odatab.Add("eqs_initialdepositmodecode", this.DepositMode[ddeData.initialDepositType.ToString()]);
+                //odatab.Add("eqs_accounttitle", ddeData.AccountTitle.ToString());
+
+                odatab.Add("eqs_lobtypecode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_lobtypecode", ddeData.LOB.ToString()) );
                 odatab.Add("eqs_predefinedaccountnumber", ddeData.PredefinedAcNumber.ToString());
                 odatab1.Add("eqs_depositamount", Convert.ToDouble(ddeData.DepositAmount.ToString()));
+                odatab.Add("eqs_sourceoffundcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_sourceoffundcode", ddeData.SourceofFund.ToString()) );
+                odatab.Add("eqs_currencyofdepositcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_currencyofdepositcode", ddeData.Currency.ToString()) );
+                odatab.Add("eqs_dispatchmodecode", (ddeData.IsNomineeBankCustomer.ToString() == "Dispatch to Customer") ? "615290000" : "615290001");
 
-                odatab.Add("eqs_sourceoffundcode", this.FundSource[ddeData.SourceofFund.ToString()]);
-                odatab.Add("eqs_currencyofdepositcode", this.currency[ddeData.Currency.ToString()]);
+                odatab.Add("eqs_issuedinstakit", (Convert.ToBoolean(ddeData.DirectBanking.IssuedInstaKit)) ? "true" : "false");
+                odatab.Add("eqs_chequebookrequired", (Convert.ToBoolean(ddeData.DirectBanking.ChequeBookRequired)) ? "true" : "false");
+                odatab.Add("eqs_numberofchequebook", ddeData.DirectBanking.NumberChequeBook.ToString());
+                odatab.Add("eqs_numberofchequeleavescode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_numberofchequeleavescode", ddeData.DirectBanking.NumberofChequeLeaves.ToString()) );
 
-                odatab.Add("eqs_issuedinstakit", (Convert.ToBoolean(ddeData.IssuedInstaKit)) ? "true" : "false");
-                odatab.Add("eqs_chequebookrequired", (Convert.ToBoolean(ddeData.ChequeBookRequired)) ? "true" : "false");
-                odatab.Add("eqs_numberofchequebook", ddeData.NumberofChequeBook.ToString());
-                odatab.Add("eqs_numberofchequeleavescode", this.ChequeLeaves[ddeData.NumberofChequeLeaves.ToString()]);
-                odatab.Add("eqs_dispatchmodecode", (ddeData.IsNomineeBankCustomer.ToString()== "Dispatch to Customer") ? "615290000" : "615290001");
-                odatab.Add("eqs_aobotypecode", this.AOBO[ddeData.AOBO.ToString()]);
+                odatab.Add("eqs_aobotypecode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_aobotypecode", ddeData.AOBO.ToString()) );
 
                 var leadDetails = await this._commonFunc.getLeadDetails(LeadAccount[0]["_eqs_lead_value"].ToString());
                 odatab.Add("eqs_leadnumber", leadDetails[0]["eqs_crmleadid"].ToString());
@@ -352,6 +306,7 @@
                     var LeadAccount_details = await this._queryParser.HttpApiCall("eqs_ddeaccounts()?$select=eqs_ddeaccountid", HttpMethod.Post, postDataParametr);
                     odatab = new Dictionary<string, string>();
                     var ddeid = CommonFunction.GetIdFromPostRespons201(LeadAccount_details[0]["responsebody"], "eqs_ddeaccountid");
+                    this.DDEId = ddeid;
                     odatab.Add("eqs_ddefinalid", ddeid);
                     postDataParametr = JsonConvert.SerializeObject(odatab);
                     await this._queryParser.HttpApiCall($"eqs_leadaccounts({this.LeadAccountid})", HttpMethod.Patch, postDataParametr);
@@ -403,44 +358,112 @@
             }
         }
 
+        private async Task<List<string>> SetPreferencesDDE(dynamic preferenceData)
+        {
+            List<string> PreferenceIds = new List<string>();
+            foreach (var item in preferenceData)
+            {
+                string PreferenceID = "";
+                Dictionary<string,string> inputItem = new Dictionary<string,string>();  
+                if (!string.IsNullOrEmpty(item["PreferenceID"].ToString()))
+                {
+                    PreferenceID = this._commonFunc.getPreferenceID(item["PreferenceID"].ToString(),this.DDEId);
+                    PreferenceIds.Add(PreferenceID);
+                }
+
+                inputItem.Add("eqs_applicantid@odata.bind", $"eqs_accountapplicants({ await this._commonFunc.getApplicentID(item["ApplicantId"].ToString())})");
+                inputItem.Add("eqs_debitcardflag", item["DebitCardFlag"].ToString());
+                inputItem.Add("eqs_debitcard@odata.bind", $"eqs_debitcards({ await this._commonFunc.getDebitCardID(item["DebitCardID"].ToString())})");
+                inputItem.Add("eqs_leadaccountdde@odata.bind", $"eqs_ddeaccounts({ this.DDEId})");
+                inputItem.Add("eqs_nameoncard", item["NameonCard"].ToString());
+                inputItem.Add("eqs_sms", item["SMS"].ToString());
+                inputItem.Add("eqs_netbanking", item["NetBanking"].ToString());
+                inputItem.Add("eqs_mobilebanking", item["MobileBanking"].ToString());
+                inputItem.Add("eqs_emailstatement", item["EmailStatement"].ToString());
+                inputItem.Add("eqs_internationaldclimitact", item["InternationalDCLimitAct"].ToString());
+
+                string postDataParametr = JsonConvert.SerializeObject(inputItem);
+
+                if (string.IsNullOrEmpty(PreferenceID))
+                {
+                    var resp = await this._queryParser.HttpApiCall("eqs_customerpreferences()?$select=eqs_preferenceid", HttpMethod.Post, postDataParametr);
+                    var Preference_data = CommonFunction.GetIdFromPostRespons201(resp[0]["responsebody"], "eqs_preferenceid");
+                    PreferenceIds.Add(Preference_data);
+                }
+                else
+                {
+                    await this._queryParser.HttpApiCall($"eqs_customerpreferences({PreferenceID})", HttpMethod.Patch, postDataParametr);
+                }
+                
+
+            }
+            
+            return PreferenceIds;
+        }
+               
+
         private async Task<bool> SetNomineeDDE(dynamic ddeNominee)
         {
             try
             {
-                var res = await this._queryParser.DeleteFromTable("eqs_ddeaccountnominees","", "_eqs_leadaccountddeid_value", this.DDEId, "eqs_ddeaccountnomineeid");
-                foreach (var item in ddeNominee)
-                {
+                    string nomineeID = await this._commonFunc.getNomineeID(this.DDEId);
+                
                     Dictionary<string, string> odatab = new Dictionary<string, string>();
                     
-                    odatab.Add("eqs_nomineename", item.name.ToString());
-                    odatab.Add("eqs_nomineedob", item.DOB.ToString());
+                    odatab.Add("eqs_nomineename", ddeNominee.name.ToString());
+                    odatab.Add("eqs_nomineedob", ddeNominee.DOB.ToString());
                     
-                    odatab.Add("eqs_nomineeage", item.age.ToString());
-                    odatab.Add("eqs_nomineeucic", item.UCIC.ToString());
-                    odatab.Add("eqs_nomineedisplayname", item.DisplayName.ToString());
-                    odatab.Add("eqs_nomineeaddresssameasprospectcurrentaddres", (Convert.ToBoolean(item.AddresssameasProspects.ToString())) ? "true" : "false");
-                    odatab.Add("eqs_emailid", item.email.ToString());
-                    odatab.Add("eqs_mobile", item.mobile.ToString());
-                    odatab.Add("eqs_landlinenumber", item.Landline.ToString());
+                    odatab.Add("eqs_nomineeage", ddeNominee.age.ToString());
+                    odatab.Add("eqs_nomineeucic", ddeNominee.UCIC.ToString());
+                    odatab.Add("eqs_nomineedisplayname", ddeNominee.DisplayName.ToString());
+                    odatab.Add("eqs_nomineeaddresssameasprospectcurrentaddres", (Convert.ToBoolean(ddeNominee.AddresssameasProspects.ToString())) ? "true" : "false");
+                    odatab.Add("eqs_emailid", ddeNominee.email.ToString());
+                    odatab.Add("eqs_mobile", ddeNominee.mobile.ToString());
+                    odatab.Add("eqs_landlinenumber", ddeNominee.Landline.ToString());
 
-                    odatab.Add("eqs_addressline1", item.Address1.ToString());
-                    odatab.Add("eqs_addressline2", item.Address2.ToString());
-                    odatab.Add("eqs_addressline3", item.Address3.ToString());
-                    odatab.Add("eqs_pincode", item.Pin.ToString());
-                    odatab.Add("eqs_district", item.District.ToString());
-                    odatab.Add("eqs_pobox", item.PO.ToString());
-                    odatab.Add("eqs_landmark", item.Landmark.ToString());
+                    odatab.Add("eqs_addressline1", ddeNominee.Address1.ToString());
+                    odatab.Add("eqs_addressline2", ddeNominee.Address2.ToString());
+                    odatab.Add("eqs_addressline3", ddeNominee.Address3.ToString());
+                    odatab.Add("eqs_pincode", ddeNominee.Pin.ToString());
+                    odatab.Add("eqs_district", ddeNominee.District.ToString());
+                    odatab.Add("eqs_pobox", ddeNominee.PO.ToString());
+                    odatab.Add("eqs_landmark", ddeNominee.Landmark.ToString());
 
                     odatab.Add("eqs_leadaccountddeid@odata.bind", $"eqs_ddeaccounts({this.DDEId})");
-                    odatab.Add("eqs_nomineerelationshipwithaccountholder@odata.bind", $"eqs_relationships({ await this._commonFunc.getRelationShipId(item.RelationshipId.ToString())})");
-                    odatab.Add("eqs_city@odata.bind", $"eqs_cities({await this._commonFunc.getCityId(item.CityCode.ToString())})");
-                    odatab.Add("eqs_state@odata.bind", $"eqs_states({await this._commonFunc.getStateId(item.State.ToString())})");
-                    odatab.Add("eqs_country@odata.bind", $"eqs_countries({await this._commonFunc.getCuntryId(item.CountryCode.ToString())})");
+                    odatab.Add("eqs_nomineerelationshipwithaccountholder@odata.bind", $"eqs_relationships({ await this._commonFunc.getRelationShipId(ddeNominee.RelationshipId.ToString())})");
+                    odatab.Add("eqs_city@odata.bind", $"eqs_cities({await this._commonFunc.getCityId(ddeNominee.CityCode.ToString())})");
+                    odatab.Add("eqs_state@odata.bind", $"eqs_states({await this._commonFunc.getStateId(ddeNominee.State.ToString())})");
+                    odatab.Add("eqs_country@odata.bind", $"eqs_countries({await this._commonFunc.getCuntryId(ddeNominee.CountryCode.ToString())})");
+
+                odatab.Add("eqs_guardianname", ddeNominee.Guardian.Name.ToString());              
+                odatab.Add("eqs_guardianucic", ddeNominee.Guardian.GuardianUCIC.ToString());
+                odatab.Add("eqs_guardianmobile", ddeNominee.Guardian.GuardianMobile.ToString());
+                odatab.Add("eqs_guardianlandlinenumber", ddeNominee.Guardian.GuardianLandline.ToString());
+                odatab.Add("eqs_guardianaddressline1", ddeNominee.Guardian.GuardianAddress1.ToString());
+                odatab.Add("eqs_guardianaddressline2", ddeNominee.Guardian.GuardianAddress2.ToString());
+                odatab.Add("eqs_guardianaddressline3", ddeNominee.Guardian.GuardianAddress3.ToString());
+                odatab.Add("eqs_guardianpincode", ddeNominee.Guardian.GuardianPin.ToString());
+                odatab.Add("eqs_guardiandistrict", ddeNominee.Guardian.GuardianDistrict.ToString());
+                odatab.Add("eqs_guardianpobox", ddeNominee.Guardian.GuardianPO.ToString());
+                odatab.Add("eqs_guardianlandmark", ddeNominee.Guardian.GuardianLandmark.ToString());
+
+                odatab.Add("eqs_guardianrelationshiptominor@odata.bind", $"eqs_relationships({await this._commonFunc.getRelationShipId(ddeNominee.Guardian.RelationshipToMinor.ToString())})");
+                odatab.Add("eqs_guardiancity@odata.bind", $"eqs_cities({await this._commonFunc.getCityId(ddeNominee.Guardian.GuardianCityCode.ToString())})");
+                odatab.Add("eqs_guardiancountry@odata.bind", $"eqs_countries({await this._commonFunc.getCuntryId(ddeNominee.Guardian.GuardianCountryCode.ToString())})");
+                odatab.Add("eqs_guardianstate@odata.bind", $"eqs_states({await this._commonFunc.getStateId(ddeNominee.Guardian.GuardianState.ToString())})");
 
 
-                    string postDataParametr = JsonConvert.SerializeObject(odatab);
-                    var resp = await this._queryParser.HttpApiCall("eqs_ddeaccountnominees()?$select=eqs_ddeaccountnomineeid", HttpMethod.Post, postDataParametr);
+                string postDataParametr = JsonConvert.SerializeObject(odatab);
+                if (string.IsNullOrEmpty(nomineeID))
+                {
+                    await this._queryParser.HttpApiCall("eqs_ddeaccountnominees()?$select=eqs_ddeaccountnomineeid", HttpMethod.Post, postDataParametr);
                 }
+                else
+                {
+                    await this._queryParser.HttpApiCall($"eqs_ddeaccountnominees({nomineeID})", HttpMethod.Patch, postDataParametr);
+                }
+                    
+                
 
                 return true;
             }

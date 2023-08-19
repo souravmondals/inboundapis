@@ -248,7 +248,14 @@
                     }
                     else
                     {
+                        Dictionary<string,string> fieldInput = new Dictionary<string,string>();
+                        
                         accountLeadReturn.AccountNo = responsD.createAccountResponse.msgBdy.accountNo.ToString();
+                        fieldInput.Add("eqs_accountnocreated", accountLeadReturn.AccountNo);
+                        postDataParametr = JsonConvert.SerializeObject(fieldInput);
+
+                        await this._queryParser.HttpApiCall($"eqs_ddeaccounts({AccountDDE[0]["eqs_ddeaccountid"].ToString()})", HttpMethod.Patch, postDataParametr);
+                        
                         accountLeadReturn.Message = OutputMSG.Case_Success;
                         accountLeadReturn.ReturnCode = "CRM-SUCCESS";
                     }                    

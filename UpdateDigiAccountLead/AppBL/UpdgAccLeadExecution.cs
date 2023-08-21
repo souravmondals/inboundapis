@@ -435,22 +435,26 @@
                     odatab.Add("eqs_state@odata.bind", $"eqs_states({await this._commonFunc.getStateId(ddeNominee.State.ToString())})");
                     odatab.Add("eqs_country@odata.bind", $"eqs_countries({await this._commonFunc.getCuntryId(ddeNominee.CountryCode.ToString())})");
 
-                odatab.Add("eqs_guardianname", ddeNominee.Guardian.Name.ToString());              
-                odatab.Add("eqs_guardianucic", ddeNominee.Guardian.GuardianUCIC.ToString());
-                odatab.Add("eqs_guardianmobile", ddeNominee.Guardian.GuardianMobile.ToString());
-                odatab.Add("eqs_guardianlandlinenumber", ddeNominee.Guardian.GuardianLandline.ToString());
-                odatab.Add("eqs_guardianaddressline1", ddeNominee.Guardian.GuardianAddress1.ToString());
-                odatab.Add("eqs_guardianaddressline2", ddeNominee.Guardian.GuardianAddress2.ToString());
-                odatab.Add("eqs_guardianaddressline3", ddeNominee.Guardian.GuardianAddress3.ToString());
-                odatab.Add("eqs_guardianpincode", ddeNominee.Guardian.GuardianPin.ToString());
-                odatab.Add("eqs_guardiandistrict", ddeNominee.Guardian.GuardianDistrict.ToString());
-                odatab.Add("eqs_guardianpobox", ddeNominee.Guardian.GuardianPO.ToString());
-                odatab.Add("eqs_guardianlandmark", ddeNominee.Guardian.GuardianLandmark.ToString());
+                if (ddeNominee.Guardian.Name != null)
+                {
+                    odatab.Add("eqs_guardianname", ddeNominee.Guardian.Name.ToString());
+                    odatab.Add("eqs_guardianucic", ddeNominee.Guardian.GuardianUCIC.ToString());
+                    odatab.Add("eqs_guardianmobile", ddeNominee.Guardian.GuardianMobile.ToString());
+                    odatab.Add("eqs_guardianlandlinenumber", ddeNominee.Guardian.GuardianLandline.ToString());
+                    odatab.Add("eqs_guardianaddressline1", ddeNominee.Guardian.GuardianAddress1.ToString());
+                    odatab.Add("eqs_guardianaddressline2", ddeNominee.Guardian.GuardianAddress2.ToString());
+                    odatab.Add("eqs_guardianaddressline3", ddeNominee.Guardian.GuardianAddress3.ToString());
+                    odatab.Add("eqs_guardianpincode", ddeNominee.Guardian.GuardianPin.ToString());
+                    odatab.Add("eqs_guardiandistrict", ddeNominee.Guardian.GuardianDistrict.ToString());
+                    odatab.Add("eqs_guardianpobox", ddeNominee.Guardian.GuardianPO.ToString());
+                    odatab.Add("eqs_guardianlandmark", ddeNominee.Guardian.GuardianLandmark.ToString());
 
-                odatab.Add("eqs_guardianrelationshiptominor@odata.bind", $"eqs_relationships({await this._commonFunc.getRelationShipId(ddeNominee.Guardian.RelationshipToMinor.ToString())})");
-                odatab.Add("eqs_guardiancity@odata.bind", $"eqs_cities({await this._commonFunc.getCityId(ddeNominee.Guardian.GuardianCityCode.ToString())})");
-                odatab.Add("eqs_guardiancountry@odata.bind", $"eqs_countries({await this._commonFunc.getCuntryId(ddeNominee.Guardian.GuardianCountryCode.ToString())})");
-                odatab.Add("eqs_guardianstate@odata.bind", $"eqs_states({await this._commonFunc.getStateId(ddeNominee.Guardian.GuardianState.ToString())})");
+                    odatab.Add("eqs_guardianrelationshiptominor@odata.bind", $"eqs_relationships({await this._commonFunc.getRelationShipId(ddeNominee.Guardian.RelationshipToMinor.ToString())})");
+                    odatab.Add("eqs_guardiancity@odata.bind", $"eqs_cities({await this._commonFunc.getCityId(ddeNominee.Guardian.GuardianCityCode.ToString())})");
+                    odatab.Add("eqs_guardiancountry@odata.bind", $"eqs_countries({await this._commonFunc.getCuntryId(ddeNominee.Guardian.GuardianCountryCode.ToString())})");
+                    odatab.Add("eqs_guardianstate@odata.bind", $"eqs_states({await this._commonFunc.getStateId(ddeNominee.Guardian.GuardianState.ToString())})");
+                }
+                
 
 
                 string postDataParametr = JsonConvert.SerializeObject(odatab);

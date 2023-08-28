@@ -508,30 +508,40 @@
         {
             try
             {
-                Dictionary<string, string> optionSet, optionSet1;
+                List<Optionsetvlu> optionSet, optionSet1;
 
-                if (!this.GetMvalue<Dictionary<string, string>>(tableName + "_" + fieldName, out optionSet1))
+                if (!this.GetMvalue<List<Optionsetvlu>>(tableName + "optionsetvalue", out optionSet1))
                 {
-                    string query_url = $"stringmaps()?$select=value,attributevalue&$filter=objecttypecode eq '{tableName}' and attributename eq '{fieldName}'";
+                    string query_url = $"stringmaps()?$select=value,attributevalue,objecttypecode,attributename&$filter=objecttypecode eq '{tableName}'";
                     var responsdtails = await this.HttpApiCall(query_url, HttpMethod.Get, "");
                     var Optiondata = await this.getDataFromResponce(responsdtails);
-                    optionSet = new Dictionary<string, string>();
+                    optionSet = new List<Optionsetvlu>();
                     foreach (var item in Optiondata)
                     {
-                        optionSet.Add(item["value"].ToString(), item["attributevalue"].ToString());
+                        Optionsetvlu optionsetvlu = new Optionsetvlu();
+                        optionsetvlu.optionKey = item["value"].ToString();
+                        optionsetvlu.optionValu = item["attributevalue"].ToString();
+                        optionsetvlu.optionTable = item["objecttypecode"].ToString();
+                        optionsetvlu.optionField = item["attributename"].ToString();
+                        optionSet.Add(optionsetvlu);
                     }
-                    this.SetMvalue<Dictionary<string, string>>(tableName + "_" + fieldName, 1400, optionSet);
+
+                    this.SetMvalue<List<Optionsetvlu>>(tableName + "optionsetvalue", 10080, optionSet);
                 }
                 else
                 {
                     optionSet = optionSet1;
                 }
+               
+                string opztionValueId = optionSet.Where(x=>x.optionTable == tableName && x.optionField == fieldName && x.optionKey == OptionText).FirstOrDefault().optionValu;
 
-                return optionSet[OptionText];
+                return opztionValueId;
+                              
             }
             catch(Exception ex)
             {
-                return ex.Message;
+                this._log.LogError("getOptionSetTextToValue", ex.Message);
+                throw;
             }
            
             
@@ -637,5 +647,14 @@
         }
 
 
+    }
+
+    public class Optionsetvlu
+    {
+        public string optionKey { get; set; }
+        public string optionValu { get; set; }
+        public string optionTable { get; set; }
+        public string optionField { get; set; }
+        
     }
 }

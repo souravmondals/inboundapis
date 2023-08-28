@@ -16,6 +16,7 @@
     using System;
     using System.Security.Cryptography.Xml;
     using Azure;
+    using Microsoft.VisualBasic;
 
     public class UpdgAccLeadExecution : IUpdgAccLeadExecution
     {
@@ -68,11 +69,7 @@
         private List<AccountApplicant> _accountApplicants;
 
        
-        Dictionary<string, string> KitOption = new Dictionary<string, string>();     
-        Dictionary<string, string> Operations = new Dictionary<string, string>();
-        Dictionary<string, string> purpose = new Dictionary<string, string>();
-        Dictionary<string, string> DocStatus = new Dictionary<string, string>();
-
+       
         private ICommonFunction _commonFunc;
 
         public UpdgAccLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
@@ -89,43 +86,6 @@
             _accountApplicants = new List<AccountApplicant>();
 
           
-
-            KitOption.Add("Non Insta Kit", "615290000");
-            KitOption.Add("Insta Kit", "615290001");
-            KitOption.Add("Instant A/C No kit", "615290002");
-
-           
-
-            Operations.Add("Jointly", "615290004");
-            Operations.Add("Either or survivor", "615290005");
-            Operations.Add("Anyone", "615290006");
-            Operations.Add("Former or Survivor", "615290007");
-
-           
-
-          
-
-            purpose.Add("Saving","789030000");
-            purpose.Add("Repayment Of Loan","789030001");
-            purpose.Add("Business Collection Of Instruments", "789030002");
-            purpose.Add("Others", "789030003");
-            purpose.Add("School/College Fee", "789030004");
-            purpose.Add("Daughter/Son Marriage", "789030005");
-            purpose.Add("Construction/Renovation Of House", "789030006");
-            purpose.Add("Purchase Of Vehicle", "789030007");
-            purpose.Add("Festival", "789030008");
-            purpose.Add("Buying Home Needs", "789030009");
-            purpose.Add("Purchase Of Gold", "789030010");
-
-         
-           
-
-            DocStatus.Add("Submitted", "615290003");
-            DocStatus.Add("Approved", "615290000");
-            DocStatus.Add("Rejected", "615290001");
-            DocStatus.Add("Invalid", "615290002");
-            DocStatus.Add("Resubmitted", "615290004");
-
         }
 
 
@@ -209,6 +169,12 @@
                     accountLeadReturn.Message = OutputMSG.Case_Success;
 
                 }
+                else
+                {
+                    this._logger.LogInformation("FetLeadAccount", "Input parameters are incorrect");
+                    accountLeadReturn.ReturnCode = "CRM-ERROR-102";
+                    accountLeadReturn.Message = OutputMSG.Incorrect_Input;
+                }
             }
             else
             {
@@ -257,10 +223,10 @@
 
                 odatab.Add("eqs_leadchannelcode", "789030011");
                 odatab.Add("eqs_dataentrystage", "615290002");
-                odatab.Add("eqs_purposeofopeningaccountcode", this.purpose[ddeData.OpeningAccountPurpose.ToString()]);
+                odatab.Add("eqs_purposeofopeningaccountcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_purposeofopeningaccountcode", ddeData.OpeningAccountPurpose.ToString()));
 
-                odatab.Add("eqs_instakitcode", this.KitOption[ddeData.InstaKit.ToString()]);
-                odatab.Add("eqs_modeofoperationcode", this.Operations[ddeData.ModeofOperation.ToString()]);
+                odatab.Add("eqs_instakitcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_instakitcode", ddeData.InstaKit.ToString()));
+                odatab.Add("eqs_modeofoperationcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_modeofoperationcode", ddeData.ModeofOperation.ToString()));
 
 
                 //odatab.Add("eqs_accountownershipcode", this.AccountType[ddeData.accountType.ToString()]);
@@ -343,7 +309,7 @@
 
                     if (!string.IsNullOrEmpty(item.Status.ToString()))
                     {
-                        odatab.Add("eqs_docstatuscode", this.DocStatus[item.Status.ToString()]);
+                        odatab.Add("eqs_docstatuscode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_docstatuscode", item.Status.ToString()));
                     }
                    
                     string postDataParametr = JsonConvert.SerializeObject(odatab);

@@ -1,18 +1,18 @@
 ﻿namespace DigiCustLead
 {
 
-using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Identity.Client;
-using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json.Linq;
-using System.Net;
-using System.Diagnostics.Metrics;
+    using Microsoft.Extensions.Caching.Memory;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Security.Cryptography.X509Certificates;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Microsoft.Identity.Client;
+    using Microsoft.AspNetCore.Http;
+    using Newtonsoft.Json.Linq;
+    using System.Net;
+    using System.Diagnostics.Metrics;
     using CRMConnect;
 
 
@@ -20,10 +20,13 @@ using System.Diagnostics.Metrics;
     {
         public IQueryParser _queryParser;
         private ILoggers _logger;
-        public CommonFunction(ILoggers logger, IQueryParser queryParser)
+        public IMemoryCache _cache;
+
+        public CommonFunction(IMemoryCache cache, ILoggers logger, IQueryParser queryParser)
         {
             this._queryParser = queryParser;
             this._logger = logger;
+            this._cache = cache;
         }
         public async Task<string> AcquireNewTokenAsync()
         {
@@ -154,9 +157,20 @@ using System.Diagnostics.Metrics;
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
-            string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
-            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+            string Table_Id;
+            string TableId;
+            if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+            {
+                string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
+                var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+
+                this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+            }
+            else
+            {
+                TableId = Table_Id;
+            }
             return TableId;
         }
 
@@ -189,31 +203,81 @@ using System.Diagnostics.Metrics;
         public async Task<string> getEntityID(string Entity)
         {
             return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_entitytypeid", "eqs_name", Entity);
-        } 
-        
+        }
+        public async Task<string> getEntityName(string EntityId)
+        {
+            return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_name", "eqs_entitytypeid", EntityId);
+        }
         public async Task<string> getSubentitytypeID(string Subentitytype)
         {
             return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_subentitytypeid", "eqs_key", Subentitytype);
-        } 
+        }
 
+        public async Task<string> getRelationshipID(string relationshipCode)
+        {
+            return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationshipid", "eqs_relationship", relationshipCode);
+        }
+        public async Task<string> getAccRelationshipID(string accrelationshipCode)
+        {
+            return await this.getIDfromMSDTable("eqs_accountrelationshipses", "eqs_accountrelationshipsid", "eqs_key", accrelationshipCode);
+        }
+        public async Task<string> getCountryID(string CountryCode)
+        {
+            return await this.getIDfromMSDTable("eqs_countries", "eqs_countryid", "eqs_countrycode", CountryCode);
+        }
+        public async Task<string> getStateID(string StateCode)
+        {
+            return await this.getIDfromMSDTable("eqs_states", "eqs_stateid", "eqs_statecode", StateCode);
+        }
+        public async Task<string> getCityID(string CityCode)
+        {
+            return await this.getIDfromMSDTable("eqs_cities", "eqs_cityid", "eqs_citycode", CityCode);
+        }
+        public async Task<string> getPincodeID(string PincodeCode)
+        {
+            return await this.getIDfromMSDTable("eqs_pincodes", "eqs_pincodeid", "eqs_pincode", PincodeCode);
+        }
         public async Task<string> getPurposeID(string Purpose)
         {
             return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_purposeofcreationid", "eqs_name", Purpose);
         }
 
 
-        public async Task<JArray> getAccountData(string AccountNumber)
+        public async Task<string> getAddressID(string DDEID)
+        {
+            return await this.getIDfromMSDTable("eqs_leadaddresses", "eqs_leadaddressid", "_eqs_individualdde_value", DDEID);
+        }
+        public async Task<string> getFatcaID(string DDEID)
+        {
+            return await this.getIDfromMSDTable("eqs_customerfactcaothers", "eqs_customerfactcaotherid", "_eqs_indivapplicantddeid_value", DDEID);
+        }
+
+        public async Task<string> getDDEFinalAccountIndvData(string AccountNumber)
+        {
+            string finalValue = await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_dataentrystage", "Final");
+            return await this.getIDfromMSDTable("eqs_ddeindividualcustomers", "eqs_ddeindividualcustomerid", $"eqs_dataentrystage eq {finalValue} and _eqs_accountapplicantid_value", AccountNumber);
+            
+        }
+
+        public async Task<string> getDDEFinalAccountCorpData(string AccountNumber)
+        {
+            string finalValue = await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_dataentrystage", "Final");
+            return await this.getIDfromMSDTable("eqs_ddecorporatecustomers", "eqs_ddecorporatecustomerid", $"eqs_dataentrystage eq {finalValue} and _eqs_accountapplicantid_value", AccountNumber);
+                       
+        }
+
+        public async Task<JArray> getApplicentData(string Applicent_id)
         {
             try
             {
-                string query_url = $"eqs_accounts()?$filter=eqs_accountno eq '{AccountNumber}'";
+                string query_url = $"eqs_accountapplicants()?$filter=eqs_applicantid eq '{Applicent_id}'";
                 var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                 var Account_dtails = await this.getDataFromResponce(Accountdtails);
                 return Account_dtails;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("getLeadData", ex.Message);
+                this._logger.LogError("getContactData", ex.Message);
                 throw ex;
             }
         }
@@ -229,7 +293,7 @@ using System.Diagnostics.Metrics;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("getLeadData", ex.Message);
+                this._logger.LogError("getContactData", ex.Message);
                 throw ex;
             }
         }
@@ -240,7 +304,26 @@ using System.Diagnostics.Metrics;
             string second = json2.Substring(1);
             return first + ", " + second;
         }
-        
+
+        public bool GetMvalue<T>(string keyname, out T? Outvalue)
+        {
+            if (!this._cache.TryGetValue<T>(keyname, out Outvalue))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public void SetMvalue<T>(string keyname, double timevalid, T inputvalue)
+        {
+            var cacheEntryOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(DateTimeOffset.Now.AddMinutes(timevalid));
+
+            this._cache.Set<T>(keyname, inputvalue, cacheEntryOptions);
+        }
 
     }
 }

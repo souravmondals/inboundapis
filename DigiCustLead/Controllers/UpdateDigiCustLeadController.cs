@@ -46,7 +46,7 @@
                 
                 _upDgCustLeadExecution.API_Name = "UpdateDigiCustLead";
                 _upDgCustLeadExecution.Input_payload = request.ToString();
-                CreateCustLeadReturn Casetatus = await _upDgCustLeadExecution.ValidateCustLeadDetls(request);
+                UpdateCustLeadReturn Casetatus = await _upDgCustLeadExecution.ValidateCustLeadDetls(request);
 
                 watch.Stop();
                 Casetatus.TransactionID = this._upDgCustLeadExecution.Transaction_ID;

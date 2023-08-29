@@ -60,7 +60,21 @@ namespace DigiCustLead
 
     }
 
-    
+    public class UpdateCustLeadReturn
+    {
+        public string IndividualDDEID { get; set; }
+        public string CorporateDDEID { get; set; }
+        public string AddressID { get; set; }
+        public string FATCAID { get; set; }
+        public List<string> Documents { get; set; }
+
+        public string ReturnCode { get; set; }
+        public string Message { get; set; }
+        public string TransactionID { get; set; }
+        public string ExecutionTime { get; set; }
+
+    }
+
 
 
 

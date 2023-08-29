@@ -241,8 +241,6 @@
         {
             return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_purposeofcreationid", "eqs_name", Purpose);
         }
-
-
         public async Task<string> getAddressID(string DDEID)
         {
             return await this.getIDfromMSDTable("eqs_leadaddresses", "eqs_leadaddressid", "_eqs_individualdde_value", DDEID);
@@ -251,6 +249,31 @@
         {
             return await this.getIDfromMSDTable("eqs_customerfactcaothers", "eqs_customerfactcaotherid", "_eqs_indivapplicantddeid_value", DDEID);
         }
+        public async Task<string> getDocumentId(string docId)
+        {
+            return await this.getIDfromMSDTable("eqs_leaddocuments", "eqs_leaddocumentid", "eqs_documentid", docId);            
+        }
+
+        public async Task<string> getDocCategoryId(string doccatCode)
+        {
+            return await this.getIDfromMSDTable("eqs_doccategories", "eqs_doccategoryid", "eqs_doccategorycode", doccatCode);
+        }
+        public async Task<string> getDocSubCategoryId(string docsubcatCode)
+        {
+            return await this.getIDfromMSDTable("eqs_docsubcategories", "eqs_docsubcategoryid", "eqs_docsubcategorycode", docsubcatCode);
+        }
+        public async Task<string> getDocTypeId(string docTypeCode)
+        {
+            return await this.getIDfromMSDTable("eqs_doctypes", "eqs_doctypeid", "eqs_name", docTypeCode);
+        }
+        public async Task<string> getBusinessTypeId(string businessTypeCode)
+        {
+            return await this.getIDfromMSDTable("eqs_businesstypes", "eqs_businesstypeid", "eqs_name", businessTypeCode);
+        }
+        public async Task<string> getIndustryId(string industryName)
+        {
+            return await this.getIDfromMSDTable("eqs_businessnatures", "eqs_businessnatureid", "eqs_name", industryName);
+        }
 
         public async Task<string> getDDEFinalAccountIndvData(string AccountNumber)
         {
@@ -258,7 +281,7 @@
             return await this.getIDfromMSDTable("eqs_ddeindividualcustomers", "eqs_ddeindividualcustomerid", $"eqs_dataentrystage eq {finalValue} and _eqs_accountapplicantid_value", AccountNumber);
             
         }
-
+        
         public async Task<string> getDDEFinalAccountCorpData(string AccountNumber)
         {
             string finalValue = await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_dataentrystage", "Final");
@@ -281,6 +304,8 @@
                 throw ex;
             }
         }
+
+        
 
         public async Task<JArray> getContactData(string contact_id)
         {

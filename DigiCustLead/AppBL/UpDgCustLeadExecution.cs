@@ -72,9 +72,9 @@
         }
 
 
-        public async Task<CreateCustLeadReturn> ValidateCustLeadDetls(dynamic RequestData)
+        public async Task<UpdateCustLeadReturn> ValidateCustLeadDetls(dynamic RequestData)
         {
-            CreateCustLeadReturn ldRtPrm = new CreateCustLeadReturn();
+            UpdateCustLeadReturn ldRtPrm = new UpdateCustLeadReturn();
             RequestData = await this.getRequestData(RequestData, "UpdateDigiCustLead");
             try
             {
@@ -128,9 +128,9 @@
             }
         }
 
-        public async Task<CreateCustLeadReturn> createDDE(dynamic CustLeadData)
+        public async Task<UpdateCustLeadReturn> createDDE(dynamic CustLeadData)
         {
-            CreateCustLeadReturn csRtPrm = new CreateCustLeadReturn();
+            UpdateCustLeadReturn csRtPrm = new UpdateCustLeadReturn();
             try
             {               
                 var Applicant_Data = await this._commonFunc.getApplicentData(CustLeadData.ApplicantId.ToString());
@@ -154,14 +154,14 @@
             return csRtPrm;
         }
 
-        public async Task<CreateCustLeadReturn> createDigiCustLeadIndv(dynamic CustIndvData, dynamic Applicant_Data)
+        public async Task<UpdateCustLeadReturn> createDigiCustLeadIndv(dynamic CustIndvData, dynamic Applicant_Data)
         {
-            CreateCustLeadReturn csRtPrm = new CreateCustLeadReturn();
-            CustLeadElement custLeadElement = new CustLeadElement();
+            UpdateCustLeadReturn csRtPrm = new UpdateCustLeadReturn();
+            
             Dictionary<string, string> CRMDDEmappingFields = new Dictionary<string, string>();
             Dictionary<string, bool> CRMDDEmappingFields1 = new Dictionary<string, bool>();
             Dictionary<string, int> CRMDDEmappingFields2 = new Dictionary<string, int>();
-            Dictionary<string, string> CRMCustomermappingFields = new Dictionary<string, string>();
+           
             try
             {
                 this.DDEId = await this._commonFunc.getDDEFinalAccountIndvData(Applicant_Data["eqs_accountapplicantid"].ToString());
@@ -301,6 +301,7 @@
                 CRMDDEmappingFields.Add("eqs_landlinenumber", CustIndvData.Address.LandlineNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_alternatemobilenumber", CustIndvData.Address.AlternateMobileNumber.ToString());
                 CRMDDEmappingFields1.Add("eqs_localoverseas", (await this._queryParser.getOptionSetTextToValue("eqs_leadaddress", "eqs_localoverseas", CustIndvData.Address.LocalOverseas.ToString()) == "1") ? true : false);
+                CRMDDEmappingFields.Add("eqs_individualdde@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
 
                 postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
                 postDataParametr1 = JsonConvert.SerializeObject(CRMDDEmappingFields1);
@@ -328,6 +329,7 @@
                 CRMDDEmappingFields.Add("eqs_otheridentificationnumber", CustIndvData.FATCA.OtherIdentificationNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_taxidentificationnumber", CustIndvData.FATCA.TaxIdentificationNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_addresstype", await this._queryParser.getOptionSetTextToValue("eqs_customerfactcaother", "eqs_addresstype", CustIndvData.FATCA.AddressType.ToString()));
+                CRMDDEmappingFields.Add("eqs_indivapplicantddeid@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
 
                 postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
 
@@ -344,6 +346,52 @@
                     var response = await this._queryParser.HttpApiCall($"eqs_customerfactcaothers({this.AddressID})?", HttpMethod.Patch, postDataParametr);
                 }
 
+                /*********** Document Link *********/
+                if (CustIndvData.Documents.Count>0)
+                {
+                    csRtPrm.Documents = new List<string>();
+                    foreach (var docitem in CustIndvData.Documents)
+                    {
+                        CRMDDEmappingFields = new Dictionary<string, string>();
+
+                        string Document_id = await this._commonFunc.getDocumentId(docitem.DocID.ToString());
+
+                        CRMDDEmappingFields.Add("eqs_doctype@odata.bind", $"eqs_doctypes({await this._commonFunc.getDocTypeId(docitem.DocType.ToString())})");
+                        CRMDDEmappingFields.Add("eqs_doccategory@odata.bind", $"eqs_doccategories({await this._commonFunc.getDocCategoryId(docitem.DocCategoryCode.ToString())})");
+                        CRMDDEmappingFields.Add("eqs_docsubcategory@odata.bind", $"eqs_docsubcategories({await this._commonFunc.getDocSubCategoryId(docitem.DocSubCategoryCode.ToString())})");
+
+                        CRMDDEmappingFields.Add("eqs_d0comment", docitem.D0Comment.ToString());
+                        CRMDDEmappingFields.Add("eqs_rejectreason", docitem.DVUComment.ToString());
+
+                        CRMDDEmappingFields.Add("eqs_docstatuscode", await this._queryParser.getOptionSetTextToValue("eqs_leaddocument", "eqs_docstatuscode", docitem.Status.ToString()));
+
+                        CRMDDEmappingFields.Add("eqs_individualddefinal@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
+
+                        postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
+
+                       
+                        if (string.IsNullOrEmpty(Document_id))
+                        {
+                            List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_leaddocuments()?$select=eqs_leaddocumentid", HttpMethod.Post, postDataParametr);
+                            Document_id = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_leaddocumentid");
+                            csRtPrm.Documents.Add(Document_id);
+                        }
+                        else
+                        {
+                            var response = await this._queryParser.HttpApiCall($"eqs_leaddocuments({Document_id})?", HttpMethod.Patch, postDataParametr);
+                            csRtPrm.Documents.Add(Document_id);
+                        }
+
+                    }
+                }
+
+
+                csRtPrm.IndividualDDEID = this.DDEId;
+                csRtPrm.AddressID = this.AddressID;
+                csRtPrm.FATCAID = this.FatcaId;
+                csRtPrm.Message = OutputMSG.Case_Success;
+                csRtPrm.ReturnCode = "CRM-SUCCESS";
+
             }
             catch (Exception ex)
             {
@@ -357,9 +405,9 @@
             return csRtPrm;
         }
 
-        public async Task<CreateCustLeadReturn> createDigiCustLeadCorp(dynamic CustCorpData, dynamic Applicant_Data)
+        public async Task<UpdateCustLeadReturn> createDigiCustLeadCorp(dynamic CustCorpData, dynamic Applicant_Data)
         {
-            CreateCustLeadReturn csRtPrm = new CreateCustLeadReturn();
+            UpdateCustLeadReturn csRtPrm = new UpdateCustLeadReturn();
             CustLeadElement custLeadElement = new CustLeadElement();
             Dictionary<string, string> CRMDDEmappingFields = new Dictionary<string, string>();
             Dictionary<string, bool> CRMDDEmappingFields1 = new Dictionary<string, bool>();
@@ -367,89 +415,79 @@
             Dictionary<string, string> CRMCustomermappingFields = new Dictionary<string, string>();
             try
             {
-                this.DDEId = await this._commonFunc.getDDEFinalAccountIndvData(Applicant_Data["eqs_accountapplicantid"].ToString());
+                this.DDEId = await this._commonFunc.getDDEFinalAccountCorpData(Applicant_Data["eqs_accountapplicantid"].ToString());
                 string dd, mm, yyyy;
                 /*********** General *********/
                 CRMDDEmappingFields.Add("eqs_dataentryoperator", Applicant_Data.eqs_name.ToString());
+                CRMDDEmappingFields.Add("eqs_dataentrystage", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_dataentrystage", "Final"));
                 CRMDDEmappingFields.Add("eqs_entitytypeId@odata.bind", $"eqs_entitytypes({Applicant_Data._eqs_entitytypeid_value.ToString()})");
                 CRMDDEmappingFields.Add("eqs_subentitytypeId@odata.bind", $"eqs_subentitytypes({Applicant_Data._eqs_subentity_value.ToString()})");
 
-                CRMDDEmappingFields.Add("eqs_sourcebranchId@odata.bind", $"eqs_branchs({await this._commonFunc.getBranchId(CustCorpData.General.SourceBranch.ToString())})");
-                CRMDDEmappingFields.Add("eqs_custpreferredbranchId@odata.bind", $"eqs_branchs({await this._commonFunc.getBranchId(CustCorpData.General.CustomerspreferredBranch.ToString())})");
-                CRMDDEmappingFields.Add("eqs_lgcode", CustCorpData.General.LGCode.ToString());
-                CRMDDEmappingFields.Add("eqs_lccode", CustCorpData.General.LCCode.ToString());
-                CRMDDEmappingFields.Add("eqs_residencytypecode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_residencytypecode", CustCorpData.General.ResidencyType.ToString()));
-                CRMDDEmappingFields.Add("eqs_dataentrystage", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_dataentrystage", "Final"));
-                CRMDDEmappingFields.Add("eqs_relationshiptoprimaryholder@odata.bind", $"eqs_relationships({await this._commonFunc.getRelationshipID(CustCorpData.General.RelationshiptoPrimaryHolder.ToString())})");
-                CRMDDEmappingFields.Add("eqs_AccountRelationship@odata.bind", $"eqs_accountrelationshipses({await this._commonFunc.getAccRelationshipID(CustCorpData.General.AccountRelationship.ToString())})");
+                CRMDDEmappingFields.Add("eqs_sourcebranchterritoryId@odata.bind", $"eqs_branchs({await this._commonFunc.getBranchId(CustCorpData.General.SourceBranch.ToString())})");
+                CRMDDEmappingFields.Add("eqs_preferredhomebranchId@odata.bind", $"eqs_branchs({await this._commonFunc.getBranchId(CustCorpData.General.CustomerpreferredHomebranch.ToString())})");
+                CRMDDEmappingFields.Add("eqs_lccode", CustCorpData.General.LGCode.ToString());
+                CRMDDEmappingFields.Add("eqs_lgcode", CustCorpData.General.LCCode.ToString());
+                CRMDDEmappingFields.Add("eqs_aofnumber", CustCorpData.General.PhysicalAOFnumber.ToString());
+
+                CRMDDEmappingFields.Add("eqs_isprimaryholder", Applicant_Data.eqs_isprimaryholder.ToString());
+                CRMDDEmappingFields.Add("eqs_deferralcode", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_deferralcode", CustCorpData.General.Deferral.ToString()));
+                CRMDDEmappingFields1.Add("eqs_isdeferral", (await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_isdeferral", CustCorpData.General.Isdeferral.ToString()) == "1") ? true : false);
+                CRMDDEmappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_panform60code", CustCorpData.General.PAN.ToString()));
                 CRMDDEmappingFields.Add("eqs_purposeofcreationId@odata.bind", $"eqs_purposeofcreations({await this._commonFunc.getPurposeID(CustCorpData.General.PurposeofCreation.ToString())})");
+                CRMDDEmappingFields1.Add("eqs_ispermaddrandcurraddrsame", Convert.ToBoolean(CustCorpData.General.IsPermAddrAndCurrAddrSame.ToString()));
 
-                CRMDDEmappingFields.Add("eqs_physicalaornumber", CustCorpData.General.PhysicalAOFnumber.ToString());
-
-                CRMDDEmappingFields1.Add("eqs_ismficustomer", Convert.ToBoolean(CustCorpData.General.IsMFICustomer.ToString()));
-                CRMDDEmappingFields.Add("eqs_deferralcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_deferralcode", CustCorpData.General.IsDeferral.ToString()));
-
-
-                /*********** Prospect Details *********/
+                /***********About Prospect * ********/
                 CRMDDEmappingFields.Add("eqs_titleId@odata.bind", $"eqs_titles({Applicant_Data["_eqs_titleid_value"].ToString()})");
-                CRMDDEmappingFields.Add("eqs_firstname", Applicant_Data["eqs_firstname"].ToString());
-                CRMDDEmappingFields.Add("eqs_middlename", Applicant_Data["eqs_middlename"].ToString());
-                CRMDDEmappingFields.Add("eqs_lastname", Applicant_Data["eqs_lastname"].ToString());
+                CRMDDEmappingFields.Add("eqs_companyname1", Applicant_Data["eqs_companynamepart1"].ToString());
+                CRMDDEmappingFields.Add("eqs_companyname2", Applicant_Data["eqs_companynamepart2"].ToString());
+                CRMDDEmappingFields.Add("eqs_companyname3", Applicant_Data["eqs_companynamepart3"].ToString());
+                CRMDDEmappingFields.Add("eqs_shortname", CustCorpData.AboutProspect.ShortName.ToString());
 
-                dd = Applicant_Data["eqs_dob"].ToString().Substring(0, 2);
-                mm = Applicant_Data["eqs_dob"].ToString().Substring(3, 2);
-                yyyy = Applicant_Data["eqs_dob"].ToString().Substring(6, 4);
-                CRMDDEmappingFields.Add("eqs_dob", yyyy + "-" + mm + "-" + dd);
-                CRMDDEmappingFields.Add("eqs_age", Applicant_Data["eqs_leadage"].ToString());
-                CRMDDEmappingFields.Add("eqs_gendercode", Applicant_Data["eqs_gendercode"].ToString());
-                CRMDDEmappingFields.Add("eqs_shortname", CustCorpData.ProspectDetails.ShortName.ToString());
-                CRMDDEmappingFields.Add("eqs_mobilenumber", Applicant_Data["eqs_mobilenumber"].ToString());
-                CRMDDEmappingFields.Add("eqs_emailid", CustCorpData.ProspectDetails.EmailID.ToString());
-                CRMDDEmappingFields.Add("eqs_nationalityId@odata.bind", $"eqs_countries({await this._commonFunc.getCountryID(CustCorpData.ProspectDetails.NationalityID.ToString())})");
-                CRMDDEmappingFields.Add("eqs_countryofbirthId@odata.bind", $"eqs_countries({await this._commonFunc.getCountryID(CustCorpData.ProspectDetails.CountryIDofbirth.ToString())})");
-                CRMDDEmappingFields.Add("eqs_fathername", CustCorpData.ProspectDetails.FathersName.ToString());
-                CRMDDEmappingFields.Add("eqs_mothermaidenname", CustCorpData.ProspectDetails.MothersMaidenName.ToString());
-                CRMDDEmappingFields.Add("eqs_spousename", CustCorpData.ProspectDetails.SpouseName.ToString());
-                CRMDDEmappingFields.Add("eqs_countryId@odata.bind", $"eqs_countries({await this._commonFunc.getCountryID(CustCorpData.ProspectDetails.CountryID.ToString())})");
-                CRMDDEmappingFields.Add("eqs_programcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_programcode", CustCorpData.ProspectDetails.Program.ToString()));
-                CRMDDEmappingFields.Add("eqs_educationcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_educationcode", CustCorpData.ProspectDetails.Education.ToString()));
-                CRMDDEmappingFields.Add("eqs_maritalstatuscode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_maritalstatuscode", CustCorpData.ProspectDetails.MaritalStatus.ToString()));
-                CRMDDEmappingFields.Add("eqs_professioncode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_professioncode", CustCorpData.ProspectDetails.Profession.ToString()));
-                CRMDDEmappingFields.Add("eqs_annualincomebandcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_annualincomebandcode", CustCorpData.ProspectDetails.AnnualIncomeBand.ToString()));
-                CRMDDEmappingFields.Add("eqs_employertypecode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_employertypecode", CustCorpData.ProspectDetails.EmployerType.ToString()));
-                CRMDDEmappingFields.Add("eqs_empname", CustCorpData.ProspectDetails.EmployerName.ToString());
-                CRMDDEmappingFields.Add("eqs_officephone", CustCorpData.ProspectDetails.OfficePhone.ToString());
-                CRMDDEmappingFields.Add("eqs_agriculturalincome", CustCorpData.ProspectDetails.EstimatedAgriculturalIncome.ToString());
-                CRMDDEmappingFields.Add("eqs_nonagriculturalincome", CustCorpData.ProspectDetails.EstimatedNonAgriculturalIncome.ToString());
-                CRMDDEmappingFields.Add("eqs_isstaffcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_isstaffcode", CustCorpData.ProspectDetails.IsStaff.ToString()));
-                CRMDDEmappingFields.Add("eqs_equitasstaffcode", CustCorpData.ProspectDetails.EquitasStaffCode.ToString());
-                CRMDDEmappingFields.Add("eqs_languagecode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_languagecode", CustCorpData.ProspectDetails.Language.ToString()));
-                CRMDDEmappingFields1.Add("eqs_ispep", Convert.ToBoolean(CustCorpData.ProspectDetails.PolitcallyExposedPerson.ToString()));
-                CRMDDEmappingFields.Add("eqs_lobcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_lobcode", CustCorpData.ProspectDetails.LOBCode.ToString()));
-                CRMDDEmappingFields.Add("eqs_aobocode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_aobocode", CustCorpData.ProspectDetails.AOBusinessOperation.ToString()));
-                CRMDDEmappingFields.Add("eqs_communitycode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_communitycode", CustCorpData.ProspectDetails.Category.ToString()));
-                CRMDDEmappingFields.Add("eqs_additionalinformationcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_additionalinformationcode", CustCorpData.ProspectDetails.AdditionalInformation.ToString()));
+                dd = Applicant_Data["eqs_dateofincorporation"].ToString().Substring(0, 2);
+                mm = Applicant_Data["eqs_dateofincorporation"].ToString().Substring(3, 2);
+                yyyy = Applicant_Data["eqs_dateofincorporation"].ToString().Substring(6, 4);
+                CRMDDEmappingFields.Add("eqs_dateofincorporation", yyyy + "-" + mm + "-" + dd);
+                dd = CustCorpData.AboutProspect.UCICCreatedOn.ToString().Substring(0, 2);
+                mm = CustCorpData.AboutProspect.UCICCreatedOn.ToString().Substring(3, 2);
+                yyyy = CustCorpData.AboutProspect.UCICCreatedOn.ToString().Substring(6, 4);
+                CRMDDEmappingFields.Add("eqs_uciccreatedon", yyyy + "-" + mm + "-" + dd);
 
+                CRMDDEmappingFields.Add("eqs_preferredlanguagecode", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_preferredlanguagecode", CustCorpData.AboutProspect.PreferredLanguage.ToString()));
+                CRMDDEmappingFields.Add("eqs_emailid", CustCorpData.AboutProspect.EmailId.ToString());
+                CRMDDEmappingFields.Add("eqs_faxnumber", CustCorpData.AboutProspect.FaxNumber.ToString());                
+                CRMDDEmappingFields.Add("eqs_companyturnovervalue", CustCorpData.AboutProspect.CompanyTurnoverValue.ToString());
+                CRMDDEmappingFields.Add("eqs_noofbranchesregionaloffices", CustCorpData.AboutProspect.NoofBranchesRegionaOffices.ToString());
+                CRMDDEmappingFields.Add("eqs_currentemployeestrength", CustCorpData.AboutProspect.CurrentEmployeeStrength.ToString());
+                CRMDDEmappingFields.Add("eqs_averagesalarytoemployee", CustCorpData.AboutProspect.AverageSalarytoEmployee.ToString());
+                CRMDDEmappingFields.Add("eqs_minimumsalarytoemployee", CustCorpData.AboutProspect.MinimumSalarytoEmployee.ToString());
+                CRMDDEmappingFields1.Add("eqs_ismficustomer", Convert.ToBoolean(CustCorpData.AboutProspect.IsMFIcustomer.ToString()));
+                CRMDDEmappingFields.Add("eqs_programcode", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_programcode", CustCorpData.AboutProspect.Program.ToString()));
+                CRMDDEmappingFields.Add("eqs_npopocode", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_npopocode", CustCorpData.AboutProspect.NPOPO.ToString()));
+                CRMDDEmappingFields.Add("eqs_companyturnovercode", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_companyturnovercode", CustCorpData.AboutProspect.CompanyTurnover.ToString()));
+
+                CRMDDEmappingFields.Add("eqs_businesstypeId@odata.bind", $"eqs_businesstypes({await this._commonFunc.getBusinessTypeId(CustCorpData.AboutProspect.BusinessType.ToString())})");
+                CRMDDEmappingFields.Add("eqs_industryId@odata.bind", $"eqs_businessnatures({await this._commonFunc.getIndustryId(CustCorpData.AboutProspect.Industry.ToString())})");
 
                 /*********** Identification Details *********/
-                CRMDDEmappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_panform60code", CustCorpData.IdentificationDetails.Pan.ToString()));
+
+                CRMDDEmappingFields.Add("eqs_pocpanform60code", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_pocpanform60code", CustCorpData.IdentificationDetails.Pan.ToString()));
                 CRMDDEmappingFields.Add("eqs_pannumber", CustCorpData.IdentificationDetails.PanNumber.ToString());
-                CRMDDEmappingFields.Add("eqs_passportnumber", CustCorpData.IdentificationDetails.PassportNumber.ToString());
-                CRMDDEmappingFields.Add("eqs_voterid", CustCorpData.IdentificationDetails.VoterID.ToString());
-                CRMDDEmappingFields.Add("eqs_drivinglicensenumber", CustCorpData.IdentificationDetails.DrivinglicenseNumber.ToString());
-                CRMDDEmappingFields.Add("eqs_aadharreference", CustCorpData.IdentificationDetails.AadharReference.ToString());
-                CRMDDEmappingFields.Add("eqs_ckycreferencenumber", CustCorpData.IdentificationDetails.CKYCreferenceNumber.ToString());
-                CRMDDEmappingFields.Add("eqs_kycverificationmodecode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_kycverificationmodecode", CustCorpData.IdentificationDetails.KYCVerificationMode.ToString()));
+                CRMDDEmappingFields.Add("eqs_gstnumber", CustCorpData.IdentificationDetails.GSTNumber.ToString());
+                CRMDDEmappingFields.Add("eqs_ckycnumber", CustCorpData.IdentificationDetails.CKYCRefenceNumber.ToString());
+                CRMDDEmappingFields.Add("eqs_tannumber", CustCorpData.IdentificationDetails.TANNumber.ToString());
+                CRMDDEmappingFields.Add("eqs_cstvatnumber", CustCorpData.IdentificationDetails.VATNumber.ToString());
+                CRMDDEmappingFields.Add("eqs_cinregisterednumber", CustCorpData.IdentificationDetails.RegisteredNumber.ToString());
 
-                dd = CustCorpData.IdentificationDetails.VerificationDate.ToString().Substring(0, 2);
-                mm = CustCorpData.IdentificationDetails.VerificationDate.ToString().Substring(3, 2);
-                yyyy = CustCorpData.IdentificationDetails.VerificationDate.ToString().Substring(6, 4);
+                CRMDDEmappingFields.Add("eqs_kycverificationmodecode", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_kycverificationmodecode", CustCorpData.IdentificationDetails.KYCVerificationMode.ToString()));
+
+                dd = CustCorpData.IdentificationDetails.CKYCUpdatedDate.ToString().Substring(0, 2);
+                mm = CustCorpData.IdentificationDetails.CKYCUpdatedDate.ToString().Substring(3, 2);
+                yyyy = CustCorpData.IdentificationDetails.CKYCUpdatedDate.ToString().Substring(6, 4);
+                CRMDDEmappingFields.Add("eqs_ckycupdateddate", yyyy + "-" + mm + "-" + dd);
+                dd = CustCorpData.IdentificationDetails.KYCVerificationDate.ToString().Substring(0, 2);
+                mm = CustCorpData.IdentificationDetails.KYCVerificationDate.ToString().Substring(3, 2);
+                yyyy = CustCorpData.IdentificationDetails.KYCVerificationDate.ToString().Substring(6, 4);
                 CRMDDEmappingFields.Add("eqs_verificationdate", yyyy + "-" + mm + "-" + dd);
-
-
-                /*********** FATCA *********/
-                CRMDDEmappingFields1.Add("eqs_taxresident", (await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_taxresident", CustCorpData.FATCA.TaxResident.ToString()) == "1") ? true : false);
-                CRMDDEmappingFields.Add("eqs_cityofbirth", CustCorpData.FATCA.CityofBirth.ToString());
 
                 /*********** RM Details *********/
                 CRMDDEmappingFields.Add("eqs_servicermcode", CustCorpData.RMDetails.ServiceRMCode.ToString());
@@ -459,24 +497,22 @@
                 CRMDDEmappingFields.Add("eqs_businessrmname", CustCorpData.RMDetails.BusinessRMName.ToString());
                 CRMDDEmappingFields.Add("eqs_businessrmrole", CustCorpData.RMDetails.BusinessRMRole.ToString());
 
+
                 CRMDDEmappingFields.Add("eqs_accountapplicantid@odata.bind", $"eqs_accountapplicants({Applicant_Data["eqs_accountapplicantid"].ToString()})");
 
-
-                string postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
+                string postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);                
                 string postDataParametr1 = JsonConvert.SerializeObject(CRMDDEmappingFields1);
-                postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
-                postDataParametr1 = JsonConvert.SerializeObject(CRMDDEmappingFields2);
                 postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
                 if (string.IsNullOrEmpty(this.DDEId))
                 {
-                    List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_ddeindividualcustomers()?$select=eqs_ddeindividualcustomerid", HttpMethod.Post, postDataParametr);
-                    var ddeid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_ddeindividualcustomer");
+                    List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_ddecorporatecustomers()?$select=eqs_ddecorporatecustomerid", HttpMethod.Post, postDataParametr);
+                    var ddeid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_ddecorporatecustomerid");
                     this.DDEId = ddeid;
                 }
                 else
                 {
-                    var response = await this._queryParser.HttpApiCall($"eqs_ddeindividualcustomers({this.DDEId})?", HttpMethod.Patch, postDataParametr);
+                    var response = await this._queryParser.HttpApiCall($"eqs_ddecorporatecustomers({this.DDEId})?", HttpMethod.Patch, postDataParametr);
                 }
 
                 /*********** Address *********/
@@ -505,6 +541,8 @@
                 CRMDDEmappingFields.Add("eqs_alternatemobilenumber", CustCorpData.Address.AlternateMobileNumber.ToString());
                 CRMDDEmappingFields1.Add("eqs_localoverseas", (await this._queryParser.getOptionSetTextToValue("eqs_leadaddress", "eqs_localoverseas", CustCorpData.Address.LocalOverseas.ToString()) == "1") ? true : false);
 
+                CRMDDEmappingFields.Add("eqs_corporatedde@odata.bind", $"eqs_ddecorporatecustomers({this.DDEId})");
+
                 postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
                 postDataParametr1 = JsonConvert.SerializeObject(CRMDDEmappingFields1);
                 postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
@@ -531,6 +569,7 @@
                 CRMDDEmappingFields.Add("eqs_otheridentificationnumber", CustCorpData.FATCA.OtherIdentificationNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_taxidentificationnumber", CustCorpData.FATCA.TaxIdentificationNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_addresstype", await this._queryParser.getOptionSetTextToValue("eqs_customerfactcaother", "eqs_addresstype", CustCorpData.FATCA.AddressType.ToString()));
+                CRMDDEmappingFields.Add("eqs_indivapplicantddeid@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
 
                 postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
 
@@ -546,6 +585,52 @@
                 {
                     var response = await this._queryParser.HttpApiCall($"eqs_customerfactcaothers({this.AddressID})?", HttpMethod.Patch, postDataParametr);
                 }
+
+                /*********** Document Link *********/
+                if (CustCorpData.Documents.Count > 0)
+                {
+                    csRtPrm.Documents = new List<string>();
+                    foreach (var docitem in CustCorpData.Documents)
+                    {
+                        CRMDDEmappingFields = new Dictionary<string, string>();
+
+                        string Document_id = await this._commonFunc.getDocumentId(docitem.DocID.ToString());
+
+                        CRMDDEmappingFields.Add("eqs_doctype@odata.bind", $"eqs_doctypes({await this._commonFunc.getDocTypeId(docitem.DocType.ToString())})");
+                        CRMDDEmappingFields.Add("eqs_doccategory@odata.bind", $"eqs_doccategories({await this._commonFunc.getDocCategoryId(docitem.DocCategoryCode.ToString())})");
+                        CRMDDEmappingFields.Add("eqs_docsubcategory@odata.bind", $"eqs_docsubcategories({await this._commonFunc.getDocSubCategoryId(docitem.DocSubCategoryCode.ToString())})");
+
+                        CRMDDEmappingFields.Add("eqs_d0comment", docitem.D0Comment.ToString());
+                        CRMDDEmappingFields.Add("eqs_rejectreason", docitem.DVUComment.ToString());
+
+                        CRMDDEmappingFields.Add("eqs_docstatuscode", await this._queryParser.getOptionSetTextToValue("eqs_leaddocument", "eqs_docstatuscode", docitem.Status.ToString()));
+
+                        CRMDDEmappingFields.Add("eqs_individualddefinal@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
+
+                        postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
+
+
+                        if (string.IsNullOrEmpty(Document_id))
+                        {
+                            List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_leaddocuments()?$select=eqs_leaddocumentid", HttpMethod.Post, postDataParametr);
+                            Document_id = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_leaddocumentid");
+                            csRtPrm.Documents.Add(Document_id);
+                        }
+                        else
+                        {
+                            var response = await this._queryParser.HttpApiCall($"eqs_leaddocuments({Document_id})?", HttpMethod.Patch, postDataParametr);
+                            csRtPrm.Documents.Add(Document_id);
+                        }
+
+                    }
+                }
+
+
+                csRtPrm.IndividualDDEID = this.DDEId;
+                csRtPrm.AddressID = this.AddressID;
+                csRtPrm.FATCAID = this.FatcaId;
+                csRtPrm.Message = OutputMSG.Case_Success;
+                csRtPrm.ReturnCode = "CRM-SUCCESS";
 
             }
             catch (Exception ex)

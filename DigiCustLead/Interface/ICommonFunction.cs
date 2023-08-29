@@ -24,6 +24,12 @@ namespace DigiCustLead
         public Task<string> getStateID(string StateCode);
         public Task<string> getAddressID(string DDEID);
         public  Task<string> getFatcaID(string DDEID);
+        public Task<string> getDocumentId(string ddeId);
+        public Task<string> getDocCategoryId(string doccatCode);
+        public Task<string> getDocSubCategoryId(string docsubcatCode);
+        public Task<string> getDocTypeId(string docTypeCode);
+        public Task<string> getBusinessTypeId(string businessTypeCode);
+        public Task<string> getIndustryId(string industryName);
 
 
     }

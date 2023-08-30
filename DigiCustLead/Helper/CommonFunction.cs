@@ -241,13 +241,28 @@
         {
             return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_purposeofcreationid", "eqs_name", Purpose);
         }
-        public async Task<string> getAddressID(string DDEID)
+        public async Task<string> getAddressID(string DDEID, string types)
         {
-            return await this.getIDfromMSDTable("eqs_leadaddresses", "eqs_leadaddressid", "_eqs_individualdde_value", DDEID);
+            if (types == "indv")
+            {
+                return await this.getIDfromMSDTable("eqs_leadaddresses", "eqs_leadaddressid", "_eqs_individualdde_value", DDEID);
+            }
+            else
+            {
+                return await this.getIDfromMSDTable("eqs_leadaddresses", "eqs_leadaddressid", "_eqs_corporatedde_value", DDEID);
+            }
+               
         }
-        public async Task<string> getFatcaID(string DDEID)
+        public async Task<string> getFatcaID(string DDEID,string types)
         {
-            return await this.getIDfromMSDTable("eqs_customerfactcaothers", "eqs_customerfactcaotherid", "_eqs_indivapplicantddeid_value", DDEID);
+            if(types == "indv"){
+                return await this.getIDfromMSDTable("eqs_customerfactcaothers", "eqs_customerfactcaotherid", "_eqs_indivapplicantddeid_value" , DDEID);
+            }
+            else
+            {
+                return await this.getIDfromMSDTable("eqs_customerfactcaothers", "eqs_customerfactcaotherid", "_eqs_ddecorporatecustomerid_value" , DDEID);
+            }
+            
         }
         public async Task<string> getDocumentId(string docId)
         {
@@ -273,6 +288,14 @@
         public async Task<string> getIndustryId(string industryName)
         {
             return await this.getIDfromMSDTable("eqs_businessnatures", "eqs_businessnatureid", "eqs_name", industryName);
+        }
+        public async Task<string> getBOId(string DDEID)
+        {
+            return await this.getIDfromMSDTable("eqs_customerbos", "eqs_customerboid", "_eqs_ddecorporatecustomerid_value", DDEID);
+        }
+        public async Task<string> getCPId(string DDEID)
+        {
+            return await this.getIDfromMSDTable("eqs_customercps", "eqs_customercpid", "_eqs_ddecorporatecustomerid_value", DDEID);
         }
 
         public async Task<string> getDDEFinalAccountIndvData(string AccountNumber)
@@ -300,18 +323,18 @@
             }
             catch (Exception ex)
             {
-                this._logger.LogError("getContactData", ex.Message);
+                this._logger.LogError("getApplicentData", ex.Message);
                 throw ex;
             }
         }
 
         
 
-        public async Task<JArray> getContactData(string contact_id)
+        public async Task<JArray> getContactData(string UCIC_id)
         {
             try
             {
-                string query_url = $"contacts({contact_id})?$select=createdon,eqs_entityflag,eqs_subentitytypeid,mobilephone,eqs_customerid";
+                string query_url = $"contacts()?$select=contactid,fullname,emailaddress1,mobilephone,mobilephone,eqs_customerid&$filter=eqs_customerid eq '{UCIC_id}'";
                 var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                 var Account_dtails = await this.getDataFromResponce(Accountdtails);
                 return Account_dtails;

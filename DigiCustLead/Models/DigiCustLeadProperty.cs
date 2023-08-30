@@ -62,9 +62,7 @@ namespace DigiCustLead
 
     public class UpdateCustLeadReturn
     {
-        public string IndividualDDEID { get; set; }
-        public string CorporateDDEID { get; set; }
-        public string AddressID { get; set; }
+      
         public string FATCAID { get; set; }
         public List<string> Documents { get; set; }
 

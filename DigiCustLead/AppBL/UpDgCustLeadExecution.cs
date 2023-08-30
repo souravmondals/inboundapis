@@ -75,9 +75,10 @@
         public async Task<UpdateCustLeadReturn> ValidateCustLeadDetls(dynamic RequestData)
         {
             UpdateCustLeadReturn ldRtPrm = new UpdateCustLeadReturn();
-            RequestData = await this.getRequestData(RequestData, "UpdateDigiCustLead");
+            
             try
             {
+                RequestData = await this.getRequestData(RequestData, "UpdateDigiCustLead");
                
                 if (!string.IsNullOrEmpty(this.appkey) && this.appkey != "" && checkappkey(this.appkey, "UpdateDigiCustLead"))
                 {
@@ -307,7 +308,7 @@
                 postDataParametr1 = JsonConvert.SerializeObject(CRMDDEmappingFields1);
                 postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
-                this.AddressID = await this._commonFunc.getAddressID(this.DDEId);
+                this.AddressID = await this._commonFunc.getAddressID(this.DDEId,"indv");
 
                 if (string.IsNullOrEmpty(this.AddressID))
                 {
@@ -333,7 +334,7 @@
 
                 postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
 
-                this.FatcaId = await this._commonFunc.getFatcaID(this.DDEId);
+                this.FatcaId = await this._commonFunc.getFatcaID(this.DDEId,"indv");
 
                 if (string.IsNullOrEmpty(this.FatcaId))
                 {
@@ -386,8 +387,8 @@
                 }
 
 
-                csRtPrm.IndividualDDEID = this.DDEId;
-                csRtPrm.AddressID = this.AddressID;
+                
+                
                 csRtPrm.FATCAID = this.FatcaId;
                 csRtPrm.Message = OutputMSG.Case_Success;
                 csRtPrm.ReturnCode = "CRM-SUCCESS";
@@ -497,6 +498,24 @@
                 CRMDDEmappingFields.Add("eqs_businessrmname", CustCorpData.RMDetails.BusinessRMName.ToString());
                 CRMDDEmappingFields.Add("eqs_businessrmrole", CustCorpData.RMDetails.BusinessRMRole.ToString());
 
+                /*********** Point Of Contact *********/
+                var customer_Dtl = await this._commonFunc.getContactData(CustCorpData.PointOfContact.POCUCIC.ToString());
+                if (customer_Dtl.Count > 0)
+                {
+                    CRMDDEmappingFields.Add("eqs_contactpersonname", customer_Dtl[0]["fullname"].ToString());
+                    CRMDDEmappingFields.Add("eqs_pocemailid", customer_Dtl[0]["emailaddress1"].ToString());
+                    CRMDDEmappingFields.Add("eqs_pocphonenumber", customer_Dtl[0]["mobilephone"].ToString());
+                    CRMDDEmappingFields.Add("eqs_pocucic", customer_Dtl[0]["eqs_customerid"].ToString());
+                    CRMDDEmappingFields.Add("eqs_poclookupId@odata.bind", $"contacts({customer_Dtl[0]["contactid"].ToString()})");
+                    CRMDDEmappingFields.Add("eqs_contactmobilenumber", CustCorpData.PointOfContact.ContactMobilePhone.ToString());
+                }
+
+                /*********** FATCA *********/
+                CRMDDEmappingFields.Add("eqs_financialtype", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_financialtype", CustCorpData.FATCA.FinancialType.ToString()));
+                CRMDDEmappingFields.Add("eqs_cityofincorporation", CustCorpData.FATCA.CityofIncorporation.ToString());
+                CRMDDEmappingFields.Add("eqs_taxresidenttypecode", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_taxresidenttypecode", CustCorpData.FATCA.TaxResidentType.ToString()));
+                CRMDDEmappingFields.Add("eqs_countryofincorporationId@odata.bind", $"eqs_countries({await this._commonFunc.getCountryID(CustCorpData.FATCA.CountryofIncorporation.ToString())})");
+
 
                 CRMDDEmappingFields.Add("eqs_accountapplicantid@odata.bind", $"eqs_accountapplicants({Applicant_Data["eqs_accountapplicantid"].ToString()})");
 
@@ -547,13 +566,11 @@
                 postDataParametr1 = JsonConvert.SerializeObject(CRMDDEmappingFields1);
                 postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
 
-                this.AddressID = await this._commonFunc.getAddressID(this.DDEId);
+                this.AddressID = await this._commonFunc.getAddressID(this.DDEId,"corp");
 
                 if (string.IsNullOrEmpty(this.AddressID))
                 {
-                    List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_leadaddresses()?$select=eqs_leadaddressid", HttpMethod.Post, postDataParametr);
-                    var addressid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_leadaddressid");
-                    this.AddressID = addressid;
+                    List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_leadaddresses()?", HttpMethod.Post, postDataParametr);                    
                 }
                 else
                 {
@@ -569,21 +586,22 @@
                 CRMDDEmappingFields.Add("eqs_otheridentificationnumber", CustCorpData.FATCA.OtherIdentificationNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_taxidentificationnumber", CustCorpData.FATCA.TaxIdentificationNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_addresstype", await this._queryParser.getOptionSetTextToValue("eqs_customerfactcaother", "eqs_addresstype", CustCorpData.FATCA.AddressType.ToString()));
-                CRMDDEmappingFields.Add("eqs_indivapplicantddeid@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
+                CRMDDEmappingFields.Add("eqs_ddecorporatecustomerid@odata.bind", $"eqs_ddecorporatecustomers({this.DDEId})");
 
                 postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
 
-                this.FatcaId = await this._commonFunc.getFatcaID(this.DDEId);
+                this.FatcaId = await this._commonFunc.getFatcaID(this.DDEId, "corp");
 
                 if (string.IsNullOrEmpty(this.FatcaId))
                 {
-                    List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_customerfactcaothers()?$select=eqs_customerfactcaotherid", HttpMethod.Post, postDataParametr);
-                    var fatcaid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_customerfactcaotherid");
+                    List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_customerfactcaothers()?$select=eqs_name", HttpMethod.Post, postDataParametr);
+                    var fatcaid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_name");
                     this.FatcaId = fatcaid;
                 }
                 else
                 {
-                    var response = await this._queryParser.HttpApiCall($"eqs_customerfactcaothers({this.AddressID})?", HttpMethod.Patch, postDataParametr);
+                    var response = await this._queryParser.HttpApiCall($"eqs_customerfactcaothers({this.FatcaId})?$select=eqs_name", HttpMethod.Patch, postDataParametr);
+                    this.FatcaId = CommonFunction.GetIdFromPostRespons201(response[0]["responsebody"], "eqs_name");
                 }
 
                 /*********** Document Link *********/
@@ -605,29 +623,84 @@
 
                         CRMDDEmappingFields.Add("eqs_docstatuscode", await this._queryParser.getOptionSetTextToValue("eqs_leaddocument", "eqs_docstatuscode", docitem.Status.ToString()));
 
-                        CRMDDEmappingFields.Add("eqs_individualddefinal@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
+                        CRMDDEmappingFields.Add("eqs_eqs_corporateddefinal@odata.bind", $"eqs_ddecorporatecustomers({this.DDEId})");
 
                         postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
 
 
                         if (string.IsNullOrEmpty(Document_id))
                         {
-                            List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_leaddocuments()?$select=eqs_leaddocumentid", HttpMethod.Post, postDataParametr);
-                            Document_id = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_leaddocumentid");
+                            List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_leaddocuments()?$select=eqs_documentid", HttpMethod.Post, postDataParametr);
+                            Document_id = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_documentid");
                             csRtPrm.Documents.Add(Document_id);
                         }
                         else
                         {
-                            var response = await this._queryParser.HttpApiCall($"eqs_leaddocuments({Document_id})?", HttpMethod.Patch, postDataParametr);
+                            var response = await this._queryParser.HttpApiCall($"eqs_leaddocuments({Document_id})?$select=eqs_documentid", HttpMethod.Patch, postDataParametr);
+                            Document_id = CommonFunction.GetIdFromPostRespons201(response[0]["responsebody"], "eqs_documentid");
                             csRtPrm.Documents.Add(Document_id);
                         }
 
                     }
                 }
 
+                /*********** BO *********/
+                CRMDDEmappingFields = new Dictionary<string, string>();
 
-                csRtPrm.IndividualDDEID = this.DDEId;
-                csRtPrm.AddressID = this.AddressID;
+                customer_Dtl = await this._commonFunc.getContactData(CustCorpData.BODetails.BOUCIC.ToString());
+
+                CRMDDEmappingFields.Add("eqs_botypecode", await this._queryParser.getOptionSetTextToValue("eqs_customerbo", "eqs_botypecode", CustCorpData.BODetails.BOType.ToString()));
+                CRMDDEmappingFields.Add("eqs_bolistingtypecode", await this._queryParser.getOptionSetTextToValue("eqs_customerbo", "eqs_bolistingtypecode", CustCorpData.BODetails.BOListingType.ToString()));
+                CRMDDEmappingFields.Add("eqs_boexistingcustomer@odata.bind", $"contacts({customer_Dtl[0]["contactid"].ToString()})");
+                CRMDDEmappingFields.Add("eqs_boucic", customer_Dtl[0]["eqs_customerid"].ToString());
+                CRMDDEmappingFields.Add("eqs_name", customer_Dtl[0]["fullname"].ToString());
+                CRMDDEmappingFields.Add("eqs_bolistingdetails", CustCorpData.BODetails.BOListingDetails.ToString());
+                CRMDDEmappingFields.Add("eqs_holding", CustCorpData.BODetails.Holding.ToString());
+
+
+                CRMDDEmappingFields.Add("eqs_ddecorporatecustomerid@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
+
+                postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
+
+                string bo_id = await this._commonFunc.getBOId(this.DDEId);
+
+                if (string.IsNullOrEmpty(bo_id))
+                {
+                    List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_customerbos()", HttpMethod.Post, postDataParametr);                    
+                }
+                else
+                {
+                    var response = await this._queryParser.HttpApiCall($"eqs_customerbos({bo_id})?", HttpMethod.Patch, postDataParametr);
+                }
+
+                /*********** CP *********/
+                CRMDDEmappingFields = new Dictionary<string, string>();
+
+                customer_Dtl = await this._commonFunc.getContactData(CustCorpData.CPDetails.CPUCIC.ToString());
+
+                CRMDDEmappingFields.Add("eqs_cpexistingcustomerid@odata.bind", $"contacts({customer_Dtl[0]["contactid"].ToString()})");
+                CRMDDEmappingFields.Add("eqs_cpucic", customer_Dtl[0]["eqs_customerid"].ToString());
+                CRMDDEmappingFields.Add("eqs_name", customer_Dtl[0]["fullname"].ToString());               
+                CRMDDEmappingFields.Add("eqs_holding", CustCorpData.CPDetails.Holding.ToString());
+
+
+                CRMDDEmappingFields.Add("eqs_ddecorporatecustomerid@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
+
+                postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
+
+                string cp_id = await this._commonFunc.getCPId(this.DDEId);
+
+                if (string.IsNullOrEmpty(cp_id))
+                {
+                    List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_customercps()", HttpMethod.Post, postDataParametr);
+                }
+                else
+                {
+                    var response = await this._queryParser.HttpApiCall($"eqs_customercps({cp_id})?", HttpMethod.Patch, postDataParametr);
+                }
+
+
+                
                 csRtPrm.FATCAID = this.FatcaId;
                 csRtPrm.Message = OutputMSG.Case_Success;
                 csRtPrm.ReturnCode = "CRM-SUCCESS";

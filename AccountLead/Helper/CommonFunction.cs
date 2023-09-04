@@ -256,6 +256,22 @@
             }
         }
 
+        public async Task<JArray> getApplicentData(string ApplicentID)
+        {
+            try
+            {                
+                string query_url = $"eqs_accountapplicants()?$select=eqs_accountapplicantid,eqs_firstname,eqs_lastname,eqs_mobilenumber,eqs_emailaddress,eqs_leadage,eqs_dob,eqs_gendercode,eqs_pincode,_eqs_cityid_value&$filter=eqs_applicantid eq '{ApplicentID}'";
+                var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Account_dtails = await this.getDataFromResponce(Accountdtails);
+                return Account_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getAccountLeadData", ex.Message);
+                throw ex;
+            }
+        }
+
         public async Task<string> getCityName(string CityId)
         {
             return await this.getIDfromMSDTable("eqs_cities", "eqs_name", "eqs_cityid", CityId);

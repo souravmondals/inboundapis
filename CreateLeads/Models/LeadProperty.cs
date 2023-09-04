@@ -94,4 +94,13 @@ namespace CreateLeads
 
     }
 
+    public class UpdateLidStatusReturnParam
+    {       
+        public string ReturnCode { get; set; }
+        public string Message { get; set; }
+        public string TransactionID { get; set; }
+        public string ExecutionTime { get; set; }
+
+    }
+
 }

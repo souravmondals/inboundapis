@@ -230,12 +230,8 @@
           
 
                 /*********** Identification Details *********/
-                CRMDDEmappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_panform60code", CustIndvData.IdentificationDetails.Pan.ToString()));
-                CRMDDEmappingFields.Add("eqs_pannumber", CustIndvData.IdentificationDetails.PanNumber.ToString());
+                CRMDDEmappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_panform60code", CustIndvData.IdentificationDetails.Pan.ToString()));               
                 CRMDDEmappingFields.Add("eqs_passportnumber", CustIndvData.IdentificationDetails.PassportNumber.ToString());
-                CRMDDEmappingFields.Add("eqs_voterid", CustIndvData.IdentificationDetails.VoterID.ToString());
-                CRMDDEmappingFields.Add("eqs_drivinglicensenumber", CustIndvData.IdentificationDetails.DrivinglicenseNumber.ToString());
-                CRMDDEmappingFields.Add("eqs_aadharreference", CustIndvData.IdentificationDetails.AadharReference.ToString());
                 CRMDDEmappingFields.Add("eqs_ckycreferencenumber", CustIndvData.IdentificationDetails.CKYCreferenceNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_kycverificationmodecode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_kycverificationmodecode", CustIndvData.IdentificationDetails.KYCVerificationMode.ToString()));
                 
@@ -287,8 +283,7 @@
                 CRMDDEmappingFields.Add("eqs_addressline1", CustIndvData.Address.AddressLine1.ToString());
                 CRMDDEmappingFields.Add("eqs_addressline2", CustIndvData.Address.AddressLine2.ToString());
                 CRMDDEmappingFields.Add("eqs_addressline3", CustIndvData.Address.AddressLine3.ToString());
-                CRMDDEmappingFields.Add("eqs_addressline4", CustIndvData.Address.AddressLine4.ToString());
-                CRMDDEmappingFields.Add("eqs_mobilenumber", CustIndvData.Address.MobileNumber.ToString());
+                CRMDDEmappingFields.Add("eqs_addressline4", CustIndvData.Address.AddressLine4.ToString());                
                 CRMDDEmappingFields.Add("eqs_faxnumber", CustIndvData.Address.FaxNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_overseasmobilenumber", CustIndvData.Address.OverseasMobileNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_pincodemaster@odata.bind", $"eqs_pincodes({await this._commonFunc.getPincodeID(CustIndvData.Address.PinCodeMaster.ToString())})");
@@ -472,7 +467,7 @@
                 /*********** Identification Details *********/
 
                 CRMDDEmappingFields.Add("eqs_pocpanform60code", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_pocpanform60code", CustCorpData.IdentificationDetails.Pan.ToString()));
-                CRMDDEmappingFields.Add("eqs_pannumber", CustCorpData.IdentificationDetails.PanNumber.ToString());
+                
                 CRMDDEmappingFields.Add("eqs_gstnumber", CustCorpData.IdentificationDetails.GSTNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_ckycnumber", CustCorpData.IdentificationDetails.CKYCRefenceNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_tannumber", CustCorpData.IdentificationDetails.TANNumber.ToString());
@@ -545,7 +540,7 @@
                 CRMDDEmappingFields.Add("eqs_addressline2", CustCorpData.Address.AddressLine2.ToString());
                 CRMDDEmappingFields.Add("eqs_addressline3", CustCorpData.Address.AddressLine3.ToString());
                 CRMDDEmappingFields.Add("eqs_addressline4", CustCorpData.Address.AddressLine4.ToString());
-                CRMDDEmappingFields.Add("eqs_mobilenumber", CustCorpData.Address.MobileNumber.ToString());
+              
                 CRMDDEmappingFields.Add("eqs_faxnumber", CustCorpData.Address.FaxNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_overseasmobilenumber", CustCorpData.Address.OverseasMobileNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_pincodemaster@odata.bind", $"eqs_pincodes({await this._commonFunc.getPincodeID(CustCorpData.Address.PinCodeMaster.ToString())})");

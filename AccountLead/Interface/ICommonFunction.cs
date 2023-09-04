@@ -26,6 +26,7 @@ namespace AccountLead
         public Task<string> getStateName(string StateId);
         public Task<string> getCountryName(string CountryId);
         public Task<string> getAccountRelation(string accRelationId);
+        public Task<JArray> getApplicentData(string ApplicentID);
 
     }
 }

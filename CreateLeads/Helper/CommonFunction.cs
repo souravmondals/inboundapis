@@ -182,6 +182,16 @@ namespace CreateLeads
             return await this.getIDfromMSDTable("eqs_cities", "eqs_cityid", "eqs_citycode", CityCode);
         }
 
+        public async Task<string> getLeadIdByApplicent(string Applicent)
+        {
+            return await this.getIDfromMSDTable("eqs_accountapplicants", "_eqs_leadid_value", "eqs_applicantid", Applicent);
+        }
+
+        public async Task<string> getLeadId(string Lead)
+        {
+            return await this.getIDfromMSDTable("leads", "leadid", "eqs_crmleadid", Lead);
+        }
+
         public async Task<string> getBranchId(string BranchCode)
         {            
             return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchid", "eqs_branchidvalue", BranchCode); 

@@ -238,7 +238,7 @@
                     Request_Template.createAccountRequest.msgBdy = msgBdy;
 
                     string postDataParametr = await EncriptRespons(JsonConvert.SerializeObject(Request_Template));
-                    string Lead_details = await this._queryParser.HttpCBSApiCall(Token, HttpMethod.Post, postDataParametr);
+                    string Lead_details = await this._queryParser.HttpCBSApiCall(Token, HttpMethod.Post, "CBSCreateAccount", postDataParametr);
                     dynamic responsD = JsonConvert.DeserializeObject(Lead_details);
                     
                     if(responsD.msgHdr != null && responsD.msgHdr.result.ToString() == "ERROR")

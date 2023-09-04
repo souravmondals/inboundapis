@@ -70,10 +70,10 @@
             return results;
         }
 
-        public async Task<string> HttpCBSApiCall(string Token, HttpMethod httpMethod, string parameterToPost = "")
+        public async Task<string> HttpCBSApiCall(string Token, HttpMethod httpMethod, string APIName, string parameterToPost = "")
         {
             HttpClient httpClient = new HttpClient();
-            string requestUri = this._keyVaultService.ReadSecret("CBSCreateAccount");
+            string requestUri = this._keyVaultService.ReadSecret(APIName);
 
             HttpRequestMessage requestMessage = new HttpRequestMessage(httpMethod, requestUri);
             StringContent stringContent = new StringContent(parameterToPost);

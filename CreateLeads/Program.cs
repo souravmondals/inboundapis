@@ -16,6 +16,7 @@ builder.Services.AddScoped<IQueryParser, QueryParser>();
 builder.Services.AddScoped<ILoggers, Loggers>();
 builder.Services.AddScoped<ICommonFunction, CommonFunction>();
 builder.Services.AddScoped<ICreateLeadExecution,CreateLeadExecution>();
+builder.Services.AddScoped<IUpdateLeadExecution, UpdateLeadExecution>();
 builder.Services.AddSingleton<IMemoryCache,MemoryCache>();
 
 

@@ -5,6 +5,7 @@ namespace AccountLead
     public interface ICommonFunction
     {      
         public Task<string> getBranchId(string branch_Id);
+        public Task<string> getBranchCode(string BranchId);
         public Task<string> getAccRelationshipId(string AccRelationship_code);
       
 
@@ -21,7 +22,9 @@ namespace AccountLead
         public bool GetMvalue<T>(string keyname, out T? Outvalue);
         public void SetMvalue<T>(string keyname, double timevalid, T inputvalue);
 
- 
+        public Task<JArray> getAddressData(string individuaID);
+
+
         public Task<string> getCityName(string CityId);
         public Task<string> getStateName(string StateId);
         public Task<string> getCountryName(string CountryId);

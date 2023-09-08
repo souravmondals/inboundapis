@@ -18,6 +18,7 @@
     using Azure;
     using Microsoft.Identity.Client;
     using Microsoft.Azure.KeyVault.Models;
+    using System.Security.Cryptography.X509Certificates;
 
     public class CrdgCustomerByLeadExecution : ICrdgCustomerByLeadExecution
     {
@@ -133,9 +134,9 @@
         }
 
 
-        private async Task<AccountByLeadReturn> CreateCustomerByLead(string applicentId)
+        private async Task<CustomerByLeadReturn> CreateCustomerByLead(string applicentId)
         {
-            AccountByLeadReturn accountLeadReturn = new AccountByLeadReturn();
+            CustomerByLeadReturn customerLeadReturn = new CustomerByLeadReturn();
             try
             {               
 
@@ -155,22 +156,40 @@
                 var AccountDDE = await this._commonFunc.getApplicentData(applicentId);
                 if (AccountDDE.Count > 0)
                 {
+                    var address = await this._commonFunc.getAddressData(AccountDDE[0]["eqs_ddeindividualcustomerid"].ToString());
+                    if (address.Count > 0)
+                    {
+                        msgBdy.individualCustomer.address.line1 = address[0]["eqs_addressline1"].ToString();
+                        msgBdy.individualCustomer.address.line2 = address[0]["eqs_addressline2"].ToString();
+                        msgBdy.individualCustomer.address.line3 = address[0]["eqs_addressline3"].ToString();
+                        msgBdy.individualCustomer.address.line4 = address[0]["eqs_addressline4"].ToString();
+                        msgBdy.individualCustomer.address.zip = address[0]["eqs_pincode"].ToString();
+                        msgBdy.individualCustomer.address.city = await this._commonFunc.getCityName(address[0]["_eqs_cityid_value"].ToString());  //"CHENNAI";
+                        msgBdy.individualCustomer.address.state = await this._commonFunc.getStateName(address[0]["_eqs_stateid_value"].ToString());  //"TAMIL NADU";
+                        msgBdy.individualCustomer.address.country = "IN";
+                    }
+                   
 
-                    msgBdy.individualCustomer.address.zip = AccountDDE[0]["eqs_pincode"].ToString();
-                    msgBdy.individualCustomer.address.city = "CHENNAI";
-                    msgBdy.individualCustomer.address.state = "TAMIL NADU";
-                    msgBdy.individualCustomer.address.country = "IN";
-
-                    string dd = AccountDDE[0]["eqs_dob"].ToString().Substring(0, 2);
-                    string mm = AccountDDE[0]["eqs_dob"].ToString().Substring(3, 2);
-                    string yy = AccountDDE[0]["eqs_dob"].ToString().Substring(6, 4);
+                    string dd = AccountDDE[0]["eqs_dob"].ToString().Substring(8, 2);
+                    string mm = AccountDDE[0]["eqs_dob"].ToString().Substring(5, 2);
+                    string yy = AccountDDE[0]["eqs_dob"].ToString().Substring(0, 4);
                     msgBdy.individualCustomer.dateOfBirthOrRegistration = yy + mm + dd;
                     msgBdy.individualCustomer.customerMobilePhone = AccountDDE[0]["eqs_mobilenumber"].ToString();
-                    msgBdy.individualCustomer.emailId = AccountDDE[0]["eqs_emailaddress"].ToString();
+                    msgBdy.individualCustomer.emailId = AccountDDE[0]["eqs_emailid"].ToString();
+
                     msgBdy.individualCustomer.name.firstName = AccountDDE[0]["eqs_firstname"].ToString();
                     msgBdy.individualCustomer.name.lastName = AccountDDE[0]["eqs_lastname"].ToString();
+                    msgBdy.individualCustomer.name.midName = AccountDDE[0]["eqs_middlename"].ToString();
+                    msgBdy.individualCustomer.name.shortName = AccountDDE[0]["eqs_shortname"].ToString();
 
-                    
+                    msgBdy.individualCustomer.employeeId = "";
+                    msgBdy.individualCustomer.motherMaidenName = AccountDDE[0]["eqs_mothermaidenname"].ToString();
+                    msgBdy.individualCustomer.isStaff = "";
+                    msgBdy.individualCustomer.sex = (AccountDDE[0]["eqs_gendercode"].ToString() == "789030000") ? "M" : "F";
+
+                    msgBdy.individualCustomer.homeBranchCode = await this._commonFunc.getBranchCode(AccountDDE[0]["_eqs_sourcebranchid_value"].ToString());
+
+
                     Request_Template.createCustomerRequest.msgBdy = msgBdy;
 
                     string postDataParametr = await EncriptRespons(JsonConvert.SerializeObject(Request_Template));
@@ -179,39 +198,41 @@
                     
                     if(responsD.msgHdr != null && responsD.msgHdr.result.ToString() == "ERROR")
                     {
-                        accountLeadReturn.Message = responsD.msgHdr.error[0].reason.ToString();
-                        accountLeadReturn.ReturnCode = "CRM-ERROR-102";
+                        customerLeadReturn.Message = responsD.msgHdr.error[0].reason.ToString();
+                        customerLeadReturn.ReturnCode = "CRM-ERROR-102";
                     }
                     else
                     {
                         Dictionary<string,string> fieldInput = new Dictionary<string,string>();
                         
-                        accountLeadReturn.AccountNo = responsD.createCustomerRequest.msgBdy.accountNo.ToString();
-                        fieldInput.Add("eqs_accountnocreated", accountLeadReturn.AccountNo);
+                        customerLeadReturn.customerId = responsD.createCustomerRequest.msgBdy.customerId.ToString();
+                        fieldInput.Add("eqs_customeridcreated", customerLeadReturn.customerId);
                         postDataParametr = JsonConvert.SerializeObject(fieldInput);
 
-                        await this._queryParser.HttpApiCall($"eqs_ddeaccounts({AccountDDE[0]["eqs_ddeaccountid"].ToString()})", HttpMethod.Patch, postDataParametr);
-                        
-                        accountLeadReturn.Message = OutputMSG.Case_Success;
-                        accountLeadReturn.ReturnCode = "CRM-SUCCESS";
+                        var resp1 = await this._queryParser.HttpApiCall($"eqs_accountapplicants({AccountDDE[0]["_eqs_accountapplicantid_value"].ToString()})", HttpMethod.Patch, postDataParametr);
+
+                        var resp2 = await this._queryParser.HttpApiCall($"eqs_ddeindividualcustomers({AccountDDE[0]["eqs_ddeindividualcustomerid"].ToString()})", HttpMethod.Patch, postDataParametr);
+
+                        customerLeadReturn.Message = OutputMSG.Case_Success;
+                        customerLeadReturn.ReturnCode = "CRM-SUCCESS";
                     }                    
 
                 }
                 else
                 {
-                    accountLeadReturn.Message = OutputMSG.Resource_n_Found;
-                    accountLeadReturn.ReturnCode = "CRM-ERROR-101";
+                    customerLeadReturn.Message = OutputMSG.Resource_n_Found;
+                    customerLeadReturn.ReturnCode = "CRM-ERROR-101";
                 }
                
             }
             catch (Exception ex)
             {
                 this._logger.LogError("CreateAccountByLead", ex.Message);
-                accountLeadReturn.Message = OutputMSG.Incorrect_Input;
-                accountLeadReturn.ReturnCode = "CRM-ERROR-102";
+                customerLeadReturn.Message = OutputMSG.Incorrect_Input;
+                customerLeadReturn.ReturnCode = "CRM-ERROR-102";
             }
 
-            return accountLeadReturn;
+            return customerLeadReturn;
 
         }
 

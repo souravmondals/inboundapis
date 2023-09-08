@@ -181,7 +181,12 @@
         {
             return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchid", "eqs_branchidvalue", BranchCode);
         }
-       
+
+        public async Task<string> getBranchCode(string BranchId)
+        {
+            return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchidvalue", "eqs_branchid", BranchId);
+        }
+
         public async Task<string> getAccRelationshipId(string AccRelationship_code)
         {
             return await this.getIDfromMSDTable("eqs_accountrelationshipses", "eqs_accountrelationshipsid", "eqs_key", AccRelationship_code);
@@ -259,8 +264,11 @@
         public async Task<JArray> getApplicentData(string ApplicentID)
         {
             try
-            {                
-                string query_url = $"eqs_accountapplicants()?$select=eqs_accountapplicantid,eqs_firstname,eqs_lastname,eqs_mobilenumber,eqs_emailaddress,eqs_leadage,eqs_dob,eqs_gendercode,eqs_pincode,_eqs_cityid_value&$filter=eqs_applicantid eq '{ApplicentID}'";
+            {
+                string accountapplicantid = await this.getIDfromMSDTable("eqs_accountapplicants", "eqs_accountapplicantid", "eqs_applicantid", ApplicentID);
+                string DataEntryStage = await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_dataentrystage", "Final");
+
+                string query_url = $"eqs_ddeindividualcustomers()?$select=eqs_ddeindividualcustomerid,_eqs_accountapplicantid_value,eqs_firstname,eqs_middlename,eqs_lastname,eqs_shortname,eqs_mobilenumber,eqs_emailid,eqs_dob,eqs_mothermaidenname,_eqs_sourcebranchid_value,eqs_gendercode&$filter=_eqs_accountapplicantid_value eq '{accountapplicantid}' and eqs_dataentrystage eq {DataEntryStage}";
                 var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                 var Account_dtails = await this.getDataFromResponce(Accountdtails);
                 return Account_dtails;
@@ -271,6 +279,15 @@
                 throw ex;
             }
         }
+
+        public async Task<JArray> getAddressData(string individuaID)
+        {
+            string query_url = $"eqs_leadaddresses()?$select=eqs_addressline1,eqs_addressline2,eqs_addressline3,eqs_addressline4,eqs_pincode,_eqs_cityid_value,_eqs_stateid_value,_eqs_countryid_value&$filter=_eqs_individualdde_value eq '{individuaID}'";
+            var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var Account_dtails = await this.getDataFromResponce(Accountdtails);
+            return Account_dtails;
+        }
+
 
         public async Task<string> getCityName(string CityId)
         {

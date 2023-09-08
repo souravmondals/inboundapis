@@ -87,9 +87,9 @@
         }
 
 
-        public async Task<AccountByLeadReturn> ValidateLeadtInput(dynamic RequestData)
+        public async Task<CustomerByLeadReturn> ValidateLeadtInput(dynamic RequestData)
         {
-            AccountByLeadReturn ldRtPrm = new AccountByLeadReturn();
+            CustomerByLeadReturn ldRtPrm = new CustomerByLeadReturn();
             RequestData = await this.getRequestData(RequestData, "CreateDigiCustomerByLead");
             try
             { 

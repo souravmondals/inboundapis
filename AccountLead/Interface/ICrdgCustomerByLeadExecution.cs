@@ -8,7 +8,7 @@
         public string Transaction_ID { set; get; }
         public string appkey { set; get; }
  
-        public Task<AccountByLeadReturn> ValidateLeadtInput(dynamic CaseData);
+        public Task<CustomerByLeadReturn> ValidateLeadtInput(dynamic CaseData);
         public Task<string> EncriptRespons(string ResponsData);
         public Task CRMLog(string InputRequest, string OutputRespons, string CallStatus);
 

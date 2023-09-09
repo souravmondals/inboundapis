@@ -90,8 +90,9 @@
                             {
                                 odatab.Add("eqs_assetleadstatus", await this._queryParser.getOptionSetTextToValue("lead", "eqs_assetleadstatus", RequestData.AssetAccountStatus.ToString()));
                                 odatab.Add("eqs_assetaccountstatusremarks", RequestData.AssetAccountStatusRemark.ToString());
+                                odatab.Add("eqs_accountnumberbylos", RequestData.AccountNumber.ToString());
 
-                               string postDataParametr = JsonConvert.SerializeObject(odatab);
+                                string postDataParametr = JsonConvert.SerializeObject(odatab);
                                 var LeadAccount_details = await this._queryParser.HttpApiCall($"leads({LeadId})", HttpMethod.Patch, postDataParametr);
 
                                 ldRtPrm.ReturnCode = "CRM-SUCCESS";
@@ -109,13 +110,22 @@
                             string LeadId = await this._commonFunc.getLeadId(RequestData.LeadId.ToString());
                             if (!string.IsNullOrEmpty(LeadId))
                             {
-                                odatab.Add("eqs_assetleadstatus", await this._queryParser.getOptionSetTextToValue("lead", "eqs_assetleadstatus", RequestData.LeadStatus.ToString()));
+                                if (RequestData.LeadStatus.ToString() == "Not Onboarded")
+                                {
+                                    odatab.Add("eqs_assetleadstatus", await this._queryParser.getOptionSetTextToValue("lead", "eqs_leadstatus", RequestData.LeadStatus.ToString()));
+                                    odatab.Add("eqs_notonboardedreason", RequestData.NotOnboardedReason.ToString());
+                                    string postDataParametr = JsonConvert.SerializeObject(odatab);
+                                    var LeadAccount_details = await this._queryParser.HttpApiCall($"leads({LeadId})", HttpMethod.Patch, postDataParametr);
 
-                                string postDataParametr = JsonConvert.SerializeObject(odatab);
-                                var LeadAccount_details = await this._queryParser.HttpApiCall($"leads({LeadId})", HttpMethod.Patch, postDataParametr);
-
-                                ldRtPrm.ReturnCode = "CRM-SUCCESS";
-                                ldRtPrm.Message = OutputMSG.Lead_Success;
+                                    ldRtPrm.ReturnCode = "CRM-SUCCESS";
+                                    ldRtPrm.Message = OutputMSG.Lead_Success;
+                                }
+                                else
+                                {
+                                    this._logger.LogInformation("ValidateLeadtInput", "incorrect input ");
+                                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                                }
                             }
                             else
                             {

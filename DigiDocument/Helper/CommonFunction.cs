@@ -156,123 +156,136 @@ using System.Diagnostics.Metrics;
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
-            string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
-            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+            string Table_Id;
+            string TableId;
+            if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+            {
+                string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
+                var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+
+                this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+            }
+            else
+            {
+                TableId = Table_Id;
+            }
             return TableId;
         }
 
-        public async Task<string> getCategoryId(string product_Cat_Id)
+        public async Task<string> getDocCategoryId(string doccategory)
         {            
-            return await this.getIDfromMSDTable("eqs_productcategories", "eqs_productcategoryid", "eqs_productcategorycode", product_Cat_Id);
+            return await this.getIDfromMSDTable("eqs_doccategories", "eqs_doccategoryid", "eqs_doccategorycode", doccategory);
+        }
+        public async Task<string> getDocSubentityId(string docsubcategory)
+        {
+            return await this.getIDfromMSDTable("eqs_docsubcategories", "eqs_docsubcategoryid", "eqs_docsubcategorycode", docsubcategory);
+        }
+        public async Task<string> getDocTypeId(string docsubcategory)
+        {
+            return await this.getIDfromMSDTable("eqs_doctypes", "eqs_doctypeid", "eqs_name", docsubcategory);
+        }
+        public async Task<string> getSystemuserId(string system_user)
+        {
+            return await this.getIDfromMSDTable("systemusers", "systemuserid", "fullname", system_user);
+        }
+        public async Task<string> getLeadId(string leadid)
+        {
+            return await this.getIDfromMSDTable("leads", "leadid", "eqs_crmleadid", leadid);
+        }
+        public async Task<string> getLeadAccountId(string leadaccid)
+        {
+            return await this.getIDfromMSDTable("eqs_leadaccounts", "eqs_leadaccountid", "eqs_crmleadaccountid", leadaccid);
+        }
+        public async Task<string> getCustomerId(string customer)
+        {
+            return await this.getIDfromMSDTable("contacts", "contactid", "eqs_customerid", customer);
+        }
+        public async Task<string> getAccountId(string account)
+        {
+            return await this.getIDfromMSDTable("eqs_accounts", "eqs_accountid", "eqs_accountno", account);
+        }
+        public async Task<string> getCaseId(string caseid)
+        {
+            return await this.getIDfromMSDTable("incidents", "incidentid", "ticketnumber", caseid);
+        }
+        /*---------------------------------------------------*/
+        public async Task<string> getDocCategoryText(string doccategory)
+        {
+            return await this.getIDfromMSDTable("eqs_doccategories", "eqs_doccategorycode", "eqs_doccategoryid", doccategory);
+        }
+        public async Task<string> getDocSubentityText(string docsubcategory)
+        {
+            return await this.getIDfromMSDTable("eqs_docsubcategories", "eqs_docsubcategorycode", "eqs_docsubcategoryid", docsubcategory);
+        }
+        public async Task<string> getDocTypeText(string docsubcategory)
+        {
+            return await this.getIDfromMSDTable("eqs_doctypes", "eqs_name", "eqs_doctypeid", docsubcategory);
+        }
+        public async Task<string> getSystemuserText(string system_user)
+        {
+            return await this.getIDfromMSDTable("systemusers", "fullname", "systemuserid", system_user);
+        }
+        public async Task<string> getLeadText(string leadid)
+        {
+            return await this.getIDfromMSDTable("leads", "eqs_crmleadid", "leadid", leadid);
+        }
+        public async Task<string> getLeadAccountText(string leadaccid)
+        {
+            return await this.getIDfromMSDTable("eqs_leadaccounts", "eqs_crmleadaccountid", "eqs_leadaccountid", leadaccid);
+        }
+        public async Task<string> getCustomerText(string customer)
+        {
+            return await this.getIDfromMSDTable("contacts", "eqs_customerid", "contactid", customer);
+        }
+        public async Task<string> getAccountText(string account)
+        {
+            return await this.getIDfromMSDTable("eqs_accounts", "eqs_accountno", "eqs_accountid", account);
+        }
+        public async Task<string> getCaseText(string caseid)
+        {
+            return await this.getIDfromMSDTable("incidents", "ticketnumber", "incidentid", caseid);
         }
 
-        public async Task<string> getSubentity(string subentity_Id)
+        public async Task<string> getDocumentID(string Documentid)
         {
-            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_name", "eqs_subentitytypeid", subentity_Id);
+            return await this.getIDfromMSDTable("eqs_leaddocuments", "eqs_leaddocumentid", "eqs_documentid", Documentid);
         }
 
-        public async Task<JArray> getApplicantDetails(string ApplicantId)
-        {
-            try
-            {
-                string query_url = $"eqs_accountapplicants()?$select=_eqs_entitytypeid_value,eqs_gendercode,eqs_leadage,_eqs_subentity_value,eqs_customersegment,eqs_isstaffcode&$filter=eqs_applicantid eq '{ApplicantId}'";
-                var Applicantdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Applicant_dtails = await this.getDataFromResponce(Applicantdtails);
-                return Applicant_dtails;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("getApplicantDetails", ex.Message);
-                throw ex;
-            }
-        }
         
-        public async Task<JArray> getCustomerDetails(string CustomerId)
+
+        public async Task<List<Document>> getDocumentList(string query_url)
         {
+            List<Document> documentDtls = new List<Document>();
             try
-            {
-                string query_url = $"contacts()?$select=_eqs_entitytypeid_value,eqs_gender,eqs_age,_eqs_subentitytypeid_value,eqs_customersegment,eqs_isstafffcode&$filter=eqs_customerid eq '{CustomerId}'";
-                var Customerdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Customer_dtails = await this.getDataFromResponce(Customerdtails);
-                return Customer_dtails;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("getCustomerDetails", ex.Message);
-                throw ex;
-            }
-        }
-
-        public async Task<JArray> getProductData(productFilter product_Filter)
-        {
-            try
-            {
-                string prodSrkey = product_Filter.productCategory;
-                string filter = $"_eqs_productcategory_value eq '{product_Filter.productCategory}' ";
-
-                if (string.IsNullOrEmpty(product_Filter.gender))
+            {                
+                var documentdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var document_dtails = await this.getDataFromResponce(documentdtails);
+                foreach (var item in document_dtails)
                 {
-                    filter += $"and eqs_woman eq false ";
-                    prodSrkey += "GF";
+                    Document document = new Document();
+                    document.CRMDocumentID = item["eqs_documentid"].ToString();
+                    document.CategoryCode = await getDocCategoryText(item["_eqs_doccategory_value"].ToString());
+                    document.SubcategoryCode = await getDocSubentityText(item["_eqs_docsubcategory_value"].ToString());
+                    document.DocumentType = await getDocTypeText(item["_eqs_doctype_value"].ToString());
+                    
+                    document.IssuedAt = item["eqs_issuedat"].ToString();
+                    document.IssueDate = item["eqs_issuedate"].ToString();
+                    document.ExpiryDate = item["eqs_expirydate"].ToString();
+                    document.DmsDocumentID = item["eqs_dmsrequestid"].ToString();
+                    document.VerificationStatus = item["eqs_verificationstatus"].ToString();                   
+                    document.VerifiedOn = item["eqs_verifiedon"].ToString();
+
+                    document.VerifiedBy = await getSystemuserText(item["_eqs_verifiedbyid_value"].ToString());
+                    document.MappedCustomerLead = await getLeadText(item["_eqs_leadid_value"].ToString());
+                    document.MappedAccountLead = await getLeadAccountText(item["_eqs_leadaccountid_value"].ToString());
+                    document.MappedUCIC = await getCustomerText(item["_eqs_ucicid_value"].ToString());
+                    document.MappedAccount = await getAccountText(item["_eqs_accountnumberid_value"].ToString());
+                    document.MappedServiceRequest = await getCaseText(item["_eqs_caseid_value"].ToString());
+
+                    documentDtls.Add(document);
                 }
-
-                if (!string.IsNullOrEmpty(product_Filter.age))
-                {
-                    filter += $"and eqs_maxage gt {product_Filter.age} and eqs_minage lt {product_Filter.age} ";
-                    prodSrkey += "ag" + product_Filter.age;
-                }
-
-                if (string.IsNullOrEmpty(product_Filter.subentity))
-                {
-                    filter += $"and eqs_nri eq false ";
-                    prodSrkey += "nriF";
-                }
-
-                if (string.IsNullOrEmpty(product_Filter.customerSegment))
-                {
-                    filter += $"and eqs_iselite eq false ";
-                    prodSrkey += "elitF";
-                }
-
-                if (string.IsNullOrEmpty(product_Filter.IsStaff))
-                {
-                    filter += $"and eqs_staff eq false ";
-                    prodSrkey += "stfF";
-                }
-
-                JArray Product_dtails, Product_dtails1;
-
-                if (!this.GetMvalue<JArray>(prodSrkey, out Product_dtails1))
-                {
-                    string query_url = $"eqs_products()?$filter={filter}";
-                    var Productdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                    Product_dtails = await this.getDataFromResponce(Productdtails);
-
-                    this.SetMvalue<JArray>(prodSrkey, 5, Product_dtails);
-                }
-                else
-                {
-                    Product_dtails = Product_dtails1;
-                }
-                
-                return Product_dtails;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("getProductData", ex.Message);
-                throw ex;
-            }
-        }
-
-        public async Task<JArray> getContactData(string contact_id)
-        {
-            try
-            {
-                string query_url = $"contacts({contact_id})?$select=createdon,eqs_entityflag,eqs_subentitytypeid,mobilephone,eqs_customerid";
-                var Accountdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Account_dtails = await this.getDataFromResponce(Accountdtails);
-                return Account_dtails;
+                return documentDtls;
             }
             catch (Exception ex)
             {

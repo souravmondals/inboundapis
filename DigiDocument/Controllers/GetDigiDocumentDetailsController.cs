@@ -19,13 +19,13 @@
 
     [Route("[controller]")]
     [ApiController]
-    public class UpdateDigiDocumentDetailsController : ControllerBase
+    public class GetDigiDocumentDetailsController : ControllerBase
     {
 
         private readonly IDgDocDtlExecution _dgdocDtlExecution;
         private Stopwatch watch;
 
-        public UpdateDigiDocumentDetailsController(IDgDocDtlExecution dgdocDtExecution)
+        public GetDigiDocumentDetailsController(IDgDocDtlExecution dgdocDtExecution)
         {
             watch = new System.Diagnostics.Stopwatch();
             watch.Start();
@@ -43,9 +43,9 @@
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
 
                 
-                _dgdocDtlExecution.API_Name = "UpdateDigiDocumentDetails";
+                _dgdocDtlExecution.API_Name = "GetDigiDocumentDetails";
                 _dgdocDtlExecution.Input_payload = request.ToString();
-                UpdateDgDocDtlReturn api_Return = await _dgdocDtlExecution.ValidateDocumentInput(request);
+                GetDgDocDtlReturn api_Return = await _dgdocDtlExecution.GetDocumentList(request);
 
                 watch.Stop();
                 api_Return.TransactionID = this._dgdocDtlExecution.Transaction_ID;

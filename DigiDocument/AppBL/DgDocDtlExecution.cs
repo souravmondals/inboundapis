@@ -14,8 +14,10 @@
     using System.Threading.Channels;
     using System.ComponentModel;
     using System;
+    using System.Reflection.Metadata;
+    using Microsoft.Identity.Client;
 
-    public class DgDocDtlExecution : IDgDocDtlExecutiontExecution
+    public class DgDocDtlExecution : IDgDocDtlExecution
     {
 
         private ILoggers _logger;
@@ -74,68 +76,63 @@
         }
 
 
-        public async Task<DgDocDtlReturn> ValidateProductInput(dynamic RequestData)
+        public async Task<UpdateDgDocDtlReturn> ValidateDocumentInput(dynamic RequestData)
         {
-            DgDocDtlReturn ldRtPrm = new DgDocDtlReturn();
+            UpdateDgDocDtlReturn ldRtPrm = new UpdateDgDocDtlReturn();
             RequestData = await this.getRequestData(RequestData, "UpdateDigiDocumentDetails");
             try
             {
-                string CategoryCode = RequestData.CategoryCode;
-                string leadId = RequestData.LeadID;
-                string customerID = RequestData.UCIC;
-
+               
                 if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "UpdateDigiDocumentappkey"))
                 {
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID))
                     {
-                        if (!string.IsNullOrEmpty(CategoryCode) && CategoryCode != "")
+                        List<string> Documents = new List<string>();
+                        foreach (var item in RequestData.Document)
                         {
-                            if (!string.IsNullOrEmpty(leadId) && leadId != "")
+                            string documentID = "";
+                            if (!string.IsNullOrEmpty(item.CRMDocumentID.ToString()))
                             {
-                                ldRtPrm = await this.getApplicentToProduct(leadId, CategoryCode);
-                            }
-                            else if (!string.IsNullOrEmpty(customerID) && customerID != "")
-                            {
-                                ldRtPrm = await this.getUcicToProduct(customerID, CategoryCode);
+                                documentID = await this.UpdateDocument(item);
                             }
                             else
                             {
-                                this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
-                                ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                                ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                                documentID = await this.CreateDocument(item);
                             }
-                            
+                            Documents.Add(documentID);
+                        }
 
-                        }
-                        else
-                        {
-                            this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
-                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
-                        }
+                        ldRtPrm.DocumentIDs = Documents;
+                        ldRtPrm.ReturnCode = "CRM-SUCCESS";
+                        ldRtPrm.Message = OutputMSG.Case_Success;
+
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateDocumentInput", "Input parameters are incorrect");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
                         ldRtPrm.Message = OutputMSG.Incorrect_Input;
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateDocumentInput", "Input parameters are incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
                     ldRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
 
-                return ldRtPrm;
+                
             }
             catch (Exception ex)
             {
-                this._logger.LogError("ValidateProductInput", ex.Message);
-                throw ex;
+                this._logger.LogError("ValidateDocumentInput", ex.Message);
+                this._logger.LogInformation("ValidateDocumentInput", "Input parameters are incorrect");
+                ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                ldRtPrm.Message = OutputMSG.Incorrect_Input;
             }
-            
+
+            return ldRtPrm;
+
         }
 
 
@@ -151,230 +148,283 @@
             }
         }
 
-        
-
-        public async Task<DgDocDtlReturn> getUcicToProduct(string customerID, string CategoryCode)
+        private async Task<string> CreateDocument(dynamic documentdtl)
         {
-            DgDocDtlReturn csRtPrm = new DgDocDtlReturn();
-            try
+            Dictionary<string, string> odatab = new Dictionary<string, string>();
+
+            string catId = await this._commonFunc.getDocCategoryId(documentdtl.CategoryCode.ToString());
+            if (!string.IsNullOrEmpty(catId))
             {
-                string CategoryId = await this._commonFunc.getCategoryId(CategoryCode);
-                JArray applicentDetails = await this._commonFunc.getCustomerDetails(customerID);
-                if (applicentDetails.Count > 0)
-                {
-                    productFilter product_Filter = new productFilter();
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_gender"].ToString()) && applicentDetails[0]["eqs_gender"].ToString() == "789030001")
-                    {
-                        product_Filter.gender = "Woman";
-                    }
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_age"].ToString()))
-                    {
-                        product_Filter.age = applicentDetails[0]["eqs_age"].ToString();
-                    }
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["_eqs_subentitytypeid_value"].ToString()))
-                    {
-                        string subentity = await this._commonFunc.getSubentity(applicentDetails[0]["_eqs_subentitytypeid_value"].ToString());
-                        if (subentity.ToLower() == "foreigners")
-                        {
-                            product_Filter.subentity = "NRI";
-                        }
-                    }
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_customersegment"].ToString()) && applicentDetails[0]["eqs_customersegment"].ToString() == "789030002")
-                    {
-                        product_Filter.customerSegment = "elite";
-                    }
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_isstafffcode"].ToString()))
-                    {
-                        product_Filter.gender = "staff";
-                    }
-
-                    product_Filter.productCategory = CategoryId;
-
-                    csRtPrm = await this.getProductDetails(product_Filter);
-                }
+                odatab.Add("eqs_doccategory@odata.bind", $"eqs_doccategories({catId})");
             }
-            catch(Exception ex)
+            string subcatId = await this._commonFunc.getDocSubentityId(documentdtl.SubcategoryCode.ToString());
+            if (!string.IsNullOrEmpty(subcatId))
             {
-                this._logger.LogError("getUcicToProduct", ex.Message);
-                csRtPrm.ReturnCode = "CRM-ERROR-102";
-                csRtPrm.Message = OutputMSG.Incorrect_Input;
+                odatab.Add("eqs_docsubcategory@odata.bind", $"eqs_docsubcategories({subcatId})");
             }
-            
-            
+            string doctype = await this._commonFunc.getDocTypeId(documentdtl.DocumentType.ToString());
+            if (!string.IsNullOrEmpty(doctype))
+            {
+                odatab.Add("eqs_doctype@odata.bind", $"eqs_doctypes({doctype})");
+            }
 
-            return csRtPrm;
+
+            odatab.Add("eqs_dmsrequestid", documentdtl.DmsDocumentID.ToString());
+            odatab.Add("eqs_issuedat", documentdtl.IssuedAt.ToString());
+
+            string dd = documentdtl.IssueDate.ToString().Substring(0, 2);
+            string mm = documentdtl.IssueDate.ToString().Substring(3, 2);
+            string yy = documentdtl.IssueDate.ToString().Substring(6, 4);
+
+            odatab.Add("eqs_issuedate", yy + "-" + mm + "-" + dd);
+
+            dd = documentdtl.ExpiryDate.ToString().Substring(0, 2);
+            mm = documentdtl.ExpiryDate.ToString().Substring(3, 2);
+            yy = documentdtl.ExpiryDate.ToString().Substring(6, 4);
+
+            odatab.Add("eqs_expirydate", yy + "-" + mm + "-" + dd);
+            odatab.Add("eqs_verificationstatus", documentdtl.VerificationStatus.ToString());
+
+            dd = documentdtl.VerifiedOn.ToString().Substring(0, 2);
+            mm = documentdtl.VerifiedOn.ToString().Substring(3, 2);
+            yy = documentdtl.VerifiedOn.ToString().Substring(6, 4);
+
+            odatab.Add("eqs_verifiedon", yy + "-" + mm + "-" + dd);
+
+            string validateby = await this._commonFunc.getSystemuserId(documentdtl.VerifiedBy.ToString());
+            if (!string.IsNullOrEmpty(validateby))
+            {
+                odatab.Add("eqs_verifiedbyid@odata.bind", $"systemusers({validateby})");
+            }
+
+            string leadid = await this._commonFunc.getLeadId(documentdtl.MappedCustomerLead.ToString());
+            if (!string.IsNullOrEmpty(validateby))
+            {
+                odatab.Add("eqs_leadid@odata.bind", $"leads({leadid})");
+            }
+            string LeadAccount = await this._commonFunc.getLeadAccountId(documentdtl.MappedAccountLead.ToString());
+            if (!string.IsNullOrEmpty(validateby))
+            {
+                odatab.Add("eqs_leadaccountid@odata.bind", $"eqs_leadaccounts({LeadAccount})");
+            }
+            string customerid = await this._commonFunc.getCustomerId(documentdtl.MappedUCIC.ToString());
+            if (!string.IsNullOrEmpty(validateby))
+            {
+                odatab.Add("eqs_ucicid@odata.bind", $"contacts({customerid})");
+            }
+            string accountid = await this._commonFunc.getAccountId(documentdtl.MappedAccount.ToString());
+            if (!string.IsNullOrEmpty(validateby))
+            {
+                odatab.Add("eqs_accountnumberid@odata.bind", $"eqs_accounts({accountid})");
+            }
+            string caseid = await this._commonFunc.getCaseId(documentdtl.MappedServiceRequest.ToString());
+            if (!string.IsNullOrEmpty(validateby))
+            {
+                odatab.Add("eqs_CaseId@odata.bind", $"incidents({caseid})");
+            }
+
+            string postDataParametr = JsonConvert.SerializeObject(odatab);
+            var Document_details = await this._queryParser.HttpApiCall($"eqs_leaddocuments()?$select=eqs_documentid", HttpMethod.Post, postDataParametr);
+            var Documentid = CommonFunction.GetIdFromPostRespons201(Document_details[0]["responsebody"], "eqs_documentid");
+            return Documentid;
+
         }
 
-        public async Task<DgDocDtlReturn> getApplicentToProduct(string ApplicantId, string CategoryCode)
+        private async Task<string> UpdateDocument(dynamic documentdtl)
         {
-            DgDocDtlReturn csRtPrm = new DgDocDtlReturn();
+            Dictionary<string, string> odatab = new Dictionary<string, string>();
+            string DocumentID = await this._commonFunc.getDocumentID(documentdtl.CRMDocumentID.ToString());
+            if (!string.IsNullOrEmpty(DocumentID))
+            {
+                string catId = await this._commonFunc.getDocCategoryId(documentdtl.CategoryCode.ToString());
+                if (!string.IsNullOrEmpty(catId))
+                {
+                    odatab.Add("eqs_doccategory@odata.bind", $"eqs_doccategories({catId})");
+                }
+                string subcatId = await this._commonFunc.getDocSubentityId(documentdtl.SubcategoryCode.ToString());
+                if (!string.IsNullOrEmpty(subcatId))
+                {
+                    odatab.Add("eqs_docsubcategory@odata.bind", $"eqs_docsubcategories({subcatId})");
+                }
+                string doctype = await this._commonFunc.getDocTypeId(documentdtl.DocumentType.ToString());
+                if (!string.IsNullOrEmpty(doctype))
+                {
+                    odatab.Add("eqs_doctype@odata.bind", $"eqs_doctypes({doctype})");
+                }
+                   
+
+                odatab.Add("eqs_dmsrequestid", documentdtl.DmsDocumentID.ToString());
+                odatab.Add("eqs_issuedat", documentdtl.IssuedAt.ToString());
+
+                string dd = documentdtl.IssueDate.ToString().Substring(0, 2);
+                string mm = documentdtl.IssueDate.ToString().Substring(3, 2);
+                string yy = documentdtl.IssueDate.ToString().Substring(6, 4);
+               
+                odatab.Add("eqs_issuedate", yy + "-" + mm + "-" + dd);
+
+                dd = documentdtl.ExpiryDate.ToString().Substring(0, 2);
+                mm = documentdtl.ExpiryDate.ToString().Substring(3, 2);
+                yy = documentdtl.ExpiryDate.ToString().Substring(6, 4);
+
+                odatab.Add("eqs_expirydate", yy + "-" + mm + "-" + dd);
+                odatab.Add("eqs_verificationstatus", documentdtl.VerificationStatus.ToString());
+
+                dd = documentdtl.VerifiedOn.ToString().Substring(0, 2);
+                mm = documentdtl.VerifiedOn.ToString().Substring(3, 2);
+                yy = documentdtl.VerifiedOn.ToString().Substring(6, 4);
+
+                odatab.Add("eqs_verifiedon", yy + "-" + mm + "-" + dd);
+
+                string validateby = await this._commonFunc.getSystemuserId(documentdtl.VerifiedBy.ToString());
+                if (!string.IsNullOrEmpty(validateby))
+                {
+                    odatab.Add("eqs_verifiedbyid@odata.bind", $"systemusers({validateby})");
+                }
+
+                string leadid = await this._commonFunc.getLeadId(documentdtl.MappedCustomerLead.ToString());
+                if (!string.IsNullOrEmpty(validateby))
+                {
+                    odatab.Add("eqs_leadid@odata.bind", $"leads({leadid})");
+                }
+                string LeadAccount = await this._commonFunc.getLeadAccountId(documentdtl.MappedAccountLead.ToString());
+                if (!string.IsNullOrEmpty(validateby))
+                {
+                    odatab.Add("eqs_leadaccountid@odata.bind", $"eqs_leadaccounts({LeadAccount})");
+                }
+                string customerid = await this._commonFunc.getCustomerId(documentdtl.MappedUCIC.ToString());
+                if (!string.IsNullOrEmpty(validateby))
+                {
+                    odatab.Add("eqs_ucicid@odata.bind", $"contacts({customerid})");
+                }
+                string accountid = await this._commonFunc.getAccountId(documentdtl.MappedAccount.ToString());
+                if (!string.IsNullOrEmpty(validateby))
+                {
+                    odatab.Add("eqs_accountnumberid@odata.bind", $"eqs_accounts({accountid})");
+                }
+                string caseid = await this._commonFunc.getCaseId(documentdtl.MappedServiceRequest.ToString());
+                if (!string.IsNullOrEmpty(validateby))
+                {
+                    odatab.Add("eqs_CaseId@odata.bind", $"incidents({caseid})");
+                }
+
+
+
+
+                string postDataParametr = JsonConvert.SerializeObject(odatab);
+                var Document_details = await this._queryParser.HttpApiCall($"eqs_leaddocuments({DocumentID})", HttpMethod.Patch, postDataParametr);
+
+                return documentdtl.CRMDocumentID.ToString();
+            }
+            else
+            {
+                return await this.CreateDocument(documentdtl);
+            }
+        }
+
+        public async Task<GetDgDocDtlReturn> GetDocumentList(dynamic RequestData)
+        {
+            GetDgDocDtlReturn ldRtPrm = new GetDgDocDtlReturn();
+           
+            RequestData = await this.getRequestData(RequestData, "GetDigiDocumentDetails");
             try
             {
-                string CategoryId = await this._commonFunc.getCategoryId(CategoryCode);
-                JArray applicentDetails = await this._commonFunc.getApplicantDetails(ApplicantId);
-                
-                if (applicentDetails.Count > 0)
+                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "GetDigiDocumentappkey"))
                 {
-                    productFilter product_Filter = new productFilter();
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_gendercode"].ToString()) && applicentDetails[0]["eqs_gendercode"].ToString() == "789030001")
+                    if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID))
                     {
-                        product_Filter.gender = "Woman";
-                    }
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_leadage"].ToString()))
-                    {
-                        product_Filter.age = applicentDetails[0]["eqs_leadage"].ToString();
-                    }
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["_eqs_subentity_value"].ToString()))
-                    {
-                        string subentity = await this._commonFunc.getSubentity(applicentDetails[0]["_eqs_subentity_value"].ToString());
-                        if (subentity.ToLower() == "foreigners")
+                        string query_url = $"eqs_leaddocuments()?$select=eqs_documentid,_eqs_doccategory_value,_eqs_docsubcategory_value,_eqs_doctype_value,eqs_dmsrequestid,eqs_issuedat,eqs_issuedate,eqs_expirydate,eqs_verificationstatus,eqs_verifiedon,_eqs_verifiedbyid_value,_eqs_leadid_value,_eqs_leadaccountid_value,_eqs_ucicid_value,_eqs_accountnumberid_value,_eqs_caseid_value&$filter=";
+                        int IdExist = 0;
+                        if (!string.IsNullOrEmpty(RequestData.CustomerLead.ToString()))
                         {
-                            product_Filter.subentity = "NRI";
+                            string LeadId = await this._commonFunc.getLeadId(RequestData.CustomerLead.ToString());
+                            if (!string.IsNullOrEmpty(LeadId))
+                            {
+                                IdExist = 1;                                
+                                query_url = query_url + $"_eqs_leadid_value eq '{LeadId}'";
+                            }
+                        }
+                        else if (!string.IsNullOrEmpty(RequestData.AccountLead.ToString()))
+                        {
+                            string LeadAcc = await this._commonFunc.getLeadAccountId(RequestData.AccountLead.ToString());
+                            if (!string.IsNullOrEmpty(LeadAcc))
+                            {
+                                IdExist = 1;                                
+                                query_url = query_url + $"_eqs_leadaccountid_value eq '{LeadAcc}'";
+                            }
+                        }
+                        else if (!string.IsNullOrEmpty(RequestData.UCIC.ToString()))
+                        {
+                            string custonerId = await this._commonFunc.getCustomerId(RequestData.UCIC.ToString());
+                            if (!string.IsNullOrEmpty(custonerId))
+                            {
+                                IdExist = 1;                                
+                                query_url = query_url + $"_eqs_ucicid_value eq '{custonerId}'";
+                            }
+                        }
+                        else if (!string.IsNullOrEmpty(RequestData.AccountNumbe.ToString()))
+                        {
+                            string AccountId = await this._commonFunc.getAccountId(RequestData.AccountNumbe.ToString());
+                            if (!string.IsNullOrEmpty(AccountId))
+                            {
+                                IdExist = 1;                                
+                                query_url = query_url + $"_eqs_accountnumberid_value eq '{AccountId}'";
+
+                            }
+                        }
+                        else if (!string.IsNullOrEmpty(RequestData.CaseNumber.ToString()))
+                        {
+                            string caseId = await this._commonFunc.getCaseId(RequestData.CaseNumber.ToString());
+                            if (!string.IsNullOrEmpty(caseId))
+                            {
+                                IdExist = 1;                                
+                                query_url = query_url + $"_eqs_caseid_value eq '{caseId}'";
+                            }
+                        }
+                        else
+                        {
+                            this._logger.LogInformation("GetDocumentList", "Input parameters are incorrect");
+                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                            return ldRtPrm;
+                        }
+
+                        if (IdExist == 1)
+                        {
+                            var documentList = await this._commonFunc.getDocumentList(query_url);
+                            ldRtPrm.DocumentIDs = documentList;
+                            ldRtPrm.ReturnCode = "CRM-SUCCESS";
+                            ldRtPrm.Message = OutputMSG.Case_Success;
+                        }
+                        else
+                        {
+                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
                         }                        
-                    }
 
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_customersegment"].ToString()) && applicentDetails[0]["eqs_customersegment"].ToString() == "789030002")
+                    }
+                    else
                     {
-                        product_Filter.customerSegment = "elite";
+                        this._logger.LogInformation("GetDocumentList", "Input parameters are incorrect");
+                        ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
                     }
-
-                    if (!string.IsNullOrEmpty(applicentDetails[0]["eqs_isstaffcode"].ToString()))
-                    {
-                        product_Filter.gender = "staff";
-                    }
-
-                    product_Filter.productCategory = CategoryId;
-
-                    csRtPrm = await this.getProductDetails(product_Filter);
                 }
                 else
                 {
-                    this._logger.LogInformation("getApplicentToProduct", "No product found in the lead");
-                    csRtPrm.ReturnCode = "CRM-ERROR-102";
-                    csRtPrm.Message = OutputMSG.Resource_n_Found;
+                    this._logger.LogInformation("GetDocumentList", "Input parameters are incorrect");
+                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
-
             }
             catch (Exception ex)
             {
-                this._logger.LogError("getApplicentToProduct", ex.Message);
-                csRtPrm.ReturnCode = "CRM-ERROR-102";
-                csRtPrm.Message = OutputMSG.Incorrect_Input;
+                this._logger.LogError("GetDocumentList", ex.Message);
+                this._logger.LogInformation("GetDocumentList", "Input parameters are incorrect");
+                ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                ldRtPrm.Message = OutputMSG.Incorrect_Input;
             }
-
-            return csRtPrm;
-        }
-
-        public async Task<DgDocDtlReturn> getProductDetails(productFilter product_Filter)
-        {
-            DgDocDtlReturn csRtPrm = new DgDocDtlReturn();
-            var productDetails = await this._commonFunc.getProductData(product_Filter);
-            if (productDetails.Count >0 )
-            {
-                csRtPrm.fdproductsApplicable = new List<FDProductsApplicable>();
-                csRtPrm.rdproductsApplicable = new List<RDProductsApplicable>();
-                csRtPrm.applicableCASAProducts = new List<ApplicableCASAProducts>();
-
-            }
-            foreach(dynamic product_detail in productDetails)
-            {
-                if (product_detail.eqs_crmproductcategorycode.ToString() == "615290001")
-                {
-                    FDProductsApplicable fDProductsApplicable = new FDProductsApplicable();
-                    fDProductsApplicable.productCode = product_detail.eqs_productcode;
-                    fDProductsApplicable.productName = product_detail.eqs_name;
-                    fDProductsApplicable.nri = product_detail.eqs_nri;
-                    fDProductsApplicable.mfi = product_detail.eqs_mfi;
-                    fDProductsApplicable.minAge = product_detail.eqs_minage;
-                    fDProductsApplicable.maxAge = product_detail.eqs_maxage;
-                    fDProductsApplicable.staff = product_detail.eqs_staff;
-                    fDProductsApplicable.woman = product_detail.eqs_woman;
-                    fDProductsApplicable.minTenureDays = product_detail.eqs_mintenuredays;
-                    fDProductsApplicable.maxTenureDays = product_detail.eqs_maxtenuredays;
-                    fDProductsApplicable.minTenureMonths = product_detail.eqs_mintenuremonths;
-                    fDProductsApplicable.maxTenureMonths = product_detail.eqs_maxtenuremonths;
-                    fDProductsApplicable.minAmount = product_detail.eqs_minamount;
-                    fDProductsApplicable.maxAmount = product_detail.eqs_maxamount;
-                    fDProductsApplicable.depositVariance = product_detail.eqs_depositvariance;
-                    fDProductsApplicable.payoutFrequency = product_detail.eqs_payoutfrequency;
-                    fDProductsApplicable.compoundingFrequency = product_detail.eqs_compoundingfrequency;
-                    fDProductsApplicable.renewalOptions = product_detail.eqs_renewaloptions;
-                    fDProductsApplicable.payoutFrequencyType = product_detail.eqs_payoutfrequencytype;
-                    fDProductsApplicable.compoundingFrequencyType = product_detail.eqs_compoundingfrequencytype;
-                    fDProductsApplicable.isElite = product_detail.eqs_iselite;
-
-                    csRtPrm.fdproductsApplicable.Add(fDProductsApplicable);
-                }
-                else if (product_detail.eqs_crmproductcategorycode.ToString() == "615290002")
-                {
-                    RDProductsApplicable rdProductsApplicable = new RDProductsApplicable();
-                    rdProductsApplicable.productCode = product_detail.eqs_productcode;
-                    rdProductsApplicable.productName = product_detail.eqs_name;
-                    rdProductsApplicable.nri = product_detail.eqs_nri;
-                    rdProductsApplicable.mfi = product_detail.eqs_mfi;
-                    rdProductsApplicable.minAge = product_detail.eqs_minage;
-                    rdProductsApplicable.maxAge = product_detail.eqs_maxage;
-                    rdProductsApplicable.staff = product_detail.eqs_staff;
-                    rdProductsApplicable.woman = product_detail.eqs_woman;
-                    rdProductsApplicable.minTenureDays = product_detail.eqs_mintenuredays;
-                    rdProductsApplicable.maxTenureDays = product_detail.eqs_maxtenuredays;
-                    rdProductsApplicable.minTenureMonths = product_detail.eqs_mintenuremonths;
-                    rdProductsApplicable.maxTenureMonths = product_detail.eqs_maxtenuremonths;
-                    rdProductsApplicable.minAmount = product_detail.eqs_minamount;
-                    rdProductsApplicable.maxAmount = product_detail.eqs_maxamount;
-                    rdProductsApplicable.depositVariance = product_detail.eqs_depositvariance;
-                    rdProductsApplicable.payoutFrequency = product_detail.eqs_payoutfrequency;
-                    rdProductsApplicable.compoundingFrequency = product_detail.eqs_compoundingfrequency;
-                    rdProductsApplicable.renewalOptions = product_detail.eqs_renewaloptions;
-                    rdProductsApplicable.payoutFrequencyType = product_detail.eqs_payoutfrequencytype;
-                    rdProductsApplicable.compoundingFrequencyType = product_detail.eqs_compoundingfrequencytype;
-                    rdProductsApplicable.isElite = product_detail.eqs_iselite;
-
-                    csRtPrm.rdproductsApplicable.Add(rdProductsApplicable);
-                }
-                else
-                {
-                    ApplicableCASAProducts applicableCASAProducts = new ApplicableCASAProducts();
-                    applicableCASAProducts.productCode = product_detail.eqs_productcode;
-                    applicableCASAProducts.productName = product_detail.eqs_name;
-                    applicableCASAProducts.nri = product_detail.eqs_nri;
-                    applicableCASAProducts.mfi = product_detail.eqs_mfi;
-                    applicableCASAProducts.minAge = product_detail.eqs_minage;
-                    applicableCASAProducts.maxAge = product_detail.eqs_maxage;
-                    applicableCASAProducts.staff = product_detail.eqs_staff;
-                    applicableCASAProducts.woman = product_detail.eqs_woman;
-                    applicableCASAProducts.chequeBook = product_detail.eqs_chequebook;
-                    applicableCASAProducts.debitCard = product_detail.eqs_debitcard;
-                    applicableCASAProducts.applicableDebitCard = product_detail.eqs_applicabledebitcard;
-                    applicableCASAProducts.defaultDebitCard = product_detail.eqs_defaultdebitcard;
-                    applicableCASAProducts.instaKit = product_detail.eqs_InstaKit;
-                    applicableCASAProducts.doorStep = product_detail.eqs_doorstep;
-                    applicableCASAProducts.frontEnd = product_detail.eqs_frontend;
-                    applicableCASAProducts.PMAY = product_detail.eqs_pmay;
-                    applicableCASAProducts.isElite = product_detail.eqs_iselite;
-                    applicableCASAProducts.srnoofchequeleaves = product_detail.eqs_srnoofchequeleaves;
-                    applicableCASAProducts.noofchequeleaves = product_detail.eqs_noofchequeleaves;
-                    applicableCASAProducts.srdefaultchequeleaves = product_detail.eqs_srdefaultchequeleaves;
-                    applicableCASAProducts.defaultchequeleaves = product_detail.eqs_defaultchequeleaves;
-
-
-                    csRtPrm.applicableCASAProducts.Add(applicableCASAProducts);
-                }
-
-            }
-
-            csRtPrm.ReturnCode = "CRM-SUCCESS";
-            csRtPrm.Message = OutputMSG.Case_Success;
-
-            return csRtPrm;
+            
+            return ldRtPrm;
         }
 
         public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)

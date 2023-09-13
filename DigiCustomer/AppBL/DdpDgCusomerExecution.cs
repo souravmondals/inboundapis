@@ -17,7 +17,7 @@
     using System.Security.Cryptography.Xml;
     using Azure;
 
-    public class CusLeadExecution : ICusLeadExecution
+    public class DdpDgCusomerExecution : IDdpDgCustomerExecution
     {
 
         private ILoggers _logger;
@@ -64,33 +64,25 @@
 
         private List<string> applicents = new List<string>();
        
-
-   
-
         private ICommonFunction _commonFunc;
 
-        public CusLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
-        {
-                    
-            this._logger = logger;
-            
+        public DdpDgCusomerExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
+        {                    
+            this._logger = logger;            
             this._keyVaultService = keyVaultService;
             this._queryParser = queryParser;
             this._commonFunc = commonFunction;
-
-           
-
         }
 
 
         public async Task<CustomerLeadReturn> ValidateInput(dynamic RequestData)
         {
             CustomerLeadReturn ldRtPrm = new CustomerLeadReturn();
-            RequestData = await this.getRequestData(RequestData, "GetDigiCustomerLeadNSDL");
+            RequestData = await this.getRequestData(RequestData, "DedupeDigiCustomer");
             try
             { 
 
-                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "GetDigiCustomerLeadappkey"))
+                if (!string.IsNullOrEmpty(appkey) && appkey != "" && checkappkey(appkey, "DedupeDigiCustomerappkey"))
                 {
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID))
                     {

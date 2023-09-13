@@ -75,9 +75,9 @@
         }
 
 
-        public async Task<CustomerLeadReturn> ValidateInput(dynamic RequestData)
+        public async Task<DedupeDigiCustomerReturn> ValidateInput(dynamic RequestData)
         {
-            CustomerLeadReturn ldRtPrm = new CustomerLeadReturn();
+            DedupeDigiCustomerReturn ldRtPrm = new DedupeDigiCustomerReturn();
             RequestData = await this.getRequestData(RequestData, "DedupeDigiCustomer");
             try
             { 
@@ -87,9 +87,9 @@
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID))
                     {
                         
-                        if (!string.IsNullOrEmpty(RequestData.customerLeadID.ToString()))
+                        if (!string.IsNullOrEmpty(RequestData.ApplicantId.ToString()))
                         {
-                            ldRtPrm = await this.getCustomerLead(RequestData.customerLeadID.ToString());
+                            ldRtPrm = await this.getCustomerLead(RequestData.ApplicantId.ToString());
                         }
                         else
                         {
@@ -124,88 +124,75 @@
         }
 
 
-        private async Task<CustomerLeadReturn> getCustomerLead(string customerLeadID)
+        private async Task<DedupeDigiCustomerReturn> getCustomerLead(string customerLeadID)
         {
-            CustomerLeadReturn accountLeadReturn = new CustomerLeadReturn();
-
-            var Customerdtl  = await this._commonFunc.getApplicentDetail(customerLeadID);
-
-            if (Customerdtl.Count>0)
+            DedupeDigiCustomerReturn ddupdgCustomerReturn = new DedupeDigiCustomerReturn();
+            try
             {
-                if (Customerdtl[0]["eqs_customertypecode"].ToString() == "789030001")
+                string Token = await this._queryParser.getAccessToken();
+                string RequestTemplate = "{\"searchOrUpdateDigiDedupeCustomerReq\":{\"msgHdr\":{\"channelID\":\"Posidex2023091207502836896407\",\"transactionType\":\"Posidex2023091207502836896407\",\"transactionSubType\":\"Posidex2023091207502836896407\",\"conversationID\":\"Posidex2023091207502836896407\",\"externalReferenceId\":\"Posidex2023091207502836896407\",\"authInfo\":{\"branchID\":\"1001\",\"userID\":\"Posidex\",\"token\":\"Posidex\"},\"isAsync\":false},\"msgBdy\":{\"CUSTOMER_CATEGORY\":\"I\",\"MATCHING_RULE_PROFILE\":1,\"LEAD_ID\":\"\",\"DATA_SOURCE\":\"wizard\",\"ACCOUNT_ID\":\"\",\"REQUEST_TYPE\":\"search\",\"UCIC\":\"\",\"PSX_REQUEST_ID\":\"\",\"DEMOGRAPHIC_INFORMATION\":{\"FIRST_NAME\":\"govcomp\",\"LAST_NAME\":\"\",\"MIDDLE_NAME\":\"\",\"FATHER_NAME\":\"\",\"MOTHER_NAME\":\"\",\"SPOUSE_NAME\":\"\",\"FATHER_SPOUSE_NAME\":\"\",\"DATE_OF_BIRTH\":\"\",\"DATE_OF_INC\":\"\",\"AADHAR_REFERENCE_NO\":\"\",\"PAN\":\"\",\"PASSPORT\":\"\",\"DRIVING_LICENSE\":\"\",\"TIN\":\"\",\"GSTIN\":\"\",\"VOTER_CARD_NO\":\"\",\"RATION_CARD_NO\":\"\"},\"ADDRESS_INFORMATION\":{\"ADDRESS1\":\"\",\"AREA1\":\"\",\"CITY1\":\"\",\"STATE1\":\"\",\"PINCODE1\":\"\",\"ADDRESS_TYPE1\":\"\",\"ADDRESS2\":\"\",\"AREA2\":\"\",\"CITY2\":\"\",\"STATE2\":\"\",\"PINCODE2\":\"\",\"ADDRESS_TYPE2\":\"\"},\"CONTACT_INFORMATION\":{\"CUSTOMER_CONTACT_1\":\"\",\"CUSTOMER_CONTACT_TYPE_1\":\"\",\"CUSTOMER_CONTACT_2\":\"\",\"CUSTOMER_CONTACT_TYPE_2\":\"\"}}}}";
+                dynamic Request_Template = JsonConvert.DeserializeObject(RequestTemplate);
+
+                dynamic msgBdy = Request_Template.searchOrUpdateDigiDedupeCustomerReq.msgBdy;
+
+                var applicentDtls = await this._commonFunc.getApplicentDetail(customerLeadID);
+
+                msgBdy.CUSTOMER_CATEGORY = await this._commonFunc.getCustomerType(applicentDtls[0]["_eqs_entitytypeid_value"].ToString());
+                if (msgBdy.CUSTOMER_CATEGORY == "I")
                 {
-                    string typeofcustomer = await this._commonFunc.getCustomerType(Customerdtl[0]["_eqs_entitytypeid_value"].ToString());
-                    if (typeofcustomer == "I")
-                    {
-                        AccountApplicantIndv accountApplicantIndv = new AccountApplicantIndv();
-
-                        accountApplicantIndv.title = await this._commonFunc.getTitle(Customerdtl[0]["_eqs_titleid_value"].ToString());
-                        accountApplicantIndv.firstname = Customerdtl[0]["eqs_firstname"].ToString();
-                        accountApplicantIndv.middlename = Customerdtl[0]["eqs_middlename"].ToString();
-                        accountApplicantIndv.lastname = Customerdtl[0]["eqs_lastname"].ToString();
-                        accountApplicantIndv.pan = Customerdtl[0]["eqs_internalpan"].ToString();
-
-                        accountLeadReturn.AccountApplicants = accountApplicantIndv;
-                    }
-                    else
-                    {
-                        AccountApplicantCorp accountApplicantCorp = new AccountApplicantCorp();
-                        accountApplicantCorp.title = await this._commonFunc.getTitle(Customerdtl[0]["_eqs_titleid_value"].ToString());
-                        accountApplicantCorp.Companynamepart1 = Customerdtl[0]["eqs_companynamepart1"].ToString();
-                        accountApplicantCorp.Companynamepart2 = Customerdtl[0]["eqs_companynamepart2"].ToString();
-                        accountApplicantCorp.Companynamepart3 = Customerdtl[0]["eqs_companynamepart3"].ToString();
-                        accountApplicantCorp.pan = Customerdtl[0]["eqs_tannumber"].ToString();
-
-                        accountLeadReturn.AccountApplicants = accountApplicantCorp;
-                    }
-                    accountLeadReturn.ReturnCode = "CRM-SUCCESS";
-                    accountLeadReturn.Message = OutputMSG.Case_Success;
+                    msgBdy.DEMOGRAPHIC_INFORMATION.FIRST_NAME = applicentDtls[0]["eqs_firstname"].ToString();
+                    msgBdy.DEMOGRAPHIC_INFORMATION.LAST_NAME = applicentDtls[0]["eqs_lastname"].ToString();
+                    msgBdy.DEMOGRAPHIC_INFORMATION.MIDDLE_NAME = applicentDtls[0]["eqs_middlename"].ToString();
+                    msgBdy.DEMOGRAPHIC_INFORMATION.DATE_OF_BIRTH = applicentDtls[0]["eqs_dob"].ToString();
                 }
                 else
                 {
-                    string CustomerId = Customerdtl[0]["_eqs_customerid_value"].ToString();
-                    if (!string.IsNullOrEmpty(CustomerId))
-                    {
-
-                        var customerDetail = await this._commonFunc.getCustomerDetails(CustomerId);
-                        string typeofcustomer = await this._commonFunc.getCustomerType(customerDetail[0]["_eqs_entitytypeid_value"].ToString());
-                        if (typeofcustomer == "I")
-                        {
-                            AccountApplicantIndv accountApplicantIndv = new AccountApplicantIndv();
-
-                            accountApplicantIndv.title = await this._commonFunc.getTitle(customerDetail[0]["_eqs_titleid_value"].ToString());
-                            accountApplicantIndv.firstname = customerDetail[0]["firstname"].ToString();
-                            accountApplicantIndv.middlename = customerDetail[0]["middlename"].ToString();
-                            accountApplicantIndv.lastname = customerDetail[0]["lastname"].ToString();
-                            accountApplicantIndv.pan = customerDetail[0]["eqs_pan"].ToString();
-
-                            accountLeadReturn.AccountApplicants = accountApplicantIndv;
-                        }
-                        else
-                        {
-                            AccountApplicantCorp accountApplicantCorp = new AccountApplicantCorp();
-                            accountApplicantCorp.Companynamepart1 = customerDetail[0]["eqs_companyname"].ToString();
-                            accountApplicantCorp.Companynamepart2 = customerDetail[0]["eqs_companyname2"].ToString();
-                            accountApplicantCorp.Companynamepart3 = customerDetail[0]["eqs_companyname3"].ToString();
-                            accountApplicantCorp.pan = customerDetail[0]["eqs_tannumber"].ToString();
-
-                            accountLeadReturn.AccountApplicants = accountApplicantCorp;
-                        }
-                        accountLeadReturn.ReturnCode = "CRM-SUCCESS";
-                        accountLeadReturn.Message = OutputMSG.Case_Success;
-
-
-                    }
+                    msgBdy.DEMOGRAPHIC_INFORMATION.FIRST_NAME = applicentDtls[0]["eqs_companynamepart1"].ToString();
+                    msgBdy.DEMOGRAPHIC_INFORMATION.LAST_NAME = applicentDtls[0]["eqs_companynamepart2"].ToString();
+                    msgBdy.DEMOGRAPHIC_INFORMATION.MIDDLE_NAME = applicentDtls[0]["eqs_companynamepart3"].ToString();                    
+                    msgBdy.DEMOGRAPHIC_INFORMATION.DATE_OF_INC = applicentDtls[0]["eqs_dateofincorporation"].ToString();
                 }
-            }            
-            else
+
+                msgBdy.DEMOGRAPHIC_INFORMATION.PAN = applicentDtls[0]["eqs_internalpan"].ToString();
+                msgBdy.DEMOGRAPHIC_INFORMATION.AADHAR_REFERENCE_NO = applicentDtls[0]["eqs_aadhaarreference"].ToString();
+                msgBdy.DEMOGRAPHIC_INFORMATION.PASSPORT = applicentDtls[0]["eqs_passportnumber"].ToString();
+                msgBdy.DEMOGRAPHIC_INFORMATION.VOTER_CARD_NO = applicentDtls[0]["eqs_voterid"].ToString();
+
+
+
+                Request_Template.searchOrUpdateDigiDedupeCustomerReq.msgBdy = msgBdy;
+
+                string postDataParametr = await EncriptRespons(JsonConvert.SerializeObject(Request_Template));
+                string Lead_details = await this._queryParser.HttpCBSApiCall(Token, HttpMethod.Post, "CBSsearchOrUpdateDedupeCustomer", postDataParametr);
+                //string Lead_details = "{\"searchOrUpdateDigiDedupeCustomerRes\":{\"msgHdr\":{\"result\":\"OK\"},\"msgBdy\":{\"REQUEST_ID\":\"1051065\",\"STATUS\":\"C\",\"RESPONSE_CODE\":\"200\",\"DESCRIPTION\":\"RequestProcessedSuccessfully\",\"CUSTOMER_MATCH_COUNT\":\"10\",\"EXACT_MATCH_COUNT\":\"10\",\"PROBABLE_MATCH_COUNT\":\"0\",\"SUCCESS_MESSAGE\":\"Customerinformationsearchedsuccessfully\",\"CUSTOMER_MATCHES\":{\"INDIVIDUAL_MATCHES\":[{\"NAME\":\"RAVANALANKAPRABU\",\"FATHER_NAME\":\"\",\"FATHER_SPOUSE_NAME\":\"\",\"MOTHER_NAME\":\"\",\"SPOUSE_NAME\":\"\",\"DATE_OF_BIRTH\":\"\",\"DATE_OF_INC\":\"\",\"AADHAR_REFERENCE_NO\":\"\",\"PAN\":\"EIXIX6982G\",\"PASSPORT_NO\":\"\",\"DRIVING_LICENSE_NO\":\"\",\"TIN\":\"\",\"TAN\":\"\",\"CIN\":\"\",\"DIN\":\"\",\"NREGA\":\"\",\"CKYC\":\"\",\"VOTER_CARD_NO\":\"\",\"GST_IN\":\"\",\"RATION_CARD\":\"\",\"ADDRESS_TYPE_0\":\"\",\"ADDRESS_0\":\"\",\"AREA_0\":\"\",\"CITY_0\":\"\",\"STATE_0\":\"\",\"PINCODE_0\":\"\",\"ADDRESS_TYPE_1\":\"\",\"ADDRESS_1\":\"\",\"AREA_1\":\"\",\"CITY_1\":\"\",\"STATE_1\":\"\",\"PINCODE_1\":\"\",\"ADDRESS_TYPE_2\":\"\",\"ADDRESS_2\":\"\",\"AREA_2\":\"\",\"CITY_2\":\"\",\"STATE_2\":\"\",\"PINCODE_2\":\"\",\"ADDRESS_TYPE_3\":\"\",\"ADDRESS_3\":\"\",\"AREA_3\":\"\",\"CITY_3\":\"\",\"STATE_3\":\"\",\"PINCODE_3\":\"\",\"ADDRESS_TYPE_4\":\"\",\"ADDRESS_4\":\"\",\"AREA_4\":\"\",\"CITY_4\":\"\",\"STATE_4\":\"\",\"PINCODE_4\":\"\",\"MOBILE_TYPE_0\":\"\",\"MOBILE_0\":\"\",\"MOBILE_TYPE_1\":\"\",\"MOBILE_1\":\"\",\"MOBILE_TYPE_2\":\"\",\"MOBILE_2\":\"\",\"MOBILE_TYPE_3\":\"\",\"MOBILE_3\":\"\",\"MOBILE_TYPE_4\":\"\",\"MOBILE_4\":\"\",\"RECORD_TYPE\":\"ONLINE\",\"MATCH_CRITERIA\":\"PAN\",\"IS_EXACT_MATCH\":\"True\",\"IS_PROBABLE_MATCH\":\"False\",\"MATCHED_ID\":\"12312\",\"UCIC\":\"12312\",\"LEAD_ID\":\"\",\"IND_NON_DETAILS\":\"I\"}],\"ORGANISATION_MATCHES\":[]}}}}";
+                dynamic responsD = JsonConvert.DeserializeObject(Lead_details);
+
+                if (Convert.ToInt32(responsD.searchOrUpdateDigiDedupeCustomerRes.msgBdy.EXACT_MATCH_COUNT.ToString()) > 0)
+                {
+                    Dictionary<string, string> odatab = new Dictionary<string, string>();
+                    odatab.Add("eqs_leadstatus", await this._queryParser.getOptionSetTextToValue("lead", "eqs_leadstatus", "Not Onboarded"));
+                    odatab.Add("eqs_notonboardedreason", "duplicate");
+                    postDataParametr = JsonConvert.SerializeObject(odatab);
+                    var LeadAccount_details = await this._queryParser.HttpApiCall($"leads({applicentDtls[0]["_eqs_leadid_value"].ToString()})", HttpMethod.Patch, postDataParametr);
+                    ddupdgCustomerReturn.decideNL = true;
+                }
+                else
+                {
+                    ddupdgCustomerReturn.decideNL = false;
+                }
+
+                ddupdgCustomerReturn.Message = OutputMSG.Case_Success;
+                ddupdgCustomerReturn.ReturnCode = "CRM-SUCCESS";
+
+            }
+            catch (Exception ex)
             {
-                this._logger.LogInformation("getCustomerLead", "Input parameters are incorrect");
-                accountLeadReturn.ReturnCode = "CRM-ERROR-102";
-                accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+                this._logger.LogError("CreateAccountByLead", ex.Message);
+                ddupdgCustomerReturn.Message = OutputMSG.Incorrect_Input;
+                ddupdgCustomerReturn.ReturnCode = "CRM-ERROR-102";
             }
 
-            return accountLeadReturn;
+            return ddupdgCustomerReturn;
         }
 
 

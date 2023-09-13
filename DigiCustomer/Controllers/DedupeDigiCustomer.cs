@@ -46,7 +46,7 @@
                 
                 _ddpdgcustomerExecution.API_Name = "DedupeDigiCustomer";
                 _ddpdgcustomerExecution.Input_payload = request.ToString();
-                CustomerLeadReturn AccountDetails = await _ddpdgcustomerExecution.ValidateInput(request);
+                DedupeDigiCustomerReturn AccountDetails = await _ddpdgcustomerExecution.ValidateInput(request);
 
                 watch.Stop();
                 AccountDetails.TransactionID = this._ddpdgcustomerExecution.Transaction_ID;

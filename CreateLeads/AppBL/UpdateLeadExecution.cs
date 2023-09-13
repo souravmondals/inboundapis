@@ -112,7 +112,7 @@
                             {
                                 if (RequestData.LeadStatus.ToString() == "Not Onboarded")
                                 {
-                                    odatab.Add("eqs_assetleadstatus", await this._queryParser.getOptionSetTextToValue("lead", "eqs_leadstatus", RequestData.LeadStatus.ToString()));
+                                    odatab.Add("eqs_leadstatus", await this._queryParser.getOptionSetTextToValue("lead", "eqs_leadstatus", RequestData.LeadStatus.ToString()));
                                     odatab.Add("eqs_notonboardedreason", RequestData.NotOnboardedReason.ToString());
                                     string postDataParametr = JsonConvert.SerializeObject(odatab);
                                     var LeadAccount_details = await this._queryParser.HttpApiCall($"leads({LeadId})", HttpMethod.Patch, postDataParametr);

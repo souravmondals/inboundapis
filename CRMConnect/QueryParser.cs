@@ -354,10 +354,10 @@
                 HttpClient httpClient = new HttpClient();
                 string requestUri = this._keyVaultService.ReadSecret("wso2AuthUrl");
 
-                string username = "fczCFBi5kj61hhqgLmkJFM6xx6ga";
-                string password = "fbBXASoCUv8EM7nAVmBZ26CIWVIa";
-                string encoded = System.Convert.ToBase64String(Encoding.GetEncoding("ISO-8859-1").GetBytes(username + ":" + password));
-
+                string username = "1tSAaPFOcAjWihSNn_JNctGxxbga";
+                string password = "3OnItTOcaEU_m8DzeeXdQVgdHdUa";
+                string encoded = System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(username + ":" + password));
+                
                 List<KeyValuePair<string, string>> Data = new List<KeyValuePair<string, string>>
                 {
                     new KeyValuePair<string, string>("grant_type", "client_credentials"),

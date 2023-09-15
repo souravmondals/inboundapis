@@ -174,7 +174,7 @@
                     odatab.Add("eqs_notonboardedreason", "duplicate");
                     postDataParametr = JsonConvert.SerializeObject(odatab);
                     var LeadAccount_details = await this._queryParser.HttpApiCall($"leads({applicentDtls[0]["_eqs_leadid_value"].ToString()})", HttpMethod.Patch, postDataParametr);
-                    ddupdgCustomerReturn.decideNL = true;
+                    ddupdgCustomerReturn.decideNL = responsD;
                 }
                 else
                 {

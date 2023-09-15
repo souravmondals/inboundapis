@@ -47,7 +47,7 @@ namespace CustomerLead
 
     public class DedupeDigiCustomerReturn
     {
-        public bool decideNL { get; set; }
+        public dynamic decideNL { get; set; }
         public string ReturnCode { get; set; }
         public string Message { get; set; }
         public string TransactionID { get; set; }

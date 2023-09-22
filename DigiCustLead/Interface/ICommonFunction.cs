@@ -32,6 +32,30 @@ namespace DigiCustLead
         public Task<string> getIndustryId(string industryName);
         public Task<string> getBOId(string DDEID);
         public Task<string> getCPId(string DDEID);
+        public Task<JArray> getDDEFinalIndvDetail(string AccountNumber);
+        public Task<JArray> getDDEFinalCorpDetail(string AccountNumber);
+        public Task<JArray> getDDEFinalAddressDetail(string DDEId, string type);
+        public Task<string> getBranchText(string BranchwId);
+        public Task<string> getRelationshipText(string relationshipId);
+        public Task<string> getAccRelationshipText(string accrelationshipId);
+        public Task<string> getPurposeText(string Purpose);
+        public Task<string> getCountryText(string CountryId);
+        public Task<string> getBusinessTypeText(string businessTypeId);
+        public Task<string> getIndustryText(string industryId);
+        public Task<string> getStateText(string StateID);
+        public Task<string> getCityText(string CityId);
+        public Task<string> getNomineeText(string FatcaID);
+        public Task<string> getCorporateDDEText(string DDEID);
+        public Task<string> getFatcaText(string FatcaID);
+        public Task<string> getIndividualDDEText(string DDEID);
+        public Task<JArray> getDDEFinalFatcaDetail(string DDEId, string type);
+        public Task<string> getCustomerText(string customerId);
+        public Task<JArray> getDDEFinalDocumentDetail(string DDEId, string type);
+        public Task<string> getDocCategoryText(string doccatId);
+        public Task<string> getDocSubCategoryText(string docsubcatId);
+        public Task<string> getDocTypeText(string docTypeId);
+        public Task<JArray> getDDEFinalCPDetail(string DDEId);
+        public Task<JArray> getDDEFinalBODetail(string DDEId);
 
 
     }

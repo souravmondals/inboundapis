@@ -80,7 +80,7 @@
             {
                 RequestData = await this.getRequestData(RequestData, "UpdateDigiCustLead");
                
-                if (!string.IsNullOrEmpty(this.appkey) && this.appkey != "" && checkappkey(this.appkey, "UpdateDigiCustLead"))
+                if (!string.IsNullOrEmpty(this.appkey) && this.appkey != "" && checkappkey(this.appkey, "UpdateDigiCustLeadappkey"))
                 {
                     if (!string.IsNullOrEmpty(this.Transaction_ID) && !string.IsNullOrEmpty(this.Channel_ID))
                     {

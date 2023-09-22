@@ -541,12 +541,54 @@
             catch(Exception ex)
             {
                 this._log.LogError("getOptionSetTextToValue", ex.Message);
-                throw;
+                return "";
             }
            
             
 
             
+        }
+
+        public async Task<string> getOptionSetValuToText(string tableName, string fieldName, string OptionValue)
+        {
+            try
+            {
+                List<Optionsetvlu> optionSet, optionSet1;
+
+                if (!this.GetMvalue<List<Optionsetvlu>>(tableName + "optionsetvalue", out optionSet1))
+                {
+                    string query_url = $"stringmaps()?$select=value,attributevalue,objecttypecode,attributename&$filter=objecttypecode eq '{tableName}'";
+                    var responsdtails = await this.HttpApiCall(query_url, HttpMethod.Get, "");
+                    var Optiondata = await this.getDataFromResponce(responsdtails);
+                    optionSet = new List<Optionsetvlu>();
+                    foreach (var item in Optiondata)
+                    {
+                        Optionsetvlu optionsetvlu = new Optionsetvlu();
+                        optionsetvlu.optionKey = item["value"].ToString();
+                        optionsetvlu.optionValu = item["attributevalue"].ToString();
+                        optionsetvlu.optionTable = item["objecttypecode"].ToString();
+                        optionsetvlu.optionField = item["attributename"].ToString();
+                        optionSet.Add(optionsetvlu);
+                    }
+
+                    this.SetMvalue<List<Optionsetvlu>>(tableName + "optionsetvalue", 10080, optionSet);
+                }
+                else
+                {
+                    optionSet = optionSet1;
+                }
+
+                string opztionValueId = optionSet.Where(x => x.optionTable == tableName && x.optionField == fieldName && x.optionValu == OptionValue).FirstOrDefault().optionKey;
+
+                return opztionValueId;
+
+            }
+            catch (Exception ex)
+            {
+                this._log.LogError("getOptionSetTextToValue", ex.Message);
+                return "";
+            }
+
         }
 
         public async Task<bool> DeleteFromTable(string tablename, string tableid = "", string filter = "", string filtervalu = "", string tableselecter = "")

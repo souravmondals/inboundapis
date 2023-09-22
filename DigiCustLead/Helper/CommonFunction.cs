@@ -194,8 +194,12 @@
         public async Task<string> getBranchId(string BranchCode)
         {
             return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchid", "eqs_branchidvalue", BranchCode);
-        } 
-        
+        }
+        public async Task<string> getBranchText(string BranchwId)
+        {
+            return await this.getIDfromMSDTable("eqs_branchs", "eqs_branchidvalue", "eqs_branchid", BranchwId);
+        }
+
         public async Task<string> getTitleId(string Title)
         {
             return await this.getIDfromMSDTable("eqs_titles", "eqs_titleid", "eqs_name", Title);
@@ -217,21 +221,41 @@
         {
             return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationshipid", "eqs_relationship", relationshipCode);
         }
+        public async Task<string> getRelationshipText(string relationshipId)
+        {
+            return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationship", "eqs_relationshipid", relationshipId);
+        }
         public async Task<string> getAccRelationshipID(string accrelationshipCode)
         {
             return await this.getIDfromMSDTable("eqs_accountrelationshipses", "eqs_accountrelationshipsid", "eqs_key", accrelationshipCode);
+        }
+        public async Task<string> getAccRelationshipText(string accrelationshipId)
+        {
+            return await this.getIDfromMSDTable("eqs_accountrelationshipses", "eqs_key", "eqs_accountrelationshipsid", accrelationshipId);
         }
         public async Task<string> getCountryID(string CountryCode)
         {
             return await this.getIDfromMSDTable("eqs_countries", "eqs_countryid", "eqs_countrycode", CountryCode);
         }
+        public async Task<string> getCountryText(string CountryId)
+        {
+            return await this.getIDfromMSDTable("eqs_countries", "eqs_countrycode", "eqs_countryid", CountryId);
+        }
         public async Task<string> getStateID(string StateCode)
         {
             return await this.getIDfromMSDTable("eqs_states", "eqs_stateid", "eqs_statecode", StateCode);
         }
+        public async Task<string> getStateText(string StateID)
+        {
+            return await this.getIDfromMSDTable("eqs_states", "eqs_statecode", "eqs_stateid", StateID);
+        }
         public async Task<string> getCityID(string CityCode)
         {
             return await this.getIDfromMSDTable("eqs_cities", "eqs_cityid", "eqs_citycode", CityCode);
+        }
+        public async Task<string> getCityText(string CityId)
+        {
+            return await this.getIDfromMSDTable("eqs_cities", "eqs_citycode", "eqs_cityid", CityId);
         }
         public async Task<string> getPincodeID(string PincodeCode)
         {
@@ -240,6 +264,10 @@
         public async Task<string> getPurposeID(string Purpose)
         {
             return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_purposeofcreationid", "eqs_name", Purpose);
+        }
+        public async Task<string> getPurposeText(string Purpose)
+        {
+            return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_name", "eqs_purposeofcreationid", Purpose);
         }
         public async Task<string> getAddressID(string DDEID, string types)
         {
@@ -273,21 +301,41 @@
         {
             return await this.getIDfromMSDTable("eqs_doccategories", "eqs_doccategoryid", "eqs_doccategorycode", doccatCode);
         }
+        public async Task<string> getDocCategoryText(string doccatId)
+        {
+            return await this.getIDfromMSDTable("eqs_doccategories", "eqs_name", "eqs_doccategoryid", doccatId);
+        }
         public async Task<string> getDocSubCategoryId(string docsubcatCode)
         {
             return await this.getIDfromMSDTable("eqs_docsubcategories", "eqs_docsubcategoryid", "eqs_docsubcategorycode", docsubcatCode);
+        }
+        public async Task<string> getDocSubCategoryText(string docsubcatId)
+        {
+            return await this.getIDfromMSDTable("eqs_docsubcategories", "eqs_name", "eqs_docsubcategoryid", docsubcatId);
         }
         public async Task<string> getDocTypeId(string docTypeCode)
         {
             return await this.getIDfromMSDTable("eqs_doctypes", "eqs_doctypeid", "eqs_name", docTypeCode);
         }
+        public async Task<string> getDocTypeText(string docTypeId)
+        {
+            return await this.getIDfromMSDTable("eqs_doctypes", "eqs_name", "eqs_doctypeid", docTypeId);
+        }
         public async Task<string> getBusinessTypeId(string businessTypeCode)
         {
             return await this.getIDfromMSDTable("eqs_businesstypes", "eqs_businesstypeid", "eqs_name", businessTypeCode);
         }
+        public async Task<string> getBusinessTypeText(string businessTypeId)
+        {
+            return await this.getIDfromMSDTable("eqs_businesstypes", "eqs_name", "eqs_businesstypeid", businessTypeId);
+        }
         public async Task<string> getIndustryId(string industryName)
         {
             return await this.getIDfromMSDTable("eqs_businessnatures", "eqs_businessnatureid", "eqs_name", industryName);
+        }
+        public async Task<string> getIndustryText(string industryId)
+        {
+            return await this.getIDfromMSDTable("eqs_businessnatures", "eqs_name", "eqs_businessnatureid", industryId);
         }
         public async Task<string> getBOId(string DDEID)
         {
@@ -297,6 +345,26 @@
         {
             return await this.getIDfromMSDTable("eqs_customercps", "eqs_customercpid", "_eqs_ddecorporatecustomerid_value", DDEID);
         }
+        public async Task<string> getIndividualDDEText(string DDEID)
+        {
+            return await this.getIDfromMSDTable("eqs_ddeindividualcustomers", "eqs_dataentryoperator", "eqs_ddeindividualcustomerid", DDEID);
+        }
+        public async Task<string> getFatcaText(string FatcaID)
+        {
+            return await this.getIDfromMSDTable("eqs_customerfactcaothers", "eqs_name", "eqs_customerfactcaotherid", FatcaID);
+        }
+        public async Task<string> getCorporateDDEText(string DDEID)
+        {
+            return await this.getIDfromMSDTable("eqs_ddecorporatecustomers", "eqs_dataentryoperator", "eqs_ddecorporatecustomerid", DDEID);
+        }
+        public async Task<string> getNomineeText(string FatcaID)
+        {
+            return await this.getIDfromMSDTable("eqs_ddeaccountnominees", "eqs_nomineename", "eqs_ddeaccountnomineeid", FatcaID);
+        }
+        public async Task<string> getCustomerText(string customerId)
+        {
+            return await this.getIDfromMSDTable("contacts", "fullname", "contactid", customerId);
+        }
 
         public async Task<string> getDDEFinalAccountIndvData(string AccountNumber)
         {
@@ -304,7 +372,7 @@
             return await this.getIDfromMSDTable("eqs_ddeindividualcustomers", "eqs_ddeindividualcustomerid", $"eqs_dataentrystage eq {finalValue} and _eqs_accountapplicantid_value", AccountNumber);
             
         }
-        
+                
         public async Task<string> getDDEFinalAccountCorpData(string AccountNumber)
         {
             string finalValue = await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_dataentrystage", "Final");
@@ -327,9 +395,88 @@
                 throw ex;
             }
         }
+        public async Task<JArray> getDDEFinalIndvDetail(string AccountNumber)
+        {
+            string finalValue = await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_dataentrystage", "Final");            
+            string query_url = $"eqs_ddeindividualcustomers()?$filter=eqs_dataentrystage eq {finalValue} and _eqs_accountapplicantid_value eq '{AccountNumber}'";
+            var DDEdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var DDE_dtails = await this.getDataFromResponce(DDEdtails);
+            return DDE_dtails;
+        }
+        public async Task<JArray> getDDEFinalCorpDetail(string AccountNumber)
+        {
+            string finalValue = await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_dataentrystage", "Final");            
+            string query_url = $"eqs_ddecorporatecustomers()?$filter=eqs_dataentrystage eq {finalValue} and _eqs_accountapplicantid_value eq '{AccountNumber}'";
+            var DDEdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var DDE_dtails = await this.getDataFromResponce(DDEdtails);
+            return DDE_dtails;
+        }
 
-        
+        public async Task<JArray> getDDEFinalAddressDetail(string DDEId, string type)
+        {
+            string query_url;
+            if (type == "corp")
+            {
+                query_url = $"eqs_leadaddresses()?$filter=_eqs_corporatedde_value eq '{DDEId}'";
+            }
+            else
+            {
+                query_url = $"eqs_leadaddresses()?$filter=_eqs_individualdde_value eq '{DDEId}'";
+            }
+            
+            var Addressdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var Address_dtails = await this.getDataFromResponce(Addressdtails);
+            return Address_dtails;
+        }
 
+        public async Task<JArray> getDDEFinalFatcaDetail(string DDEId, string type)
+        {
+            string query_url;
+            if (type=="corp")
+            {
+                query_url = $"eqs_customerfactcaothers()?$filter=_eqs_ddecorporatecustomerid_value eq '{DDEId}'";
+            }
+            else
+            {
+                query_url = $"eqs_customerfactcaothers()?$filter=_eqs_indivapplicantddeid_value eq '{DDEId}'";
+            }            
+           
+            var fatcadtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var fatca_dtails = await this.getDataFromResponce(fatcadtails);
+            return fatca_dtails;
+        }
+        public async Task<JArray> getDDEFinalDocumentDetail(string DDEId, string type)
+        {
+            string query_url;
+            if (type == "corp")
+            {
+                query_url = $"eqs_leaddocuments()?$filter=_eqs_corporatedde_value eq '{DDEId}'";
+            }
+            else
+            {
+                query_url = $"eqs_leaddocuments()?$filter=_eqs_individualddefinal_value eq '{DDEId}'";
+            }
+          
+            var docdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var doc_dtails = await this.getDataFromResponce(docdtails);
+            return doc_dtails;
+        }
+        public async Task<JArray> getDDEFinalCPDetail(string DDEId)
+        {
+            string query_url = $"eqs_customercps()?$filter=_eqs_ddecorporatecustomerid_value eq '{DDEId}'";
+            
+            var CPdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var CP_dtails = await this.getDataFromResponce(CPdtails);
+            return CP_dtails;
+        }
+        public async Task<JArray> getDDEFinalBODetail(string DDEId)
+        {
+            string query_url = $"eqs_customerbos()?$filter=_eqs_ddecorporatecustomerid_value eq '{DDEId}'";
+
+            var BOdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var BO_dtails = await this.getDataFromResponce(BOdtails);
+            return BO_dtails;
+        }
         public async Task<JArray> getContactData(string UCIC_id)
         {
             try

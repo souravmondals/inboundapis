@@ -166,9 +166,16 @@ using CRMConnect;
         {            
             return await this.getIDfromMSDTable("eqs_leaddocuments", "eqs_leaddocumentid", "eqs_dmsrequestid", requestId);
         }
+        public async Task<JArray> getDocumentData(string requestId)
+        {
+            string query_url = $"eqs_leaddocuments()?$select=eqs_leaddocumentid,eqs_dmsdocumentid&$filter=eqs_dmsrequestid eq '{requestId}'";
+            var docdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+            var doc_Detail = await this.getDataFromResponce(docdtails);
+            return doc_Detail;
+        }
 
-        
-             
+
+
 
         public async Task<string> MeargeJsonString(string json1, string json2)
         {

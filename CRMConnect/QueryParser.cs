@@ -84,7 +84,7 @@
             var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
             string responJsonText = await response.Content.ReadAsStringAsync();
             dynamic responsej = JsonConvert.DeserializeObject(responJsonText);
-            string xmlData = await PayloadDecryption(responsej.req_root.body.payload.ToString());
+            string xmlData = await PayloadDecryption(responsej.req_root.body.payload.ToString(), responsej.req_root.header.BankCode.ToString());
             string xpath = "PIDBlock/payload";
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(xmlData);
@@ -411,11 +411,12 @@
 
 
 
-        public async Task<string> PayloadEncryption(string V_requestData, string V_requestedID)
+        public async Task<string> PayloadEncryption(string V_requestData, string V_requestedID, string BankCode)
         {
-            string V_AESSymmetricKey = this._keyVaultService.ReadSecret("VAESSymmetricKey");
-            string V_ChecksumKey = this._keyVaultService.ReadSecret("VChecksumKey");
-            string V_bankcode = this._keyVaultService.ReadSecret("Vbankcode");
+            string V_bankcode = BankCode;   //this._keyVaultService.ReadSecret("Vbankcode");
+            string V_AESSymmetricKey = this._keyVaultService.ReadSecret("VAESSymmetricKey" + "-" + BankCode);
+            string V_ChecksumKey = this._keyVaultService.ReadSecret("VChecksumKey" + "-" + BankCode);
+            
 
             string finalrequestdata = "";
             V_requestData = V_requestData.Replace("\\", "");
@@ -435,7 +436,7 @@
             string Cdate = CurrentDate.ToString("yyyy-MM-ddTHH:MM:ss.214Z", CultureInfo.InvariantCulture);
             string currentdatetime = Cdate;
 
-            string Frame1 = "{ " + '"' + "req_root" + '"' + ":{" + '"' + "header" + '"' + ":{" + '"' + "dateTime" + '"' + ":" + '"' + currentdatetime + '"' + "," + '"' + "cde" + '"' + ":" + '"' + V_bankcode + '"' + "," + '"' + "requestId" + '"' + ":" + '"' + V_requestedID + '"' + "," + '"' + "version" + '"' + ":" + '"' + "1.0" + '"' + "}," + '"' + "body" + '"' + ":{" + '"' + "payload" + '"' + ":" + '"';
+            string Frame1 = "{ " + '"' + "req_root" + '"' + ":{" + '"' + "header" + '"' + ":{" + '"' + "dateTime" + '"' + ":" + '"' + currentdatetime + '"' + "," + '"' + "BankCode" + '"' + ":" + '"' + V_bankcode + '"' + "," + '"' + "requestId" + '"' + ":" + '"' + V_requestedID + '"' + "," + '"' + "version" + '"' + ":" + '"' + "1.0" + '"' + "}," + '"' + "body" + '"' + ":{" + '"' + "payload" + '"' + ":" + '"';
             string Frame2 = '"' + "}}}";
 
             finalrequestdata = Frame1 + encryptedText + Frame2;
@@ -475,14 +476,14 @@
             }
         }
 
-        public async Task<string> PayloadDecryption(string V_requestData)
+        public async Task<string> PayloadDecryption(string V_requestData, string BankCode)
         {
             try
             {
                 string decryptedText = "";
                 // Decrypting code
                 AesManaged des = new AesManaged();
-                string V_AESSymmetricKey = this._keyVaultService.ReadSecret("VAESSymmetricKey");
+                string V_AESSymmetricKey = this._keyVaultService.ReadSecret("VAESSymmetricKey" + "-" + BankCode);
                 //des.Key = Encoding.UTF8.GetBytes(V_AESSymmetricKey);
                 des.Key = Convert.FromBase64String(V_AESSymmetricKey);
                 des.Mode = CipherMode.ECB;

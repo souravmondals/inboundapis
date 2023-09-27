@@ -19,6 +19,8 @@
         private ILoggers _logger;
         private IQueryParser _queryParser;
 
+        public string Bank_Code { set; get; }
+
         public string Channel_ID
         {
             set
@@ -276,7 +278,7 @@
 
         public async Task<string> EncriptRespons(string ResponsData)
         {
-            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID, this.Bank_Code);
         }
 
         public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
@@ -296,7 +298,9 @@
             dynamic rejusetJson;
 
             var EncryptedData = inputData.req_root.body.payload;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
+            string BankCode = inputData.req_root.header.BankCode.ToString();
+            this.Bank_Code = BankCode;
+            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(xmlData);
             string xpath = "PIDBlock/payload";

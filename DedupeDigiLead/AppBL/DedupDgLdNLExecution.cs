@@ -18,6 +18,7 @@ namespace DedupeDigiLead
 
         private ILoggers _logger;
         private IQueryParser _queryParser;
+        public string Bank_Code { set; get; }
 
         public string Channel_ID
         {
@@ -200,7 +201,7 @@ namespace DedupeDigiLead
 
         public async Task<string> EncriptRespons(string ResponsData)
         {
-            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID, this.Bank_Code);
         }
 
         private async Task<dynamic> getRequestData(dynamic inputData, string APIname)
@@ -209,7 +210,9 @@ namespace DedupeDigiLead
             dynamic rejusetJson;
 
             var EncryptedData = inputData.req_root.body.payload;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
+            string BankCode = inputData.req_root.header.BankCode.ToString();
+            this.Bank_Code = BankCode;
+            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(xmlData);
             string xpath = "PIDBlock/payload";

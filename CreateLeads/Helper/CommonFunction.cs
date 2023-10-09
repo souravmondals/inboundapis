@@ -17,11 +17,13 @@ namespace CreateLeads
     public class CommonFunction : ICommonFunction
     {
         public IQueryParser _queryParser;
+        private ILoggers _logger;
         public IMemoryCache _cache;
-        public CommonFunction(IMemoryCache cache, IQueryParser queryParser)
+        public CommonFunction(IMemoryCache cache, ILoggers logger, IQueryParser queryParser)
         {
             this._queryParser = queryParser;
             this._cache = cache;
+            this._logger = logger;
         }
         public async Task<string> AcquireNewTokenAsync()
         {
@@ -151,30 +153,47 @@ namespace CreateLeads
         }
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
-        {  
-            string Table_Id;
-            string TableId;
-            if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+        {
+            try
             {
-                string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
-                var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+                string Table_Id;
+                string TableId;
+                if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+                {
+                    string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
+                    var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                    TableId = await this.getIDFromGetResponce(idfield, responsdtails);
 
-                this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                    this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                }
+                else
+                {
+                    TableId = Table_Id;
+                }
+                return TableId;
             }
-            else
+            catch (Exception ex)
             {
-                TableId = Table_Id;
+                this._logger.LogError("getIDfromMSDTable", ex.Message, $"Table {tablename} filterkey {filterkey} filtervalue {filtervalue}");
+                throw;
             }
-            return TableId;
+
         }
 
         public async Task<JArray> getCustomerDetail(string CustomerCode)
         {
-            string query_url = $"contacts()?$select=contactid,eqs_customerid,_eqs_titleid_value,firstname,lastname,eqs_companyname,eqs_companyname2,eqs_companyname3,birthdate,eqs_dateofincorporation,eqs_gender,mobilephone,emailaddress1,_eqs_entitytypeid_value,_eqs_subentitytypeid_value,_eqs_businesstypeid_value&$filter=eqs_customerid eq '{CustomerCode}'";
-            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var customerDetail = await this.getDataFromResponce(responsdtails);
-            return customerDetail;
+            try
+            {
+                string query_url = $"contacts()?$select=contactid,eqs_customerid,_eqs_titleid_value,firstname,lastname,eqs_companyname,eqs_companyname2,eqs_companyname3,birthdate,eqs_dateofincorporation,eqs_gender,mobilephone,emailaddress1,_eqs_entitytypeid_value,_eqs_subentitytypeid_value,_eqs_businesstypeid_value&$filter=eqs_customerid eq '{CustomerCode}'";
+                var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var customerDetail = await this.getDataFromResponce(responsdtails);
+                return customerDetail;
+            }            
+            catch (Exception ex)
+            {
+                this._logger.LogError("getProductId", ex.Message);
+                throw ex;
+            }
         }
 
         public async Task<string> getCityId(string CityCode)
@@ -209,19 +228,28 @@ namespace CreateLeads
 
         public async Task<Dictionary<string,string>> getProductId(string ProductCode)
         {
-            string query_url = $"eqs_products()?$select=eqs_productid,_eqs_businesscategoryid_value,_eqs_productcategory_value,eqs_crmproductcategorycode&$filter=eqs_productcode eq '{ProductCode}'";
-            var productdtails =  await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string ProductId = await this.getIDFromGetResponce("eqs_productid", productdtails);
-            string businesscategoryid = await this.getIDFromGetResponce("_eqs_businesscategoryid_value", productdtails);
-            string productcategory = await this.getIDFromGetResponce("_eqs_productcategory_value", productdtails);
-            string crmproductcategorycode = await this.getIDFromGetResponce("eqs_crmproductcategorycode", productdtails);
-            Dictionary<string, string> ProductData = new Dictionary<string, string>() { 
-                { "ProductId", ProductId },
-                { "businesscategoryid", businesscategoryid },
-                { "productcategory", productcategory },
-                { "crmproductcategorycode", crmproductcategorycode },
-            };
-            return ProductData; 
+            try
+            {
+                string query_url = $"eqs_products()?$select=eqs_productid,_eqs_businesscategoryid_value,_eqs_productcategory_value,eqs_crmproductcategorycode&$filter=eqs_productcode eq '{ProductCode}'";
+                var productdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                string ProductId = await this.getIDFromGetResponce("eqs_productid", productdtails);
+                string businesscategoryid = await this.getIDFromGetResponce("_eqs_businesscategoryid_value", productdtails);
+                string productcategory = await this.getIDFromGetResponce("_eqs_productcategory_value", productdtails);
+                string crmproductcategorycode = await this.getIDFromGetResponce("eqs_crmproductcategorycode", productdtails);
+                Dictionary<string, string> ProductData = new Dictionary<string, string>() {
+                    { "ProductId", ProductId },
+                    { "businesscategoryid", businesscategoryid },
+                    { "productcategory", productcategory },
+                    { "crmproductcategorycode", crmproductcategorycode }
+                };
+                return ProductData;
+            }            
+            catch (Exception ex)
+            {
+                this._logger.LogError("getProductId", ex.Message);
+                throw ex;
+            }
+
         }
 
         public async Task<string> MeargeJsonString(string json1, string json2)

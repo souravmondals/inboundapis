@@ -646,21 +646,21 @@ namespace CreateLeads
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                        this._logger.LogInformation("CreateLead", JsonConvert.SerializeObject(Lead_details));
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "Lead creation failed";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                    this._logger.LogInformation("CreateLead", JsonConvert.SerializeObject(Lead_details));
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Lead creation failed";
                 }
             }
             catch (Exception ex)
             {
-                this._logger.LogError("ValidateLeade", ex.Message);
+                this._logger.LogError("CreateLead", ex.Message);
                 ldRtPrm.ReturnCode = "CRM-ERROR-102";
                 ldRtPrm.Message = OutputMSG.Incorrect_Input;
             }

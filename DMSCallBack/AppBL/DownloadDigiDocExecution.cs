@@ -80,7 +80,7 @@
         public async Task<DMSCallBackReturn> ValidateDownloadDocInput(dynamic RequestData)
         {
             DMSCallBackReturn ldRtPrm = new DMSCallBackReturn();
-            RequestData = await this.getRequestData(RequestData, "DownloadDigiDocument");
+            RequestData = await this.getRequestData(RequestData, "dwnldDocumentRep");
            
             try
             {
@@ -99,31 +99,30 @@
                         }
                         else
                         {
-                            this._logger.LogInformation("ValidateDownloadDocInput", "Input parameters are incorrect");
+                            this._logger.LogInformation("ValidateDownloadDocInput", "RequestId is incorrect");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                            ldRtPrm.Message = "RequestId is incorrect";
                         }
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateDownloadDocInput", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateDownloadDocInput", "Transaction_ID or Channel_ID is incorrect");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "Transaction_ID or Channel_ID is incorrect";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateDownloadDocInput", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateDownloadDocInput", "Appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Appkey is incorrect";
                 }
 
                
             }
             catch (Exception ex)
             {
-                this._logger.LogError("ValidateDMSInput", ex.Message);
-                this._logger.LogInformation("ValidateDownloadDocInput", "Input parameters are incorrect");
+                this._logger.LogError("ValidateDownloadDocInput", ex.Message);                
                 ldRtPrm.ReturnCode = "CRM-ERROR-101";
                 ldRtPrm.Message = OutputMSG.Incorrect_Input;
             }
@@ -173,18 +172,18 @@
                         csRtPrm.ReturnCode = "CRM - SUCCESS";
                         csRtPrm.Message = OutputMSG.Case_Success;
                     }
-                    else
+                    else if (respons_code.responsecode == null || respons_code.responsecode == 400)
                     {
-                        this._logger.LogInformation("ExecDownloadDigiDoc", "Input parameters are incorrect");
+                        this._logger.LogInformation("ExecDownloadDigiDoc", JsonConvert.SerializeObject(document_details));
                         csRtPrm.ReturnCode = "CRM-ERROR-102";
-                        csRtPrm.Message = OutputMSG.Incorrect_Input;
+                        csRtPrm.Message = "Download document API fail.";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ExecDownloadDigiDoc", "Input parameters are incorrect");
+                    this._logger.LogInformation("ExecDownloadDigiDoc", JsonConvert.SerializeObject(document_details));
                     csRtPrm.ReturnCode = "CRM-ERROR-102";
-                    csRtPrm.Message = OutputMSG.Incorrect_Input;
+                    csRtPrm.Message = "Download document API fail.";
                 }
 
             }
@@ -192,7 +191,7 @@
             {
                 this._logger.LogError("ExecDownloadDigiDoc", ex.Message);
                 csRtPrm.ReturnCode = "CRM-ERROR-102";
-                csRtPrm.Message = OutputMSG.Incorrect_Input;
+                csRtPrm.Message = "Download document API fail.";
             }
 
             return csRtPrm;
@@ -201,16 +200,7 @@
        
 
 
-        public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
-        {
-            Dictionary<string, string> CRMProp = new Dictionary<string, string>();
-            CRMProp.Add("eqs_name", this.Transaction_ID);
-            CRMProp.Add("eqs_requestbody", InputRequest);
-            CRMProp.Add("eqs_responsebody", OutputRespons);
-            CRMProp.Add("eqs_requeststatus", (CallStatus.Contains("ERROR")) ? "615290001" : "615290000");
-            string postDataParametr = JsonConvert.SerializeObject(CRMProp);
-            await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
-        }
+       
 
         public async Task<string> EncriptRespons(string ResponsData)
         {
@@ -221,29 +211,35 @@
         {
 
             dynamic rejusetJson;
-
-            var EncryptedData = inputData.req_root.body.payload;
-            string BankCode = inputData.req_root.header.BankCode.ToString();
-            this.Bank_Code = BankCode;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlData);
-            string xpath = "PIDBlock/payload";
-            var nodes = xmlDoc.SelectSingleNode(xpath);
-            foreach (XmlNode childrenNode in nodes)
+            try
             {
-                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+                var EncryptedData = inputData.req_root.body.payload;
+                string BankCode = inputData.req_root.header.cde.ToString();
+                this.Bank_Code = BankCode;
+                string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlData);
+                string xpath = "PIDBlock/payload";
+                var nodes = xmlDoc.SelectSingleNode(xpath);
+                foreach (XmlNode childrenNode in nodes)
+                {
+                    JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
 
-                dynamic payload = rejusetJson1[APIname];
+                    dynamic payload = rejusetJson1[APIname];
 
-                this.appkey = payload.msgHdr.authInfo.token.ToString();
-                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
-                this.Channel_ID = payload.msgHdr.channelID.ToString();
+                    this.appkey = payload.msgHdr.authInfo.token.ToString();
+                    this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                    this.Channel_ID = payload.msgHdr.channelID.ToString();
 
-                rejusetJson = payload.msgBdy;
+                    rejusetJson = payload.msgBdy;
 
-                return rejusetJson;
+                    return rejusetJson;
 
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getRequestData", ex.Message);
             }
 
             return "";

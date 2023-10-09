@@ -156,10 +156,29 @@ using CRMConnect;
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
-            string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
-            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string TableId = await this.getIDFromGetResponce(idfield, responsdtails);
-            return TableId;
+            try
+            {
+                string Table_Id;
+                string TableId;
+                if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+                {
+                    string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
+                    var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                    TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+
+                    this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                }
+                else
+                {
+                    TableId = Table_Id;
+                }
+                return TableId;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getIDfromMSDTable", ex.Message, $"Table {tablename} filterkey {filterkey} filtervalue {filtervalue}");
+                throw;
+            }
         }
 
         public async Task<string> getDocumentID(string requestId)
@@ -168,10 +187,17 @@ using CRMConnect;
         }
         public async Task<JArray> getDocumentData(string requestId)
         {
-            string query_url = $"eqs_leaddocuments()?$select=eqs_leaddocumentid,eqs_dmsdocumentid&$filter=eqs_dmsrequestid eq '{requestId}'";
-            var docdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var doc_Detail = await this.getDataFromResponce(docdtails);
-            return doc_Detail;
+            try { 
+                string query_url = $"eqs_leaddocuments()?$select=eqs_leaddocumentid,eqs_dmsdocumentid&$filter=eqs_dmsrequestid eq '{requestId}'";
+                var docdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var doc_Detail = await this.getDataFromResponce(docdtails);
+                return doc_Detail;
+            }            
+            catch (Exception ex)
+            {
+                this._logger.LogError("getDocumentData", ex.Message);
+                throw ex;
+            }
         }
 
 

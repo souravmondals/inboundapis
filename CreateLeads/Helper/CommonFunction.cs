@@ -191,7 +191,7 @@ namespace CreateLeads
             }            
             catch (Exception ex)
             {
-                this._logger.LogError("getProductId", ex.Message);
+                this._logger.LogError("getCustomerDetail", ex.Message);
                 throw ex;
             }
         }

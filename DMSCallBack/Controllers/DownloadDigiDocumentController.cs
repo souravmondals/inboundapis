@@ -53,7 +53,7 @@
                 dmsreturn.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
                 string response = await _downloadDigiDocExecution.EncriptRespons(JsonConvert.SerializeObject(dmsreturn));
-                this._downloadDigiDocExecution.CRMLog(JsonConvert.SerializeObject(request), response, dmsreturn.ReturnCode);
+               
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

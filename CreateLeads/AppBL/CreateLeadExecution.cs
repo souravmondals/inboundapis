@@ -90,24 +90,29 @@ namespace CreateLeads
                     if (!string.IsNullOrEmpty(channel) && channel != "")
                     {
                         int ValidationError = 0;
+                        string errorText = "";
 
                         if (string.Equals(LeadData.ChannelType.ToString(), "ESFB Website"))
                         {
                             if (LeadData.FirstName == null || string.IsNullOrEmpty(LeadData.FirstName.ToString()) || LeadData.FirstName.ToString() == "")
                             {
                                 ValidationError = 1;
+                                errorText = "FirstName";
                             }
                             if (LeadData.LastName == null || string.IsNullOrEmpty(LeadData.LastName.ToString()) || LeadData.LastName.ToString() == "")
                             {
                                 ValidationError = 1;
+                                errorText = "LastName";
                             }
                             if (LeadData.MobileNumber == null || string.IsNullOrEmpty(LeadData.MobileNumber.ToString()) || LeadData.MobileNumber.ToString() == "")
                             {
                                 ValidationError = 1;
+                                errorText = "MobileNumber";
                             }
                             if (LeadData.ProductCode == null || string.IsNullOrEmpty(LeadData.ProductCode.ToString()) || LeadData.ProductCode.ToString() == "")
                             {
                                 ValidationError = 1;
+                                errorText = "ProductCode";
                             }
                             
 
@@ -117,6 +122,7 @@ namespace CreateLeads
                             if (LeadData.CustomerID == null || string.IsNullOrEmpty(LeadData.CustomerID.ToString()) || LeadData.CustomerID.ToString() == "")
                             {
                                 ValidationError = 1;
+                                errorText = "CustomerID";
                             }
                         }
                         else if (string.Equals(LeadData.ChannelType.ToString(), "ChatBot"))
@@ -124,16 +130,19 @@ namespace CreateLeads
                             if (LeadData.Email == null || string.IsNullOrEmpty(LeadData.Email.ToString()) || LeadData.Email.ToString() == "")
                             {
                                 ValidationError = 1;
+                                errorText = "Email";
                             }
 
                             if (LeadData.MobileNumber == null || string.IsNullOrEmpty(LeadData.MobileNumber.ToString()) || LeadData.MobileNumber.ToString() == "")
                             {
                                 ValidationError = 1;
+                                errorText = "MobileNumber";
                             }
 
                             if (LeadData.Transcript == null || string.IsNullOrEmpty(LeadData.Transcript.ToString()) || LeadData.Transcript.ToString() == "")
                             {
                                 ValidationError = 1;
+                                errorText = "Transcript";
                             }
 
                         }
@@ -142,20 +151,22 @@ namespace CreateLeads
                             if (LeadData.Email == null || string.IsNullOrEmpty(LeadData.Email.ToString()) || LeadData.Email.ToString() == "")
                             {
                                 ValidationError = 1;
+                                errorText = "Email";
                             }
 
                             if (LeadData.EmailBody == null || string.IsNullOrEmpty(LeadData.EmailBody.ToString()) || LeadData.EmailBody.ToString() == "")
                             {
                                 ValidationError = 1;
+                                errorText = "EmailBody";
                             }
                         }
 
 
                         if (ValidationError == 1)
                         {                           
-                            this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                            this._logger.LogInformation("ValidateLeade", $"{errorText} is mandatory");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                            ldRtPrm.Message = $"{errorText} is mandatory";
                         }
                         else
                         {
@@ -166,23 +177,23 @@ namespace CreateLeads
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateLeade", "Channel is incorrect");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "Channel is incorrect";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateLeade", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateLeade", "Transaction_ID or appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Transaction_ID or appkey is incorrect";
                 }
 
                 return ldRtPrm;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("CreateLead", ex.Message);
+                this._logger.LogError("ValidateLeade", ex.Message);
                 ldRtPrm.ReturnCode = "CRM-ERROR-101";
                 ldRtPrm.Message = OutputMSG.Resource_n_Found;
                 return ldRtPrm;
@@ -202,42 +213,7 @@ namespace CreateLeads
             }
         }
 
-        public async Task<LeadReturnParam> ValidateLeadeStatus(dynamic LeadStatus)
-        {
-            LeadReturnParam ldRtPrm = new LeadReturnParam();
-            int ValidationError = 0;
-            try
-            {
-
-                if (LeadStatus.LeadId == null || string.IsNullOrEmpty(LeadStatus.LeadId.ToString()) || LeadStatus.LeadId.ToString() == "")
-                {
-                    ValidationError = 1;
-                }
-
-                if (LeadStatus.Status == null || string.IsNullOrEmpty(LeadStatus.Status.ToString()) || LeadStatus.Status.ToString() == "")
-                {
-                    ValidationError = 1;
-                }
-
-                if (ValidationError == 1)
-                {
-                    this._logger.LogInformation("ValidateLeadeStatus", "Input parameters are incorrect");
-                    ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
-                }
-
-                ldRtPrm = await this.UpdateLead(LeadStatus);
-
-                return ldRtPrm;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("LeadeStatus", ex.Message);
-                ldRtPrm.ReturnCode = "CRM-ERROR-101";
-                ldRtPrm.Message = OutputMSG.Resource_n_Found;
-                return ldRtPrm;
-            }
-        }
+        
 
         public async Task<LeadReturnParam> CreateLead(dynamic LeadData)
         {
@@ -693,40 +669,6 @@ namespace CreateLeads
         }
 
 
-        public async Task<LeadReturnParam> UpdateLead(dynamic LeadData)
-        {
-            LeadReturnParam ldRtPrm = new LeadReturnParam();
-            List<JObject> Lead_details = new List<JObject>();
-            Dictionary<string, string> odatab = new Dictionary<string, string>();
-
-            odatab.Add("eqs_leadstatus", this.LeadStatus[LeadData.Status.ToString()]);
-
-            string postDataParametr = JsonConvert.SerializeObject(odatab);
-
-            if (LeadData.LeadID != null && LeadData.LeadID.ToString() != "")
-            {
-                ldRtPrm.LeadID = LeadData.LeadID.ToString();
-                Lead_details = await this._queryParser.HttpApiCall($"leads({ldRtPrm.LeadID})", HttpMethod.Patch, postDataParametr);
-            }
-
-            return ldRtPrm;
-        }
-        
-
-        public List<JObject> getLeads()
-        {
-            
-            try
-            {
-                var output = this._queryParser.HttpApiCall("leads", HttpMethod.Get, "").Result;
-                return output;
-            }
-            catch(Exception ex) 
-            {
-                throw ex;
-            }
-            
-        }
 
         public async Task<string> EncriptRespons(string ResponsData)
         {
@@ -737,26 +679,32 @@ namespace CreateLeads
         {
 
             dynamic rejusetJson;
-
-            var EncryptedData = inputData.req_root.body.payload;
-            string BankCode = inputData.req_root.header.BankCode.ToString();
-            this.Bank_Code = BankCode;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlData);
-            string xpath = "PIDBlock/payload";
-            var nodes = xmlDoc.SelectSingleNode(xpath);
-            foreach (XmlNode childrenNode in nodes)
+            try
             {
-                rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
+                var EncryptedData = inputData.req_root.body.payload;
+                string BankCode = inputData.req_root.header.cde.ToString();
+                this.Bank_Code = BankCode;
+                string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlData);
+                string xpath = "PIDBlock/payload";
+                var nodes = xmlDoc.SelectSingleNode(xpath);
+                foreach (XmlNode childrenNode in nodes)
+                {
+                    rejusetJson = JsonConvert.DeserializeObject(childrenNode.Value);
 
-                var payload = rejusetJson.CreateLead;
-                this.appkey = payload.msgHdr.authInfo.token.ToString();
-                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
-                this.Channel_ID = payload.msgHdr.channelID.ToString();
+                    var payload = rejusetJson.CreateLead;
+                    this.appkey = payload.msgHdr.authInfo.token.ToString();
+                    this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                    this.Channel_ID = payload.msgHdr.channelID.ToString();
 
-                rejusetJson = payload.msgBdy;
-                return rejusetJson;
+                    rejusetJson = payload.msgBdy;
+                    return rejusetJson;
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getRequestData", ex.Message);
             }
 
             return "";

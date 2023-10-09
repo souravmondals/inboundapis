@@ -49,8 +49,8 @@
                 AccountDetails.TransactionID = this._crdgaccleadbyExecution.Transaction_ID;
                 AccountDetails.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
-                string response = await _crdgaccleadbyExecution.EncriptRespons(JsonConvert.SerializeObject(AccountDetails));
-                this._crdgaccleadbyExecution.CRMLog(JsonConvert.SerializeObject(request), response, AccountDetails.ReturnCode);
+                string response = await _crdgaccleadbyExecution.EncriptRespons(JsonConvert.SerializeObject(AccountDetails), _crdgaccleadbyExecution.Bank_Code);
+                
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

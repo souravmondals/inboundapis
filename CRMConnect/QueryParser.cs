@@ -19,6 +19,7 @@
     using System.Xml;
     using Azure.Core;
     using System.Reflection.PortableExecutable;
+    using Azure;
 
 
     public class QueryParser : IQueryParser
@@ -47,55 +48,85 @@
 
         public async Task<List<JObject>> HttpApiCall(string odataQuery, HttpMethod httpMethod, string parameterToPost = "")
         {
-            HttpClient httpClient = new HttpClient();
-            httpClient.BaseAddress = new Uri(this._keyVaultService.ReadSecret("APIUrl"));
-            List<HttpContent> httpcontent = new List<HttpContent>();
-            List<HttpMessageContent> odataRequestforChild = new List<HttpMessageContent>();
-
-            odataQuery = httpClient.BaseAddress + odataQuery;
-
-            if (!string.IsNullOrEmpty(parameterToPost))
+            try
             {
-                odataRequestforChild.Add(this.CreateHttpMessageContent(httpMethod, odataQuery, this._log, 1, parameterToPost));
-            }
-            else
-            {
-                odataRequestforChild.Add(this.CreateHttpMessageContent(httpMethod, odataQuery, this._log));
-            }
+                HttpClient httpClient = new HttpClient();
+                httpClient.BaseAddress = new Uri(this._keyVaultService.ReadSecret("APIUrl"));                
+                List<HttpContent> httpcontent = new List<HttpContent>();
+                List<HttpMessageContent> odataRequestforChild = new List<HttpMessageContent>();
 
-            odataRequestforChild.ForEach(x =>
-                        httpcontent.Add(x)
-                    );
-            List<JObject> results = await this.SendBatchRequestAsync(httpClient, httpcontent, this._log).ConfigureAwait(true);
-            return results;
+                odataQuery = httpClient.BaseAddress + odataQuery;
+               
+                if (!string.IsNullOrEmpty(parameterToPost))
+                {
+                    odataRequestforChild.Add(this.CreateHttpMessageContent(httpMethod, odataQuery, this._log, 1, parameterToPost));
+                }
+                else
+                {
+                    odataRequestforChild.Add(this.CreateHttpMessageContent(httpMethod, odataQuery, this._log));
+                }
+
+                odataRequestforChild.ForEach(x =>
+                            httpcontent.Add(x)
+                        );
+                List<JObject> results = await this.SendBatchRequestAsync(httpClient, httpcontent, this._log).ConfigureAwait(true);
+                return results;
+            }
+            catch (Exception ex)
+            {
+                _errorLogger.LogError("HttpApiCall", $"Error from CBS connect: {ex.Message} \n {ex.InnerException!} \n {ex.StackTrace!}", $"Query {odataQuery}  \n  post param {parameterToPost}");
+                throw;
+            }
         }
 
         public async Task<string> HttpCBSApiCall(string Token, HttpMethod httpMethod, string APIName, string parameterToPost = "")
         {
-            HttpClient httpClient = new HttpClient();
             string requestUri = this._keyVaultService.ReadSecret(APIName);
-
-            HttpRequestMessage requestMessage = new HttpRequestMessage(httpMethod, requestUri);
-            StringContent stringContent = new StringContent(parameterToPost);
-            stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;type=entry");
-            requestMessage.Content = stringContent;
-            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
-
-            var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
-            string responJsonText = await response.Content.ReadAsStringAsync();
-            dynamic responsej = JsonConvert.DeserializeObject(responJsonText);
-            string xmlData = await PayloadDecryption(responsej.req_root.body.payload.ToString(), responsej.req_root.header.BankCode.ToString());
-            string xpath = "PIDBlock/payload";
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlData);
-            var nodes = xmlDoc.SelectSingleNode(xpath);
-            foreach (XmlNode childrenNode in nodes)
+            string responJsonText = "";
+            try
             {
-                responJsonText = childrenNode.Value.ToString();
+                HttpClient httpClient = new HttpClient();               
+
+                HttpRequestMessage requestMessage = new HttpRequestMessage(httpMethod, requestUri);
+                StringContent stringContent = new StringContent(parameterToPost);
+                stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;type=entry");
+                requestMessage.Content = stringContent;
+                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
+
+                var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
+                responJsonText = await response.Content.ReadAsStringAsync();
+                dynamic responsej = JsonConvert.DeserializeObject(responJsonText);
+                string ret_responJsonText = "";
+                if (responsej.req_root!=null)
+                {
+                    string xmlData = await PayloadDecryption(responsej.req_root.body.payload.ToString(), "FI0060");
+                    _errorLogger.LogInformation("HttpCBSApiCall response", parameterToPost, xmlData);
+                    string xpath = "PIDBlock/payload";
+                    XmlDocument xmlDoc = new XmlDocument();
+                    xmlDoc.LoadXml(xmlData);
+                    var nodes = xmlDoc.SelectSingleNode(xpath);
+                    
+                    foreach (XmlNode childrenNode in nodes)
+                    {
+                        ret_responJsonText = childrenNode.Value.ToString();
+                    }
+                }
+                else
+                {
+                    ret_responJsonText = responJsonText;
+                }
+                
+                //HttpResponseMessage respon = await httpClient.PostAsync(requestUri, new StringContent(parameterToPost, System.Text.Encoding.UTF8, "application/json"));
+                //string responJsonText = await respon.Content.ReadAsStringAsync();
+                return ret_responJsonText;
             }
-            //HttpResponseMessage respon = await httpClient.PostAsync(requestUri, new StringContent(parameterToPost, System.Text.Encoding.UTF8, "application/json"));
-            //string responJsonText = await respon.Content.ReadAsStringAsync();
-            return responJsonText;
+            catch (Exception ex)
+            {
+                
+                _errorLogger.LogError("HttpCBSApiCall", $"Error from CBS connect: {ex.Message} {ex.InnerException!} {ex.StackTrace!}", $"API {requestUri} \n  parameterToPost:-  {parameterToPost} \n responJsonText:- {responJsonText} ");
+                throw;
+            }
+            
         }
 
 
@@ -349,40 +380,49 @@
         {
             string Token_Id;
             string TokenId;
-            if (!this.GetMvalue<string>("wso2token", out Token_Id))
+            try
             {
-                HttpClient httpClient = new HttpClient();
-                string requestUri = this._keyVaultService.ReadSecret("wso2AuthUrl");
+                if (!this.GetMvalue<string>("wso2token", out Token_Id))
+                {
+                    HttpClient httpClient = new HttpClient();
+                    string requestUri = this._keyVaultService.ReadSecret("wso2AuthUrl");
 
-                string username = "1tSAaPFOcAjWihSNn_JNctGxxbga";
-                string password = "3OnItTOcaEU_m8DzeeXdQVgdHdUa";
-                string encoded = System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(username + ":" + password));
-                
-                List<KeyValuePair<string, string>> Data = new List<KeyValuePair<string, string>>
+                    string username = "1tSAaPFOcAjWihSNn_JNctGxxbga";
+                    string password = "3OnItTOcaEU_m8DzeeXdQVgdHdUa";
+                    string encoded = System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(username + ":" + password));
+
+                    List<KeyValuePair<string, string>> Data = new List<KeyValuePair<string, string>>
                 {
                     new KeyValuePair<string, string>("grant_type", "client_credentials"),
                 };
 
-                var content = new FormUrlEncodedContent(Data);
-                content.Headers.Clear();
-                content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
-                HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
-                requestMessage.Headers.Add("Authorization", "Basic " + encoded);
-                requestMessage.Content = content;
+                    var content = new FormUrlEncodedContent(Data);
+                    content.Headers.Clear();
+                    content.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                    HttpRequestMessage requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+                    requestMessage.Headers.Add("Authorization", "Basic " + encoded);
+                    requestMessage.Content = content;
 
-                var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
-                string responJsonText = await response.Content.ReadAsStringAsync();
-                dynamic responsej = JsonConvert.DeserializeObject(responJsonText);
+                    var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
+                    string responJsonText = await response.Content.ReadAsStringAsync();
+                    dynamic responsej = JsonConvert.DeserializeObject(responJsonText);
 
-                TokenId = responsej.access_token.ToString();
+                    TokenId = responsej.access_token.ToString();
 
 
-                this.SetMvalue<string>("wso2token", 3600, TokenId);
+                    this.SetMvalue<string>("wso2token", 3600, TokenId);
+                }
+                else
+                {
+                    TokenId = Token_Id;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                TokenId = Token_Id;
+                _errorLogger.LogError("getAccessToken", $"Error from get wso2Aut access token : {ex.Message}");
+                throw;
             }
+            
 
 
             return TokenId;
@@ -436,7 +476,7 @@
             string Cdate = CurrentDate.ToString("yyyy-MM-ddTHH:MM:ss.214Z", CultureInfo.InvariantCulture);
             string currentdatetime = Cdate;
 
-            string Frame1 = "{ " + '"' + "req_root" + '"' + ":{" + '"' + "header" + '"' + ":{" + '"' + "dateTime" + '"' + ":" + '"' + currentdatetime + '"' + "," + '"' + "BankCode" + '"' + ":" + '"' + V_bankcode + '"' + "," + '"' + "requestId" + '"' + ":" + '"' + V_requestedID + '"' + "," + '"' + "version" + '"' + ":" + '"' + "1.0" + '"' + "}," + '"' + "body" + '"' + ":{" + '"' + "payload" + '"' + ":" + '"';
+            string Frame1 = "{ " + '"' + "req_root" + '"' + ":{" + '"' + "header" + '"' + ":{" + '"' + "dateTime" + '"' + ":" + '"' + currentdatetime + '"' + "," + '"' + "cde" + '"' + ":" + '"' + V_bankcode + '"' + "," + '"' + "requestId" + '"' + ":" + '"' + V_requestedID + '"' + "," + '"' + "version" + '"' + ":" + '"' + "1.0" + '"' + "}," + '"' + "body" + '"' + ":{" + '"' + "payload" + '"' + ":" + '"';
             string Frame2 = '"' + "}}}";
 
             finalrequestdata = Frame1 + encryptedText + Frame2;
@@ -541,7 +581,7 @@
             }
             catch(Exception ex)
             {
-                this._log.LogError("getOptionSetTextToValue", ex.Message);
+                this._log.LogError("getOptionSetTextToValue", ex.Message,$"Table:- {tableName} Eield name:- {fieldName} option value :- {OptionText}");
                 return "";
             }
            
@@ -585,8 +625,8 @@
 
             }
             catch (Exception ex)
-            {
-                this._log.LogError("getOptionSetTextToValue", ex.Message);
+            {               
+                this._log.LogError("getOptionSetValuToText", ex.Message, $"Table:- {tableName} Eield name:- {fieldName} option value :- {OptionValue}");
                 return "";
             }
 

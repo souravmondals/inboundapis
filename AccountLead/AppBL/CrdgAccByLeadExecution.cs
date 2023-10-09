@@ -104,21 +104,21 @@
                         }
                         else
                         {
-                            this._logger.LogInformation("ValidateLeadtInput", "Input parameters are incorrect");
+                            this._logger.LogInformation("ValidateLeadtInput", "AccountLead can not be null.");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
                             ldRtPrm.Message = OutputMSG.Incorrect_Input;
                         }
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateLeadtInput", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateLeadtInput", "Transaction_ID or Channel_ID in incorrect.");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
                         ldRtPrm.Message = OutputMSG.Incorrect_Input;
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateLeadtInput", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateLeadtInput", "Appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
                     ldRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
@@ -141,7 +141,7 @@
             {               
 
                 string Token = await this._queryParser.getAccessToken();
-                string RequestTemplate = "{\"createAccountRequest\":{\"msgHdr\":{\"channelID\":\"FOS\",\"transactionType\":\"create\",\"transactionSubType\":\"account\",\"conversationID\":\"FOS2023071305441888603509\",\"externalReferenceId\":\"FOS2023071305441888603509\",\"isAsync\":false,\"authInfo\":{\"branchID\":\"1002\",\"userID\":\"IBUSER\",\"token\":\"1002\"}},\"msgBdy\":{\"accountNo\":\"\",\"accountNominee\":{\"city\":\"CHENNAI\",\"country\":\"IN\",\"dateOfBirth\":\"19880514\",\"isNomineeDisplay\":\"false\",\"isNomineeBankCustomer\":\"false\",\"nominee\":{\"phone\":{\"country\":\"9834\",\"area\":\"91\",\"number\":\"7678982345\",\"extn\":\"2342\"},\"address\":{\"line1\":\"Adrs1\",\"line2\":\"Adrs2\",\"line3\":\"Adrs3\"},\"emailId\":\"bhr@gml.com\",\"name\":\"BHR\"},\"guardian\":{\"phone\":{\"area\":\"293\",\"number\":\"\"},\"address\":{\"line1\":\"Gadds1\",\"line2\":\"Gadds2\",\"line3\":\"Gadds3\",\"line4\":\"string\",\"city\":\"CHENNAI\",\"area\":\"string\",\"state\":\"TAMIL NADU\",\"country\":\"IN\",\"zip\":\"600040\"},\"emailId\":\"jnas@s1.com\",\"name\":\"Grdnbhr\"},\"refGuardPhnCountry\":\"424\",\"refGuardPhnExtn\":\"334534\",\"relAcctHolder\":\"15\",\"relationGuardian\":\"\",\"shareAmount\":100,\"sharePercentage\":100,\"state\":\"TAMIL NADU\",\"zip\":\"600041\",\"customerId\":\"\"},\"branchCode\":9999,\"customerAndRelation\":[{\"customerId\":\"13972557\",\"customerName\":\"MayankAccountCreationTest\",\"relation\":\"JAF\"},{\"customerId\":\"13972559\",\"customerName\":\"SendoryApplicant\",\"relation\":\"NOM\"}],\"customerID\":\"13972557\",\"isJointHolder\":\"true\",\"isRestrictAcct\":false,\"transactionType\":\"A\",\"minorAcctStatus\":false,\"productCode\":\"1025\",\"tdaccountPayinRequest\":{\"depositAmount\":0,\"fromAccountNo\":\"\",\"termDays\":0,\"termMonths\":0},\"rdaccountPayinRequest\":{\"installmentAmount\":0,\"payoutAccountNo\":\"\",\"termMonths\":0}}}}";
+                string RequestTemplate = "{\"createAccountRequest\":{\"msgHdr\":{\"channelID\":\"FOS\",\"transactionType\":\"string\",\"transactionSubType\":\"string\",\"conversationID\":\"string\",\"externalReferenceId\":\"45656dfvdf\",\"isAsync\":false,\"authInfo\":{\"branchID\":\"string\",\"userID\":\"IBUSER\",\"token\":\"string\"}},\"msgBdy\":{\"accountNo\":\"\",\"accountNominee\":{\"city\":\"Erode\",\"country\":\"IN\",\"dateOfBirth\":\"20161104\",\"isNomineeDisplay\":false,\"isNomineeBankCustomer\":false,\"nominee\":{\"phone\":{\"country\":\"9834\",\"area\":\"91\",\"number\":\"916345343425\",\"extn\":\"2342\"},\"address\":{\"line1\":\"qsdv\",\"line2\":\"sdsvsdv\",\"line3\":\"dvxdx\"},\"emailId\":\"sjfjg@hgsd.com\",\"name\":\"PAAVAI\"},\"guardian\":{\"phone\":{\"area\":\"293\",\"number\":\"916352673569\"},\"address\":{\"line1\":\"qsdv\",\"line2\":\"sdsvsdv\",\"line3\":\"dvxdx\",\"line4\":\"string\",\"city\":\"Erode\",\"state\":\"TAMILNADU\",\"country\":\"IN\",\"zip\":\"638103\"},\"emailId\":\"jnas@s1.com\",\"name\":\"Podiya\"},\"refGuardPhnCountry\":\"424\",\"refGuardPhnExtn\":\"334534\",\"relAcctHolder\":3,\"relationGuardian\":2,\"shareAmount\":100,\"sharePercentage\":100,\"state\":\"TAMILNADU\",\"zip\":\"638103\"},\"branchCode\":9999,\"customerAndRelation\":[{\"customerId\":\"13972559\",\"customerName\":\"IlangoSelvam\",\"relation\":\"SOW\"}],\"customerID\":\"13972559\",\"isJointHolder\":false,\"isRestrictAcct\":false,\"transactionType\":\"A\",\"minorAcctStatus\":false,\"productCode\":2005,\"tdaccountPayinRequest\":{\"depositAmount\":0,\"fromAccountNo\":\"\",\"termDays\":0,\"termMonths\":0},\"rdaccountPayinRequest\":{\"installmentAmount\":0,\"payoutAccountNo\":\"\",\"termMonths\":0}}}}";
                 dynamic Request_Template = JsonConvert.DeserializeObject(RequestTemplate);
                 dynamic msgHdr = Request_Template.createAccountRequest.msgHdr;
                 dynamic msgBdy = Request_Template.createAccountRequest.msgBdy;
@@ -162,7 +162,7 @@
                     {
                         if (!string.IsNullOrEmpty(Nominee[0]["_eqs_city_value"].ToString()))
                         {
-                            msgBdy.accountNominee.city = await this._commonFunc.getCityName(Nominee[0]["_eqs_city_value"].ToString());
+                          //  msgBdy.accountNominee.city = await this._commonFunc.getCityName(Nominee[0]["_eqs_city_value"].ToString());
                         }
 
                         if (!string.IsNullOrEmpty(Nominee[0]["_eqs_state_value"].ToString()))
@@ -233,12 +233,12 @@
                     }
 
                     msgBdy.customerAndRelation = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(relationList));
-                    msgBdy.isJointHolder = (AccountDDE[0]["eqs_accountownershipcode"].ToString() == "615290001") ? "true" : "false";
-                    msgBdy.productCode = await this._commonFunc.getProductCode(AccountDDE[0]["_eqs_productid_value"].ToString());
+                    msgBdy.isJointHolder = (AccountDDE[0]["eqs_accountownershipcode"].ToString() == "615290001") ? true : false;
+                    msgBdy.productCode = Convert.ToInt32(await this._commonFunc.getProductCode(AccountDDE[0]["_eqs_productid_value"].ToString()));
 
                     Request_Template.createAccountRequest.msgBdy = msgBdy;
-
-                    string postDataParametr = await EncriptRespons(JsonConvert.SerializeObject(Request_Template));
+                    string input_payload = JsonConvert.SerializeObject(Request_Template);
+                    string postDataParametr = await EncriptRespons(input_payload, "FI0060");
                     string Lead_details = await this._queryParser.HttpCBSApiCall(Token, HttpMethod.Post, "CBSCreateAccount", postDataParametr);
                     dynamic responsD = JsonConvert.DeserializeObject(Lead_details);
                     
@@ -247,7 +247,7 @@
                         accountLeadReturn.Message = responsD.msgHdr.error[0].reason.ToString();
                         accountLeadReturn.ReturnCode = "CRM-ERROR-102";
                     }
-                    else
+                    else if(responsD.createAccountResponse.msgBdy != null)
                     {
                         Dictionary<string,string> fieldInput = new Dictionary<string,string>();
                         
@@ -259,7 +259,12 @@
                         
                         accountLeadReturn.Message = OutputMSG.Case_Success;
                         accountLeadReturn.ReturnCode = "CRM-SUCCESS";
-                    }                    
+                    }
+                    else
+                    {
+                        accountLeadReturn.Message = Lead_details;
+                        accountLeadReturn.ReturnCode = "CRM-ERROR-101";
+                    }
 
                 }
                 else
@@ -272,7 +277,7 @@
             catch (Exception ex)
             {
                 this._logger.LogError("CreateAccountByLead", ex.Message);
-                accountLeadReturn.Message = OutputMSG.Incorrect_Input;
+                accountLeadReturn.Message = $"error {ex.Message} {ex.InnerException!} {ex.StackTrace!}";
                 accountLeadReturn.ReturnCode = "CRM-ERROR-102";
             }
 
@@ -298,49 +303,46 @@
         }
                         
 
-        public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
-        {
-            Dictionary<string, string> CRMProp = new Dictionary<string, string>();
-            CRMProp.Add("eqs_name", this.Transaction_ID);
-            CRMProp.Add("eqs_requestbody", InputRequest);
-            CRMProp.Add("eqs_responsebody", OutputRespons);
-            CRMProp.Add("eqs_requeststatus", (CallStatus.Contains("ERROR")) ? "615290001" : "615290000");
-            string postDataParametr = JsonConvert.SerializeObject(CRMProp);
-            await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
-        }
+       
 
-        public async Task<string> EncriptRespons(string ResponsData)
+        public async Task<string> EncriptRespons(string ResponsData, string Bankcode)
         {
-            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID, this.Bank_Code);
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID, Bankcode);
         }
 
         private async Task<dynamic> getRequestData(dynamic inputData, string APIname)
         {
 
             dynamic rejusetJson;
-
-            var EncryptedData = inputData.req_root.body.payload;
-            string BankCode = inputData.req_root.header.BankCode.ToString();
-            this.Bank_Code = BankCode;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlData);
-            string xpath = "PIDBlock/payload";
-            var nodes = xmlDoc.SelectSingleNode(xpath);
-            foreach (XmlNode childrenNode in nodes)
+            try
             {
-                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+                var EncryptedData = inputData.req_root.body.payload;
+                string BankCode = inputData.req_root.header.cde.ToString();
+                this.Bank_Code = BankCode;
+                string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlData);
+                string xpath = "PIDBlock/payload";
+                var nodes = xmlDoc.SelectSingleNode(xpath);
+                foreach (XmlNode childrenNode in nodes)
+                {
+                    JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
 
-                dynamic payload = rejusetJson1[APIname];
+                    dynamic payload = rejusetJson1[APIname];
 
-                this.appkey = payload.msgHdr.authInfo.token.ToString();
-                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
-                this.Channel_ID = payload.msgHdr.channelID.ToString();
+                    this.appkey = payload.msgHdr.authInfo.token.ToString();
+                    this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                    this.Channel_ID = payload.msgHdr.channelID.ToString();
 
-                rejusetJson = payload.msgBdy;
+                    rejusetJson = payload.msgBdy;
 
-                return rejusetJson;
+                    return rejusetJson;
 
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getRequestData", ex.Message);
             }
 
             return "";

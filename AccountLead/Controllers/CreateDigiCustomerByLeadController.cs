@@ -41,7 +41,7 @@
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
 
 
-                _crdgcustleadbyExecution.API_Name = "CreateDigiAccountByLead";
+                _crdgcustleadbyExecution.API_Name = "CreateDigiCustomerByLead";
                 _crdgcustleadbyExecution.Input_payload = request.ToString();
                 CustomerByLeadReturn AccountDetails = await _crdgcustleadbyExecution.ValidateLeadtInput(request);
 
@@ -49,8 +49,8 @@
                 AccountDetails.TransactionID = this._crdgcustleadbyExecution.Transaction_ID;
                 AccountDetails.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
-                string response = await _crdgcustleadbyExecution.EncriptRespons(JsonConvert.SerializeObject(AccountDetails));
-                this._crdgcustleadbyExecution.CRMLog(JsonConvert.SerializeObject(request), response, AccountDetails.ReturnCode);
+                string response = await _crdgcustleadbyExecution.EncriptRespons(JsonConvert.SerializeObject(AccountDetails), _crdgcustleadbyExecution.Bank_Code);
+                
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

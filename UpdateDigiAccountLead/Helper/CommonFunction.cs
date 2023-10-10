@@ -123,21 +123,29 @@ using CRMConnect;
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
-            string Table_Id;
-            string TableId;
-            if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+            try
             {
-                string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
-                var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+                string Table_Id;
+                string TableId;
+                if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+                {
+                    string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
+                    var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                    TableId = await this.getIDFromGetResponce(idfield, responsdtails);
 
-                this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                    this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                }
+                else
+                {
+                    TableId = Table_Id;
+                }
+                return TableId;
             }
-            else
+            catch (Exception ex)
             {
-                TableId = Table_Id;
+                this._logger.LogError("getIDfromMSDTable", ex.Message, $"Table {tablename} filterkey {filterkey} filtervalue {filtervalue}");
+                throw;
             }
-            return TableId;
         }
 
         public async Task<string> getDocCategoryId(string Category_code)
@@ -150,9 +158,9 @@ using CRMConnect;
             return await this.getIDfromMSDTable("eqs_docsubcategories", "eqs_docsubcategoryid", "eqs_docsubcategorycode", Subcat_code);
         }
 
-        public async Task<string> getApplicentID(string applicentcode)
+        public async Task<string> getApplicentID(string ucic)
         {
-            return await this.getIDfromMSDTable("eqs_accountapplicants", "eqs_accountapplicantid", "eqs_applicantid", applicentcode);
+            return await this.getIDfromMSDTable("eqs_accountapplicants", "eqs_accountapplicantid", "eqs_customer", ucic);
         }
         
         public async Task<string> getDebitCardID(string DebitCardcode)
@@ -198,10 +206,18 @@ using CRMConnect;
 
         public async Task<JArray> getLeadAccountDetails(string LdApplicantId)
         {
-            string query_url = $"eqs_leadaccounts()?$select=eqs_leadaccountid,eqs_ddefinalid,_eqs_typeofaccountid_value,_eqs_productid_value,_eqs_lead_value&$filter=eqs_crmleadaccountid eq '{LdApplicantId}'";
-            var LeadAccountDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var LeadAccount_dtails = await this._queryParser.getDataFromResponce(LeadAccountDtl);
-            return LeadAccount_dtails;
+            try
+            {
+                string query_url = $"eqs_leadaccounts()?$select=eqs_leadaccountid,eqs_crmleadaccountid,eqs_ddefinalid,_eqs_typeofaccountid_value,_eqs_productid_value,_eqs_lead_value&$filter=eqs_crmleadaccountid eq '{LdApplicantId}'";
+                var LeadAccountDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var LeadAccount_dtails = await this._queryParser.getDataFromResponce(LeadAccountDtl);
+                return LeadAccount_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getLeadAccountDetails", ex.Message);
+                throw ex;
+            }
         }
 
         public async Task<JArray> getApplicentsSetails(string LeadAccId)
@@ -215,7 +231,7 @@ using CRMConnect;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("getApplicantDetails", ex.Message);
+                this._logger.LogError("getApplicentsSetails", ex.Message);
                 throw ex;
             }
         }
@@ -231,7 +247,7 @@ using CRMConnect;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("getCustomerDetails", ex.Message);
+                this._logger.LogError("getPreferences", ex.Message);
                 throw ex;
             }
         }

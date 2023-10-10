@@ -11,7 +11,7 @@
         public Task<UpdateCustLeadReturn> createDigiCustLeadCorp(dynamic CustLeadData, dynamic Applicant_Data);
         public Task<UpdateCustLeadReturn> ValidateCustLeadDetls(dynamic CaseData);
         public Task<string> EncriptRespons(string ResponsData);
-        public Task CRMLog(string InputRequest, string OutputRespons, string CallStatus);
+      
 
 
     }

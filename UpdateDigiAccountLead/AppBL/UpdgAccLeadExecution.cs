@@ -108,24 +108,24 @@
                         }
                         else
                         {
-                            this._logger.LogInformation("ValidateLeadtInput", "Input UCIC are incorrect");
+                            this._logger.LogInformation("ValidateLeadtInput", "Input LeadAccount Id is incorrect");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                            ldRtPrm.Message = "Input LeadAccount Id is incorrect";
                         }
                         
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateLeadtInput", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateLeadtInput", "Transaction_ID or  Channel_ID is incorrect.");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "Transaction_ID or  Channel_ID is incorrect.";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateLeadtInput", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateLeadtInput", "Appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Appkey is incorrect";
                 }
 
                 return ldRtPrm;
@@ -172,16 +172,16 @@
                 }
                 else
                 {
-                    this._logger.LogInformation("FetLeadAccount", "Input parameters are incorrect");
+                    this._logger.LogInformation("FetLeadAccount", "Error occured  while creating AccountDDE");
                     accountLeadReturn.ReturnCode = "CRM-ERROR-102";
-                    accountLeadReturn.Message = OutputMSG.Incorrect_Input;
+                    accountLeadReturn.Message = "Error occured  while creating AccountDDE";
                 }
             }
             else
             {
-                this._logger.LogInformation("FetLeadAccount", "Input parameters are incorrect");
+                this._logger.LogInformation("FetLeadAccount", "No details found for given LeadAccount.");
                 accountLeadReturn.ReturnCode = "CRM-ERROR-102";
-                accountLeadReturn.Message = OutputMSG.Incorrect_Input;
+                accountLeadReturn.Message = "No details found for given LeadAccount.";
             }
 
 
@@ -212,7 +212,7 @@
                 
                 odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({LeadAccount[0]["_eqs_typeofaccountid_value"].ToString()})");                            
                 odatab.Add("eqs_productid@odata.bind", $"eqs_products({LeadAccount[0]["_eqs_productid_value"].ToString()})");
-                odatab.Add("eqs_ddeoperatorname", "Final");
+                odatab.Add("eqs_ddeoperatorname",  LeadAccount[0]["eqs_crmleadaccountid"].ToString() + "  - Final");
 
                 odatab.Add("eqs_isnomineedisplay", (Convert.ToBoolean(ddeData.IsNomineeDisplay)) ? "789030001" : "789030000");
                 odatab.Add("eqs_isnomineebankcustomer", (Convert.ToBoolean(ddeData.IsNomineeBankCustomer)) ? "789030001" : "789030000");
@@ -225,8 +225,12 @@
                 odatab.Add("eqs_leadchannelcode", "789030011");
                 odatab.Add("eqs_dataentrystage", "615290002");
                 odatab.Add("eqs_purposeofopeningaccountcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_purposeofopeningaccountcode", ddeData.OpeningAccountPurpose.ToString()));
-
-                odatab.Add("eqs_instakitcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_instakitcode", ddeData.InstaKit.ToString()));
+                if (!string.IsNullOrEmpty(ddeData.InstaKit.ToString()) && ddeData.InstaKit.ToString()!="")
+                {
+                    odatab.Add("eqs_instakitcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_instakitcode", ddeData.InstaKit.ToString()));
+                    odatab.Add("eqs_instakitaccountnumber", ddeData.InstakitAccountnumber.ToString());
+                }
+                
                 odatab.Add("eqs_modeofoperationcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeaccount", "eqs_modeofoperationcode", ddeData.ModeofOperation.ToString()));
 
 
@@ -274,6 +278,11 @@
                     odatab = new Dictionary<string, string>();
                     var ddeid = CommonFunction.GetIdFromPostRespons201(LeadAccount_details[0]["responsebody"], "eqs_ddeaccountid");
                     this.DDEId = ddeid;
+                    if (this.DDEId == null)
+                    {
+                        this._logger.LogError("SetLeadAccountDDE", JsonConvert.SerializeObject(LeadAccount_details), postDataParametr);                        
+                        return false;
+                    }
                     odatab.Add("eqs_ddefinalid", ddeid);
                     postDataParametr = JsonConvert.SerializeObject(odatab);
                     await this._queryParser.HttpApiCall($"eqs_leadaccounts({this.LeadAccountid})", HttpMethod.Patch, postDataParametr);
@@ -315,6 +324,11 @@
                    
                     string postDataParametr = JsonConvert.SerializeObject(odatab);
                     var resp = await this._queryParser.HttpApiCall("eqs_leaddocuments()?$select=eqs_leaddocumentid", HttpMethod.Post, postDataParametr);
+                    if (resp[0]["responsecode"].ToString()=="400")
+                    {
+                        this._logger.LogError("SetDocumentDDE", JsonConvert.SerializeObject(resp), postDataParametr);
+                        return false;
+                    }
                 }
                 
 
@@ -338,7 +352,7 @@
                     PreferenceIds.Add(PreferenceID);
                 }
 
-                inputItem.Add("eqs_applicantid@odata.bind", $"eqs_accountapplicants({ await this._commonFunc.getApplicentID(item["ApplicantId"].ToString())})");
+                inputItem.Add("eqs_applicantid@odata.bind", $"eqs_accountapplicants({ await this._commonFunc.getApplicentID(item["UCIC"].ToString())})");
                 inputItem.Add("eqs_debitcardflag", item["DebitCardFlag"].ToString());
                 inputItem.Add("eqs_debitcard@odata.bind", $"eqs_debitcards({ await this._commonFunc.getDebitCardID(item["DebitCardID"].ToString())})");
                 inputItem.Add("eqs_leadaccountdde@odata.bind", $"eqs_ddeaccounts({ this.DDEId})");
@@ -354,6 +368,10 @@
                 if (string.IsNullOrEmpty(PreferenceID))
                 {
                     var resp = await this._queryParser.HttpApiCall("eqs_customerpreferences()?$select=eqs_preferenceid", HttpMethod.Post, postDataParametr);
+                    if (resp[0]["responsecode"].ToString() == "400")
+                    {
+                        this._logger.LogError("SetPreferencesDDE", JsonConvert.SerializeObject(resp), postDataParametr);                       
+                    }
                     var Preference_data = CommonFunction.GetIdFromPostRespons201(resp[0]["responsebody"], "eqs_preferenceid");
                     PreferenceIds.Add(Preference_data);
                 }
@@ -461,16 +479,7 @@
                
                 
 
-        public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
-        {
-            Dictionary<string, string> CRMProp = new Dictionary<string, string>();
-            CRMProp.Add("eqs_name", this.Transaction_ID);
-            CRMProp.Add("eqs_requestbody", InputRequest);
-            CRMProp.Add("eqs_responsebody", OutputRespons);
-            CRMProp.Add("eqs_requeststatus", (CallStatus.Contains("ERROR")) ? "615290001" : "615290000");
-            string postDataParametr = JsonConvert.SerializeObject(CRMProp);
-            await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
-        }
+       
 
         public async Task<string> EncriptRespons(string ResponsData)
         {
@@ -481,29 +490,35 @@
         {
 
             dynamic rejusetJson;
-
-            var EncryptedData = inputData.req_root.body.payload;
-            string BankCode = inputData.req_root.header.BankCode.ToString();
-            this.Bank_Code = BankCode;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlData);
-            string xpath = "PIDBlock/payload";
-            var nodes = xmlDoc.SelectSingleNode(xpath);
-            foreach (XmlNode childrenNode in nodes)
+            try
             {
-                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+                var EncryptedData = inputData.req_root.body.payload;
+                string BankCode = inputData.req_root.header.cde.ToString();
+                this.Bank_Code = BankCode;
+                string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlData);
+                string xpath = "PIDBlock/payload";
+                var nodes = xmlDoc.SelectSingleNode(xpath);
+                foreach (XmlNode childrenNode in nodes)
+                {
+                    JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
 
-                dynamic payload = rejusetJson1[APIname];
+                    dynamic payload = rejusetJson1[APIname];
 
-                this.appkey = payload.msgHdr.authInfo.token.ToString();
-                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
-                this.Channel_ID = payload.msgHdr.channelID.ToString();
+                    this.appkey = payload.msgHdr.authInfo.token.ToString();
+                    this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                    this.Channel_ID = payload.msgHdr.channelID.ToString();
 
-                rejusetJson = payload.msgBdy;
+                    rejusetJson = payload.msgBdy;
 
-                return rejusetJson;
+                    return rejusetJson;
 
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getRequestData", ex.Message);
             }
 
             return "";

@@ -91,27 +91,34 @@
                         }                        
                         else
                         {
-                            this._logger.LogInformation("ValidateCustLeadDetls", "Input parameters are incorrect");
+                            this._logger.LogInformation("ValidateCustLeadDetls", "ApplicantId could not be null.");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                            ldRtPrm.Message = "ApplicantId could not be null.";
                             return ldRtPrm;
                         }
                                                                     
 
                     }
+                    else
+                    {
+                        this._logger.LogInformation("ValidateCustLeadDetls", "Transaction_ID or  Channel_ID is incorrect.");
+                        ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                        ldRtPrm.Message = "Transaction_ID or  Channel_ID is incorrect.";
+                        return ldRtPrm;
+                    }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateFtchDgLdSts", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateCustLeadDetls", "appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Appkey is incorrect";
                 }
 
                 return ldRtPrm;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("ValidateFtchDgLdSts", ex.Message);
+                this._logger.LogError("ValidateCustLeadDetls", ex.Message);
                 throw ex;
             }
             
@@ -150,7 +157,7 @@
             }
             catch (Exception ex)
             {
-                this._logger.LogError("ValidateFtchDgLdSts", ex.Message);
+                this._logger.LogError("createDDE", ex.Message);
                 throw;
             }
             return csRtPrm;
@@ -169,7 +176,7 @@
                 this.DDEId = await this._commonFunc.getDDEFinalAccountIndvData(Applicant_Data["eqs_accountapplicantid"].ToString());
                 string dd, mm, yyyy;
                 /*********** General *********/
-                CRMDDEmappingFields.Add("eqs_dataentryoperator", Applicant_Data.eqs_name.ToString());
+                CRMDDEmappingFields.Add("eqs_dataentryoperator", Applicant_Data.eqs_applicantid.ToString() + "  - Final");
                 CRMDDEmappingFields.Add("eqs_entitytypeId@odata.bind", $"eqs_entitytypes({Applicant_Data._eqs_entitytypeid_value.ToString()})");
                 CRMDDEmappingFields.Add("eqs_subentitytypeId@odata.bind", $"eqs_subentitytypes({Applicant_Data._eqs_subentity_value.ToString()})");
 
@@ -195,12 +202,20 @@
                 CRMDDEmappingFields.Add("eqs_middlename", Applicant_Data["eqs_middlename"].ToString());
                 CRMDDEmappingFields.Add("eqs_lastname", Applicant_Data["eqs_lastname"].ToString());
 
-                dd = Applicant_Data["eqs_dob"].ToString().Substring(0, 2);
-                mm = Applicant_Data["eqs_dob"].ToString().Substring(3, 2);
+                mm = Applicant_Data["eqs_dob"].ToString().Substring(0, 2);
+                dd = Applicant_Data["eqs_dob"].ToString().Substring(3, 2);
                 yyyy = Applicant_Data["eqs_dob"].ToString().Substring(6, 4);
+
                 CRMDDEmappingFields.Add("eqs_dob", yyyy + "-" + mm + "-" + dd);
-                CRMDDEmappingFields.Add("eqs_age", Applicant_Data["eqs_leadage"].ToString());
-                CRMDDEmappingFields.Add("eqs_gendercode", Applicant_Data["eqs_gendercode"].ToString());
+                if(!string.IsNullOrEmpty(Applicant_Data["eqs_leadage"].ToString()) && Applicant_Data["eqs_leadage"].ToString() != "")
+                {
+                    CRMDDEmappingFields.Add("eqs_age", Applicant_Data["eqs_leadage"].ToString());
+                }
+                if (!string.IsNullOrEmpty(Applicant_Data["eqs_gendercode"].ToString()) && Applicant_Data["eqs_gendercode"].ToString() != "")
+                {
+                    CRMDDEmappingFields.Add("eqs_gendercode", Applicant_Data["eqs_gendercode"].ToString());
+                }
+                    
                 CRMDDEmappingFields.Add("eqs_shortname", CustIndvData.ProspectDetails.ShortName.ToString());
                 CRMDDEmappingFields.Add("eqs_mobilenumber", Applicant_Data["eqs_mobilenumber"].ToString());
                 CRMDDEmappingFields.Add("eqs_emailid", CustIndvData.ProspectDetails.EmailID.ToString());
@@ -259,15 +274,20 @@
 
                 string postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
                 string postDataParametr1 = JsonConvert.SerializeObject(CRMDDEmappingFields1);
-                postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
-                postDataParametr1 = JsonConvert.SerializeObject(CRMDDEmappingFields2);
-                postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+                postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);             
 
                 if (string.IsNullOrEmpty(this.DDEId))
                 {
                     List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_ddeindividualcustomers()?$select=eqs_ddeindividualcustomerid", HttpMethod.Post, postDataParametr);
-                    var ddeid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_ddeindividualcustomer");
+                    var ddeid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_ddeindividualcustomerid");
                     this.DDEId = ddeid;
+                    if (this.DDEId==null)
+                    {
+                        this._logger.LogError("createDigiCustLeadIndv", JsonConvert.SerializeObject(DDE_details), postDataParametr);
+                        csRtPrm.ReturnCode = "CRM-ERROR-101";
+                        csRtPrm.Message = "Can't create Final DDE.";
+                        return csRtPrm;
+                    }
                 }
                 else
                 {
@@ -393,8 +413,8 @@
             catch (Exception ex)
             {
                 this._logger.LogError("createDigiCustLeadIndv", ex.Message);
-                csRtPrm.ReturnCode = "CRM-ERROR-102";
-                csRtPrm.Message = OutputMSG.Incorrect_Input;
+                csRtPrm.ReturnCode = "CRM-ERROR-101";
+                csRtPrm.Message = "Exception occured while creating DDE Final";
             }
             
             
@@ -524,6 +544,13 @@
                     List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_ddecorporatecustomers()?$select=eqs_ddecorporatecustomerid", HttpMethod.Post, postDataParametr);
                     var ddeid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_ddecorporatecustomerid");
                     this.DDEId = ddeid;
+                    if (this.DDEId == null)
+                    {
+                        this._logger.LogError("createDigiCustLeadCorp", JsonConvert.SerializeObject(DDE_details), postDataParametr);
+                        csRtPrm.ReturnCode = "CRM-ERROR-101";
+                        csRtPrm.Message = "Can't create Final DDE.";
+                        return csRtPrm;
+                    }
                 }
                 else
                 {
@@ -704,9 +731,9 @@
             }
             catch (Exception ex)
             {
-                this._logger.LogError("createDigiCustLeadIndv", ex.Message);
-                csRtPrm.ReturnCode = "CRM-ERROR-102";
-                csRtPrm.Message = OutputMSG.Incorrect_Input;
+                this._logger.LogError("createDigiCustLeadCorp", ex.Message);
+                csRtPrm.ReturnCode = "CRM-ERROR-101";
+                csRtPrm.Message = "Exception occured while creating DDE Final"; ;
             }
 
 
@@ -720,44 +747,41 @@
             return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID, this.Bank_Code);
         }
 
-        public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
-        {
-            Dictionary<string, string> CRMProp = new Dictionary<string, string>();
-            CRMProp.Add("eqs_name", this.Transaction_ID);
-            CRMProp.Add("eqs_requestbody", InputRequest);
-            CRMProp.Add("eqs_responsebody", OutputRespons);
-            CRMProp.Add("eqs_requeststatus", (CallStatus.Contains("ERROR")) ? "615290001" : "615290000");
-            string postDataParametr = JsonConvert.SerializeObject(CRMProp);
-            await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
-        }
+       
 
         private async Task<dynamic> getRequestData(dynamic inputData, string APIname)
         {
 
             dynamic rejusetJson;
-
-            var EncryptedData = inputData.req_root.body.payload;
-            string BankCode = inputData.req_root.header.BankCode.ToString();
-            this.Bank_Code = BankCode;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlData);
-            string xpath = "PIDBlock/payload";
-            var nodes = xmlDoc.SelectSingleNode(xpath);
-            foreach (XmlNode childrenNode in nodes)
+            try
             {
-                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+                var EncryptedData = inputData.req_root.body.payload;
+                string BankCode = inputData.req_root.header.cde.ToString();
+                this.Bank_Code = BankCode;
+                string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlData);
+                string xpath = "PIDBlock/payload";
+                var nodes = xmlDoc.SelectSingleNode(xpath);
+                foreach (XmlNode childrenNode in nodes)
+                {
+                    JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
 
-                dynamic payload = rejusetJson1[APIname];
+                    dynamic payload = rejusetJson1[APIname];
 
-                this.appkey = payload.msgHdr.authInfo.token.ToString();
-                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
-                this.Channel_ID = payload.msgHdr.channelID.ToString();
+                    this.appkey = payload.msgHdr.authInfo.token.ToString();
+                    this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                    this.Channel_ID = payload.msgHdr.channelID.ToString();
 
-                rejusetJson = payload.msgBdy;
+                    rejusetJson = payload.msgBdy;
 
-                return rejusetJson;
+                    return rejusetJson;
 
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getRequestData", ex.Message);
             }
 
             return "";

@@ -52,8 +52,8 @@
                 Casetatus.TransactionID = this._upDgCustLeadExecution.Transaction_ID;
                 Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
-                string response = await _upDgCustLeadExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
-                this._upDgCustLeadExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
+                string response = await _upDgCustLeadExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));                
+               
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

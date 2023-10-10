@@ -8,7 +8,7 @@ namespace UpdateAccountLead
         public Task<string> getDocSubcatId(string Subcat_code);
         public Task<JArray> getApplicentsSetails(string LeadAccId);
         public Task<JArray> getPreferences(string applicantid);
-        public Task<string> getApplicentID(string applicentcode);
+        public Task<string> getApplicentID(string ucic);
         public Task<string> getDebitCardID(string DebitCardcode);
         public Task<string> getNomineeID(string ddeID);
         public Task<string> getDocTypeId(string Type_code);

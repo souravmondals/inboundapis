@@ -157,38 +157,54 @@
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
-            string Table_Id;
-            string TableId;
-            if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+            try
             {
-                string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
-                var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+                string Table_Id;
+                string TableId;
+                if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+                {
+                    string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
+                    var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                    TableId = await this.getIDFromGetResponce(idfield, responsdtails);
 
-                this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                    this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                }
+                else
+                {
+                    TableId = Table_Id;
+                }
+                return TableId;
             }
-            else
+            catch (Exception ex)
             {
-                TableId = Table_Id;
+                this._logger.LogError("getIDfromMSDTable", ex.Message, $"Table {tablename} filterkey {filterkey} filtervalue {filtervalue}");
+                throw;
             }
-            return TableId;
         }
 
         public async Task<Dictionary<string, string>> getProductId(string ProductCode)
         {
-            string query_url = $"eqs_products()?$select=eqs_productid,_eqs_businesscategoryid_value,_eqs_productcategory_value,eqs_crmproductcategorycode&$filter=eqs_productcode eq '{ProductCode}'";
-            var productdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string ProductId = await this.getIDFromGetResponce("eqs_productid", productdtails);
-            string businesscategoryid = await this.getIDFromGetResponce("_eqs_businesscategoryid_value", productdtails);
-            string productcategory = await this.getIDFromGetResponce("_eqs_productcategory_value", productdtails);
-            string crmproductcategorycode = await this.getIDFromGetResponce("eqs_crmproductcategorycode", productdtails);
-            Dictionary<string, string> ProductData = new Dictionary<string, string>() {
-                { "ProductId", ProductId },
-                { "businesscategoryid", businesscategoryid },
-                { "productcategory", productcategory },
-                { "crmproductcategorycode", crmproductcategorycode },
-            };
-            return ProductData;
+            try
+            {
+                string query_url = $"eqs_products()?$select=eqs_productid,_eqs_businesscategoryid_value,_eqs_productcategory_value,eqs_crmproductcategorycode&$filter=eqs_productcode eq '{ProductCode}'";
+                var productdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                string ProductId = await this.getIDFromGetResponce("eqs_productid", productdtails);
+                string businesscategoryid = await this.getIDFromGetResponce("_eqs_businesscategoryid_value", productdtails);
+                string productcategory = await this.getIDFromGetResponce("_eqs_productcategory_value", productdtails);
+                string crmproductcategorycode = await this.getIDFromGetResponce("eqs_crmproductcategorycode", productdtails);
+                Dictionary<string, string> ProductData = new Dictionary<string, string>() {
+                    { "ProductId", ProductId },
+                    { "businesscategoryid", businesscategoryid },
+                    { "productcategory", productcategory },
+                    { "crmproductcategorycode", crmproductcategorycode }
+                };
+                return ProductData;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getProductId", ex.Message);
+                throw ex;
+            }
         }
 
         public async Task<string> getBranchId(string BranchCode)
@@ -397,85 +413,148 @@
         }
         public async Task<JArray> getDDEFinalIndvDetail(string AccountNumber)
         {
-            string finalValue = await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_dataentrystage", "Final");            
-            string query_url = $"eqs_ddeindividualcustomers()?$filter=eqs_dataentrystage eq {finalValue} and _eqs_accountapplicantid_value eq '{AccountNumber}'";
-            var DDEdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var DDE_dtails = await this.getDataFromResponce(DDEdtails);
-            return DDE_dtails;
+            try
+            {
+                string finalValue = await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_dataentrystage", "Final");
+                string query_url = $"eqs_ddeindividualcustomers()?$filter=eqs_dataentrystage eq {finalValue} and _eqs_accountapplicantid_value eq '{AccountNumber}'";
+                var DDEdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var DDE_dtails = await this.getDataFromResponce(DDEdtails);
+                return DDE_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getDDEFinalIndvDetail", ex.Message);
+                throw ex;
+            }
+
         }
         public async Task<JArray> getDDEFinalCorpDetail(string AccountNumber)
         {
-            string finalValue = await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_dataentrystage", "Final");            
-            string query_url = $"eqs_ddecorporatecustomers()?$filter=eqs_dataentrystage eq {finalValue} and _eqs_accountapplicantid_value eq '{AccountNumber}'";
-            var DDEdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var DDE_dtails = await this.getDataFromResponce(DDEdtails);
-            return DDE_dtails;
+            try
+            {
+                string finalValue = await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_dataentrystage", "Final");
+                string query_url = $"eqs_ddecorporatecustomers()?$filter=eqs_dataentrystage eq {finalValue} and _eqs_accountapplicantid_value eq '{AccountNumber}'";
+                var DDEdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var DDE_dtails = await this.getDataFromResponce(DDEdtails);
+                return DDE_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getDDEFinalCorpDetail", ex.Message);
+                throw ex;
+            }
+
         }
 
         public async Task<JArray> getDDEFinalAddressDetail(string DDEId, string type)
         {
-            string query_url;
-            if (type == "corp")
+            try
             {
-                query_url = $"eqs_leadaddresses()?$filter=_eqs_corporatedde_value eq '{DDEId}'";
+                string query_url;
+                if (type == "corp")
+                {
+                    query_url = $"eqs_leadaddresses()?$filter=_eqs_corporatedde_value eq '{DDEId}'";
+                }
+                else
+                {
+                    query_url = $"eqs_leadaddresses()?$filter=_eqs_individualdde_value eq '{DDEId}'";
+                }
+
+                var Addressdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var Address_dtails = await this.getDataFromResponce(Addressdtails);
+                return Address_dtails;
             }
-            else
+            catch (Exception ex)
             {
-                query_url = $"eqs_leadaddresses()?$filter=_eqs_individualdde_value eq '{DDEId}'";
+                this._logger.LogError("getDDEFinalAddressDetail", ex.Message);
+                throw ex;
             }
-            
-            var Addressdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var Address_dtails = await this.getDataFromResponce(Addressdtails);
-            return Address_dtails;
+
         }
 
         public async Task<JArray> getDDEFinalFatcaDetail(string DDEId, string type)
         {
-            string query_url;
-            if (type=="corp")
+            try
             {
-                query_url = $"eqs_customerfactcaothers()?$filter=_eqs_ddecorporatecustomerid_value eq '{DDEId}'";
+                string query_url;
+                if (type == "corp")
+                {
+                    query_url = $"eqs_customerfactcaothers()?$filter=_eqs_ddecorporatecustomerid_value eq '{DDEId}'";
+                }
+                else
+                {
+                    query_url = $"eqs_customerfactcaothers()?$filter=_eqs_indivapplicantddeid_value eq '{DDEId}'";
+                }
+
+                var fatcadtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var fatca_dtails = await this.getDataFromResponce(fatcadtails);
+                return fatca_dtails;
             }
-            else
+            catch (Exception ex)
             {
-                query_url = $"eqs_customerfactcaothers()?$filter=_eqs_indivapplicantddeid_value eq '{DDEId}'";
-            }            
-           
-            var fatcadtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var fatca_dtails = await this.getDataFromResponce(fatcadtails);
-            return fatca_dtails;
+                this._logger.LogError("getDDEFinalFatcaDetail", ex.Message);
+                throw ex;
+            }
+
         }
         public async Task<JArray> getDDEFinalDocumentDetail(string DDEId, string type)
         {
-            string query_url;
-            if (type == "corp")
+            try
             {
-                query_url = $"eqs_leaddocuments()?$filter=_eqs_corporatedde_value eq '{DDEId}'";
+                string query_url;
+                if (type == "corp")
+                {
+                    query_url = $"eqs_leaddocuments()?$filter=_eqs_corporatedde_value eq '{DDEId}'";
+                }
+                else
+                {
+                    query_url = $"eqs_leaddocuments()?$filter=_eqs_individualddefinal_value eq '{DDEId}'";
+                }
+
+                var docdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var doc_dtails = await this.getDataFromResponce(docdtails);
+                return doc_dtails;
             }
-            else
+            catch (Exception ex)
             {
-                query_url = $"eqs_leaddocuments()?$filter=_eqs_individualddefinal_value eq '{DDEId}'";
+                this._logger.LogError("getDDEFinalDocumentDetail", ex.Message);
+                throw ex;
             }
-          
-            var docdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var doc_dtails = await this.getDataFromResponce(docdtails);
-            return doc_dtails;
+
+
         }
         public async Task<JArray> getDDEFinalCPDetail(string DDEId)
         {
-            string query_url = $"eqs_customercps()?$filter=_eqs_ddecorporatecustomerid_value eq '{DDEId}'";
-            
-            var CPdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var CP_dtails = await this.getDataFromResponce(CPdtails);
-            return CP_dtails;
+            try
+            {
+                string query_url = $"eqs_customercps()?$filter=_eqs_ddecorporatecustomerid_value eq '{DDEId}'";
+
+                var CPdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var CP_dtails = await this.getDataFromResponce(CPdtails);
+                return CP_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getDDEFinalCPDetail", ex.Message);
+                throw ex;
+            }
+
         }
         public async Task<JArray> getDDEFinalBODetail(string DDEId)
         {
-            string query_url = $"eqs_customerbos()?$filter=_eqs_ddecorporatecustomerid_value eq '{DDEId}'";
+            try
+            {
+                string query_url = $"eqs_customerbos()?$filter=_eqs_ddecorporatecustomerid_value eq '{DDEId}'";
 
-            var BOdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var BO_dtails = await this.getDataFromResponce(BOdtails);
-            return BO_dtails;
+                var BOdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var BO_dtails = await this.getDataFromResponce(BOdtails);
+                return BO_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getDDEFinalBODetail", ex.Message);
+                throw ex;
+            }
         }
         public async Task<JArray> getContactData(string UCIC_id)
         {

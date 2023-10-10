@@ -53,7 +53,7 @@
                 Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
                 string response = await _crDgCustLeadExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
-                this._crDgCustLeadExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
+              
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

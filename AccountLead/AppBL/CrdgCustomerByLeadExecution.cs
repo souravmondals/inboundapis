@@ -223,6 +223,7 @@
                         msgBdy.individualCustomer.name.shortName = AccountDDE[0]["eqs_shortname"].ToString();
 
                         msgBdy.individualCustomer.employeeId = "";
+                        msgBdy.individualCustomer.nationalIdentificationCode = applicentId;
                         msgBdy.individualCustomer.motherMaidenName = AccountDDE[0]["eqs_mothermaidenname"].ToString();
                         msgBdy.individualCustomer.isStaff = "";
                         msgBdy.individualCustomer.sex = (AccountDDE[0]["eqs_gendercode"].ToString() == "789030000") ? "M" : "F";
@@ -231,8 +232,8 @@
 
 
                         Request_Template.createCustomerRequest.msgBdy = msgBdy;
-
-                        string postDataParametr = await EncriptRespons(JsonConvert.SerializeObject(Request_Template), "FI0060");
+                        string wso_request = JsonConvert.SerializeObject(Request_Template);
+                        string postDataParametr = await EncriptRespons(wso_request, "FI0060");
                         string Lead_details = await this._queryParser.HttpCBSApiCall(Token, HttpMethod.Post, "CBSCreateCustomer", postDataParametr);
                         responsD = JsonConvert.DeserializeObject(Lead_details);
                     }

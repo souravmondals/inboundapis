@@ -99,36 +99,37 @@ namespace DedupeDigiLead
                         }
                         ldRtPrm.accountData = dedupDgChk;
 
-                        if (AccLead_data.Count<1)
+                        if (AccLead_data.Count>0)
                         {
-                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                            ldRtPrm.ReturnCode = "CRM-SUCCESS";
+                            ldRtPrm.Message = OutputMSG.Case_Success;
                         }
                         else
                         {
-                            ldRtPrm.ReturnCode = "CRM-SUCCESS";
-                            ldRtPrm.Message =  OutputMSG.Case_Success;
+                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                            ldRtPrm.Message = "No LeadAccount data found.";
+                            
                         }
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateFtchDgLdSts", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateDedupDgAccNL", "LeadAccount is incorrect");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "LeadAccount is incorrect";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateFtchDgLdSts", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateDedupDgAccNL", "Appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Appkey is incorrect";
                 }
 
                 return ldRtPrm;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("ValidateFtchDgLdSts", ex.Message);               
+                this._logger.LogError("ValidateDedupDgAccNL", ex.Message);               
                 ldRtPrm.ReturnCode = "CRM-ERROR-101";
                 ldRtPrm.Message = OutputMSG.Resource_n_Found;
                 return ldRtPrm;
@@ -235,8 +236,8 @@ namespace DedupeDigiLead
                 }
                 catch (Exception ex)
                 {
-
-                    ldRtPrm=null;
+                    this._logger.LogError("getDedupDgAccNLStatus", ex.Message);
+                    ldRtPrm =null;
                 }
 
             }

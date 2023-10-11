@@ -120,28 +120,28 @@
                             {
                                 this._logger.LogInformation("ValidateLeadtInput", "Input UCIC are incorrect");
                                 ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                                ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                                ldRtPrm.Message = "Input UCIC are incorrect";
                             }
                         }
                         else
                         {
                             this._logger.LogInformation("ValidateLeadtInput", "AccountLead or AccountApplicent is incorrect");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                            ldRtPrm.Message = "AccountLead or AccountApplicent is incorrect";
                         }
                     }
                     else
                     {
                         this._logger.LogInformation("ValidateLeadtInput", "Transaction_ID or Channel_ID is incorrect.");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "Transaction_ID or Channel_ID is incorrect.";
                     }
                 }
                 else
                 {
                     this._logger.LogInformation("ValidateLeadtInput", "Appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Appkey is incorrect";
                 }
 
                 return ldRtPrm;

@@ -90,16 +90,16 @@ namespace DedupeDigiLead
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateFtchDgLdSts", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateFtchDgLdSts", "ApplicantId is incorrect");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "ApplicantId is incorrect";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateFtchDgLdSts", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateFtchDgLdSts", "Transaction_ID or Channel_ID or AppKey is incorrect.");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Transaction_ID or Channel_ID or AppKey is incorrect.";
                 }
 
                 return ldRtPrm;
@@ -186,12 +186,12 @@ namespace DedupeDigiLead
                 else
                 {
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                    ldRtPrm.Message = "No Lead data found.";
                 }
             }
             catch (Exception ex)
             {
-                
+                this._logger.LogError("getDedupDgLdNLStatus", ex.Message);
                 ldRtPrm.ReturnCode = "CRM-ERROR-102";
                 ldRtPrm.Message = OutputMSG.Resource_n_Found;
             }

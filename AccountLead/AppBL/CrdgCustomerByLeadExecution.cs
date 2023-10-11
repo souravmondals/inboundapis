@@ -244,11 +244,11 @@
                         customerLeadReturn.Message = responsD.msgHdr.error[0].reason.ToString();
                         customerLeadReturn.ReturnCode = "CRM-ERROR-102";
                     }
-                    else if(responsD.createCustomerRequest.msgBdy != null)
+                    else if(responsD.createCustomerResponse.msgBdy != null)
                     {
                         Dictionary<string,string> fieldInput = new Dictionary<string,string>();
                         
-                        customerLeadReturn.customerId = responsD.createCustomerRequest.msgBdy.customerId.ToString();
+                        customerLeadReturn.customerId = responsD.createCustomerResponse.msgBdy.customerId.ToString();
                         if(!string.IsNullOrEmpty(customerLeadReturn.customerId) && customerLeadReturn.customerId != "")
                         {
                             fieldInput.Add("eqs_customeridcreated", customerLeadReturn.customerId);
@@ -265,13 +265,15 @@
                     }
                     else
                     {
+                        this._logger.LogInformation("CreateAccountByLead", "Create customer wso2 API has issue.");
                         customerLeadReturn.Message = "Create customer wso2 API has issue.";
                         customerLeadReturn.ReturnCode = "CRM-ERROR-101";
                     }
                 }
                 else
                 {
-                    customerLeadReturn.Message = OutputMSG.Resource_n_Found;
+                    this._logger.LogInformation("CreateAccountByLead", "DDE final data not found.");
+                    customerLeadReturn.Message = "DDE final data not found.";
                     customerLeadReturn.ReturnCode = "CRM-ERROR-101";
                 }
                

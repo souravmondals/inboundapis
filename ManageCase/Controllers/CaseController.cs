@@ -50,7 +50,7 @@ namespace ManageCase.Controllers
                 Casetatus.TransactionID = this._createCaseExecution.Transaction_ID;
                 Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
                 string response = await _createCaseExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
-                this._createCaseExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
+              
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;
@@ -85,7 +85,7 @@ namespace ManageCase.Controllers
                 Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
                 string response = await _createCaseExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
-                this._createCaseExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
+              
 
                 return Ok(response);
             }
@@ -116,7 +116,7 @@ namespace ManageCase.Controllers
                 CaseList.TransactionID = this._createCaseExecution.Transaction_ID;
                 CaseList.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
                 string response = await _createCaseExecution.EncriptRespons(JsonConvert.SerializeObject(CaseList));
-                this._createCaseExecution.CRMLog(JsonConvert.SerializeObject(request), response, CaseList.ReturnCode);
+               
                 return Ok(response);
             }
             catch (Exception ex)

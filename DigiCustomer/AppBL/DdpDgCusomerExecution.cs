@@ -96,22 +96,22 @@
                         {
                             this._logger.LogInformation("ValidateInput", "Input UCIC are incorrect");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                            ldRtPrm.Message = "Input UCIC are incorrect";
                         }
                         
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateInput", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateInput", "Transaction_ID or Channel_ID in incorrect.");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "Transaction_ID or Channel_ID in incorrect.";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateInput", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateInput", "Appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Appkey is incorrect";
                 }
 
                 return ldRtPrm;
@@ -163,10 +163,119 @@
 
                 Request_Template.searchOrUpdateDigiDedupeCustomerReq.msgBdy = msgBdy;
 
-                string postDataParametr = await EncriptRespons(JsonConvert.SerializeObject(Request_Template));
+                string postDataParametr = await EncriptRespons(JsonConvert.SerializeObject(Request_Template), "FI0060");
                 string Lead_details = await this._queryParser.HttpCBSApiCall(Token, HttpMethod.Post, "CBSsearchOrUpdateDedupeCustomer", postDataParametr);
                 //string Lead_details = "{\"searchOrUpdateDigiDedupeCustomerRes\":{\"msgHdr\":{\"result\":\"OK\"},\"msgBdy\":{\"REQUEST_ID\":\"1051065\",\"STATUS\":\"C\",\"RESPONSE_CODE\":\"200\",\"DESCRIPTION\":\"RequestProcessedSuccessfully\",\"CUSTOMER_MATCH_COUNT\":\"10\",\"EXACT_MATCH_COUNT\":\"10\",\"PROBABLE_MATCH_COUNT\":\"0\",\"SUCCESS_MESSAGE\":\"Customerinformationsearchedsuccessfully\",\"CUSTOMER_MATCHES\":{\"INDIVIDUAL_MATCHES\":[{\"NAME\":\"RAVANALANKAPRABU\",\"FATHER_NAME\":\"\",\"FATHER_SPOUSE_NAME\":\"\",\"MOTHER_NAME\":\"\",\"SPOUSE_NAME\":\"\",\"DATE_OF_BIRTH\":\"\",\"DATE_OF_INC\":\"\",\"AADHAR_REFERENCE_NO\":\"\",\"PAN\":\"EIXIX6982G\",\"PASSPORT_NO\":\"\",\"DRIVING_LICENSE_NO\":\"\",\"TIN\":\"\",\"TAN\":\"\",\"CIN\":\"\",\"DIN\":\"\",\"NREGA\":\"\",\"CKYC\":\"\",\"VOTER_CARD_NO\":\"\",\"GST_IN\":\"\",\"RATION_CARD\":\"\",\"ADDRESS_TYPE_0\":\"\",\"ADDRESS_0\":\"\",\"AREA_0\":\"\",\"CITY_0\":\"\",\"STATE_0\":\"\",\"PINCODE_0\":\"\",\"ADDRESS_TYPE_1\":\"\",\"ADDRESS_1\":\"\",\"AREA_1\":\"\",\"CITY_1\":\"\",\"STATE_1\":\"\",\"PINCODE_1\":\"\",\"ADDRESS_TYPE_2\":\"\",\"ADDRESS_2\":\"\",\"AREA_2\":\"\",\"CITY_2\":\"\",\"STATE_2\":\"\",\"PINCODE_2\":\"\",\"ADDRESS_TYPE_3\":\"\",\"ADDRESS_3\":\"\",\"AREA_3\":\"\",\"CITY_3\":\"\",\"STATE_3\":\"\",\"PINCODE_3\":\"\",\"ADDRESS_TYPE_4\":\"\",\"ADDRESS_4\":\"\",\"AREA_4\":\"\",\"CITY_4\":\"\",\"STATE_4\":\"\",\"PINCODE_4\":\"\",\"MOBILE_TYPE_0\":\"\",\"MOBILE_0\":\"\",\"MOBILE_TYPE_1\":\"\",\"MOBILE_1\":\"\",\"MOBILE_TYPE_2\":\"\",\"MOBILE_2\":\"\",\"MOBILE_TYPE_3\":\"\",\"MOBILE_3\":\"\",\"MOBILE_TYPE_4\":\"\",\"MOBILE_4\":\"\",\"RECORD_TYPE\":\"ONLINE\",\"MATCH_CRITERIA\":\"PAN\",\"IS_EXACT_MATCH\":\"True\",\"IS_PROBABLE_MATCH\":\"False\",\"MATCHED_ID\":\"12312\",\"UCIC\":\"12312\",\"LEAD_ID\":\"\",\"IND_NON_DETAILS\":\"I\"}],\"ORGANISATION_MATCHES\":[]}}}}";
                 dynamic responsD = JsonConvert.DeserializeObject(Lead_details);
+
+                if (responsD.searchOrUpdateDigiDedupeCustomerRes.msgBdy.CUSTOMER_MATCHES.INDIVIDUAL_MATCHES.Count > 0)
+                {
+                    List<Individual> all_individuals = new List<Individual>();
+                    var individuals = responsD.searchOrUpdateDigiDedupeCustomerRes.msgBdy.CUSTOMER_MATCHES.INDIVIDUAL_MATCHES;
+                    foreach (var individual in individuals)
+                    {
+                        Individual individual_obj = new Individual();
+                        individual_obj.NAME = individual["NAME"].ToString();
+                        individual_obj.FATHER_NAME = individual["FATHER_NAME"].ToString();
+                        individual_obj.FATHER_SPOUSE_NAME = individual["FATHER_SPOUSE_NAME"].ToString();
+                        individual_obj.MOTHER_NAME = individual["MOTHER_NAME"].ToString();
+                        individual_obj.SPOUSE_NAME = individual["SPOUSE_NAME"].ToString();
+                        individual_obj.DATE_OF_BIRTH = individual["DATE_OF_BIRTH"].ToString();
+                        individual_obj.DATE_OF_INC = individual["DATE_OF_INC"].ToString();
+                        individual_obj.AADHAR_REFERENCE_NO = individual["AADHAR_REFERENCE_NO"].ToString();
+                        individual_obj.PAN = individual["PAN"].ToString();
+                        individual_obj.PASSPORT_NO = individual["PASSPORT_NO"].ToString();
+                        individual_obj.DRIVING_LICENSE_NO = individual["DRIVING_LICENSE_NO"].ToString();
+                        individual_obj.TIN = individual["TIN"].ToString();
+                        individual_obj.TAN = individual["TAN"].ToString();
+                        individual_obj.CIN = individual["CIN"].ToString();
+                        individual_obj.DIN = individual["DIN"].ToString();
+                        individual_obj.NREGA = individual["NREGA"].ToString();
+                        individual_obj.CKYC = individual["CKYC"].ToString();
+                        individual_obj.VOTER_CARD_NO = individual["VOTER_CARD_NO"].ToString();
+                        individual_obj.GST_IN = individual["GST_IN"].ToString();
+                        individual_obj.RATION_CARD = individual["RATION_CARD"].ToString();
+                        individual_obj.MOBILE_TYPE_0 = individual["MOBILE_TYPE_0"].ToString();
+                        individual_obj.MOBILE_0 = individual["MOBILE_0"].ToString();
+                        individual_obj.MOBILE_TYPE_1 = individual["MOBILE_TYPE_1"].ToString();
+                        individual_obj.MOBILE_1 = individual["MOBILE_1"].ToString();
+                        individual_obj.MOBILE_TYPE_2 = individual["MOBILE_TYPE_2"].ToString();
+                        individual_obj.MOBILE_2 = individual["MOBILE_2"].ToString();
+                        individual_obj.MOBILE_TYPE_3 = individual["MOBILE_TYPE_3"].ToString();
+                        individual_obj.MOBILE_3 = individual["MOBILE_3"].ToString();
+                        individual_obj.MOBILE_TYPE_4 = individual["MOBILE_TYPE_4"].ToString();
+                        individual_obj.MOBILE_4 = individual["MOBILE_4"].ToString();
+                        individual_obj.RECORD_TYPE = individual["RECORD_TYPE"].ToString();
+                        individual_obj.MATCH_CRITERIA = individual["MATCH_CRITERIA"].ToString();
+                        individual_obj.IS_EXACT_MATCH = individual["IS_EXACT_MATCH"].ToString();
+                        individual_obj.IS_PROBABLE_MATCH = individual["IS_PROBABLE_MATCH"].ToString();
+                        individual_obj.MATCHED_ID = individual["MATCHED_ID"].ToString();
+                        individual_obj.UCIC = individual["UCIC"].ToString();
+                        individual_obj.LEAD_ID = individual["LEAD_ID"].ToString();
+                        individual_obj.IND_NON_DETAILS = individual["IND_NON_DETAILS"].ToString();
+                        all_individuals.Add(individual_obj);
+
+                    }
+
+                    responsD.searchOrUpdateDigiDedupeCustomerRes.msgBdy.CUSTOMER_MATCHES = "";
+                    IndividualsData individualsData = new IndividualsData();
+                    individualsData.INDIVIDUAL_MATCHES = all_individuals;
+                    responsD.searchOrUpdateDigiDedupeCustomerRes.msgBdy.CUSTOMER_MATCHES = (JObject)JsonConvert.DeserializeObject(JsonConvert.SerializeObject(individualsData));
+                }
+                else if (responsD.searchOrUpdateDigiDedupeCustomerRes.msgBdy.CUSTOMER_MATCHES.ORGANISATION_MATCHES.Count > 0)
+                {
+                    List<Individual> all_organisations = new List<Individual>();
+                    var Organisations = responsD.searchOrUpdateDigiDedupeCustomerRes.msgBdy.CUSTOMER_MATCHES.ORGANISATION_MATCHES;
+                    foreach (var Organisation in Organisations)
+                    {
+                        Individual individual_obj = new Individual();
+                        individual_obj.NAME = Organisation["NAME"].ToString();
+                        individual_obj.FATHER_NAME = Organisation["FATHER_NAME"].ToString();
+                        individual_obj.FATHER_SPOUSE_NAME = Organisation["FATHER_SPOUSE_NAME"].ToString();
+                        individual_obj.MOTHER_NAME = Organisation["MOTHER_NAME"].ToString();
+                        individual_obj.SPOUSE_NAME = Organisation["SPOUSE_NAME"].ToString();
+                        individual_obj.DATE_OF_BIRTH = Organisation["DATE_OF_BIRTH"].ToString();
+                        individual_obj.DATE_OF_INC = Organisation["DATE_OF_INC"].ToString();
+                        individual_obj.AADHAR_REFERENCE_NO = Organisation["AADHAR_REFERENCE_NO"].ToString();
+                        individual_obj.PAN = Organisation["PAN"].ToString();
+                        individual_obj.PASSPORT_NO = Organisation["PASSPORT_NO"].ToString();
+                        individual_obj.DRIVING_LICENSE_NO = Organisation["DRIVING_LICENSE_NO"].ToString();
+                        individual_obj.TIN = Organisation["TIN"].ToString();
+                        individual_obj.TAN = Organisation["TAN"].ToString();
+                        individual_obj.CIN = Organisation["CIN"].ToString();
+                        individual_obj.DIN = Organisation["DIN"].ToString();
+                        individual_obj.NREGA = Organisation["NREGA"].ToString();
+                        individual_obj.CKYC = Organisation["CKYC"].ToString();
+                        individual_obj.VOTER_CARD_NO = Organisation["VOTER_CARD_NO"].ToString();
+                        individual_obj.GST_IN = Organisation["GST_IN"].ToString();
+                        individual_obj.RATION_CARD = Organisation["RATION_CARD"].ToString();
+                        individual_obj.MOBILE_TYPE_0 = Organisation["MOBILE_TYPE_0"].ToString();
+                        individual_obj.MOBILE_0 = Organisation["MOBILE_0"].ToString();
+                        individual_obj.MOBILE_TYPE_1 = Organisation["MOBILE_TYPE_1"].ToString();
+                        individual_obj.MOBILE_1 = Organisation["MOBILE_1"].ToString();
+                        individual_obj.MOBILE_TYPE_2 = Organisation["MOBILE_TYPE_2"].ToString();
+                        individual_obj.MOBILE_2 = Organisation["MOBILE_2"].ToString();
+                        individual_obj.MOBILE_TYPE_3 = Organisation["MOBILE_TYPE_3"].ToString();
+                        individual_obj.MOBILE_3 = Organisation["MOBILE_3"].ToString();
+                        individual_obj.MOBILE_TYPE_4 = Organisation["MOBILE_TYPE_4"].ToString();
+                        individual_obj.MOBILE_4 = Organisation["MOBILE_4"].ToString();
+                        individual_obj.RECORD_TYPE = Organisation["RECORD_TYPE"].ToString();
+                        individual_obj.MATCH_CRITERIA = Organisation["MATCH_CRITERIA"].ToString();
+                        individual_obj.IS_EXACT_MATCH = Organisation["IS_EXACT_MATCH"].ToString();
+                        individual_obj.IS_PROBABLE_MATCH = Organisation["IS_PROBABLE_MATCH"].ToString();
+                        individual_obj.MATCHED_ID = Organisation["MATCHED_ID"].ToString();
+                        individual_obj.UCIC = Organisation["UCIC"].ToString();
+                        individual_obj.LEAD_ID = Organisation["LEAD_ID"].ToString();
+                        individual_obj.IND_NON_DETAILS = Organisation["IND_NON_DETAILS"].ToString();
+                        all_organisations.Add(individual_obj);
+
+                    }
+
+                    responsD.searchOrUpdateDigiDedupeCustomerRes.msgBdy.CUSTOMER_MATCHES = "";
+                    OrganisationsData OrganisationsData = new OrganisationsData();
+                    OrganisationsData.ORGANISATION_MATCHES = all_organisations;
+                    responsD.searchOrUpdateDigiDedupeCustomerRes.msgBdy.CUSTOMER_MATCHES = (JObject)JsonConvert.DeserializeObject(JsonConvert.SerializeObject(OrganisationsData));
+                }
 
                 if (Convert.ToInt32(responsD.searchOrUpdateDigiDedupeCustomerRes.msgBdy.EXACT_MATCH_COUNT.ToString()) > 0)
                 {
@@ -188,7 +297,7 @@
             }
             catch (Exception ex)
             {
-                this._logger.LogError("CreateAccountByLead", ex.Message);
+                this._logger.LogError("getCustomerLead", ex.Message);
                 ddupdgCustomerReturn.Message = OutputMSG.Incorrect_Input;
                 ddupdgCustomerReturn.ReturnCode = "CRM-ERROR-102";
             }
@@ -215,50 +324,46 @@
             }
         }
 
+              
 
-        public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
+        public async Task<string> EncriptRespons(string ResponsData, string Bankcode)
         {
-            Dictionary<string, string> CRMProp = new Dictionary<string, string>();
-            CRMProp.Add("eqs_name", this.Transaction_ID);
-            CRMProp.Add("eqs_requestbody", InputRequest);
-            CRMProp.Add("eqs_responsebody", OutputRespons);
-            CRMProp.Add("eqs_requeststatus", (CallStatus.Contains("ERROR")) ? "615290001" : "615290000");
-            string postDataParametr = JsonConvert.SerializeObject(CRMProp);
-            await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
-        }
-
-        public async Task<string> EncriptRespons(string ResponsData)
-        {
-            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID, this.Bank_Code);
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID, Bankcode);
         }
 
         private async Task<dynamic> getRequestData(dynamic inputData, string APIname)
         {
 
             dynamic rejusetJson;
-
-            var EncryptedData = inputData.req_root.body.payload;
-            string BankCode = inputData.req_root.header.BankCode.ToString();
-            this.Bank_Code = BankCode;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlData);
-            string xpath = "PIDBlock/payload";
-            var nodes = xmlDoc.SelectSingleNode(xpath);
-            foreach (XmlNode childrenNode in nodes)
+            try
             {
-                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+                var EncryptedData = inputData.req_root.body.payload;
+                string BankCode = inputData.req_root.header.cde.ToString();
+                this.Bank_Code = BankCode;
+                string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlData);
+                string xpath = "PIDBlock/payload";
+                var nodes = xmlDoc.SelectSingleNode(xpath);
+                foreach (XmlNode childrenNode in nodes)
+                {
+                    JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
 
-                dynamic payload = rejusetJson1[APIname];
+                    dynamic payload = rejusetJson1[APIname];
 
-                this.appkey = payload.msgHdr.authInfo.token.ToString();
-                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
-                this.Channel_ID = payload.msgHdr.channelID.ToString();
+                    this.appkey = payload.msgHdr.authInfo.token.ToString();
+                    this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                    this.Channel_ID = payload.msgHdr.channelID.ToString();
 
-                rejusetJson = payload.msgBdy;
+                    rejusetJson = payload.msgBdy;
 
-                return rejusetJson;
+                    return rejusetJson;
 
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getRequestData", ex.Message);
             }
 
             return "";

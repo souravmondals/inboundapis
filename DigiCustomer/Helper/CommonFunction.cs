@@ -123,21 +123,30 @@
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
-            string Table_Id;
-            string TableId;
-            if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+            try
             {
-                string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
-                var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+                string Table_Id;
+                string TableId;
+                if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+                {
+                    string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
+                    var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                    TableId = await this.getIDFromGetResponce(idfield, responsdtails);
 
-                this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                    this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                }
+                else
+                {
+                    TableId = Table_Id;
+                }
+                return TableId;
             }
-            else
+            catch (Exception ex)
             {
-                TableId = Table_Id;
+                this._logger.LogError("getIDfromMSDTable", ex.Message, $"Table {tablename} filterkey {filterkey} filtervalue {filtervalue}");
+                throw;
             }
-            return TableId;
+
         }
 
             
@@ -153,20 +162,37 @@
         } 
         
         public async Task<JArray> getApplicentDetail(string ApplicantId)
-        {           
-            string query_url = $"eqs_accountapplicants()?$select=_eqs_customerid_value,_eqs_entitytypeid_value,_eqs_leadid_value,eqs_customertypecode,_eqs_titleid_value,eqs_firstname,eqs_middlename,eqs_lastname,eqs_dob,eqs_internalpan,eqs_companynamepart1,eqs_companynamepart2,eqs_companynamepart3,eqs_dateofincorporation,eqs_tannumber,eqs_internalpan,eqs_aadhaarreference,eqs_passportnumber,eqs_voterid&$filter=eqs_applicantid eq '{ApplicantId}'";
-            var custDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var cust_dtails = await this._queryParser.getDataFromResponce(custDtl);
-            return cust_dtails;
+        {
+            try
+            {
+                string query_url = $"eqs_accountapplicants()?$select=_eqs_customerid_value,_eqs_entitytypeid_value,_eqs_leadid_value,eqs_customertypecode,_eqs_titleid_value,eqs_firstname,eqs_middlename,eqs_lastname,eqs_dob,eqs_internalpan,eqs_companynamepart1,eqs_companynamepart2,eqs_companynamepart3,eqs_dateofincorporation,eqs_tannumber,eqs_internalpan,eqs_aadhaarreference,eqs_passportnumber,eqs_voterid&$filter=eqs_applicantid eq '{ApplicantId}'";
+                var custDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var cust_dtails = await this._queryParser.getDataFromResponce(custDtl);
+                return cust_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getApplicentDetail", ex.Message);
+                throw ex;
+            }
         }
 
 
         public async Task<JArray> getCustomerDetails(string CustId)
         {
-            string query_url = $"contacts({CustId})?$select=_eqs_entitytypeid_value,_eqs_titleid_value,firstname,middlename,lastname,eqs_pan,eqs_companyname,eqs_companyname2,eqs_companyname3,eqs_tannumber";
-            var custDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var cust_dtails = await this._queryParser.getDataFromResponce(custDtl);
-            return cust_dtails;
+            try
+            {
+                string query_url = $"contacts({CustId})?$select=_eqs_entitytypeid_value,_eqs_titleid_value,firstname,middlename,lastname,eqs_pan,eqs_companyname,eqs_companyname2,eqs_companyname3,eqs_tannumber";
+                var custDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var cust_dtails = await this._queryParser.getDataFromResponce(custDtl);
+                return cust_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getCustomerDetails", ex.Message);
+                throw ex;
+            }
+
         }
 
                

@@ -53,7 +53,7 @@
                 AccountDetails.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
                 string response = await _cusLeadExecution.EncriptRespons(JsonConvert.SerializeObject(AccountDetails));
-                this._cusLeadExecution.CRMLog(JsonConvert.SerializeObject(request), response, AccountDetails.ReturnCode);
+               
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

@@ -53,7 +53,7 @@
                 Casetatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
                 string response = await _getDigiWizAcEntyDetlsExecution.EncriptRespons(JsonConvert.SerializeObject(Casetatus));
-                this._getDigiWizAcEntyDetlsExecution.CRMLog(JsonConvert.SerializeObject(request), response, Casetatus.ReturnCode);
+               
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

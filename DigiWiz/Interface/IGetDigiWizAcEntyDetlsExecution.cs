@@ -10,7 +10,7 @@
         public Task<WizAcEntyReturn> getWizAcEntyDetls(string AccountNumber);
         public Task<WizAcEntyReturn> ValidateWizAcEntyDetls(dynamic CaseData);
         public Task<string> EncriptRespons(string ResponsData);
-        public Task CRMLog(string InputRequest, string OutputRespons, string CallStatus);
+       
 
 
     }

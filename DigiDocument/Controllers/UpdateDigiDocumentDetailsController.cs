@@ -52,7 +52,7 @@
                 api_Return.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
                 string response = await _dgdocDtlExecution.EncriptRespons(JsonConvert.SerializeObject(api_Return));
-                this._dgdocDtlExecution.CRMLog(JsonConvert.SerializeObject(request), response, api_Return.ReturnCode);
+                
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

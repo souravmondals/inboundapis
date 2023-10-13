@@ -110,16 +110,16 @@
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateDocumentInput", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateDocumentInput", "Transaction_ID or Channel_ID is incorrect.");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "Transaction_ID or Channel_ID is incorrect.";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateDocumentInput", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateDocumentInput", "Appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Appkey is incorrect";
                 }
 
                 
@@ -152,90 +152,7 @@
         private async Task<string> CreateDocument(dynamic documentdtl)
         {
             Dictionary<string, string> odatab = new Dictionary<string, string>();
-
-            string catId = await this._commonFunc.getDocCategoryId(documentdtl.CategoryCode.ToString());
-            if (!string.IsNullOrEmpty(catId))
-            {
-                odatab.Add("eqs_doccategory@odata.bind", $"eqs_doccategories({catId})");
-            }
-            string subcatId = await this._commonFunc.getDocSubentityId(documentdtl.SubcategoryCode.ToString());
-            if (!string.IsNullOrEmpty(subcatId))
-            {
-                odatab.Add("eqs_docsubcategory@odata.bind", $"eqs_docsubcategories({subcatId})");
-            }
-            string doctype = await this._commonFunc.getDocTypeId(documentdtl.DocumentType.ToString());
-            if (!string.IsNullOrEmpty(doctype))
-            {
-                odatab.Add("eqs_doctype@odata.bind", $"eqs_doctypes({doctype})");
-            }
-
-
-            odatab.Add("eqs_dmsrequestid", documentdtl.DmsDocumentID.ToString());
-            odatab.Add("eqs_issuedat", documentdtl.IssuedAt.ToString());
-
-            string dd = documentdtl.IssueDate.ToString().Substring(0, 2);
-            string mm = documentdtl.IssueDate.ToString().Substring(3, 2);
-            string yy = documentdtl.IssueDate.ToString().Substring(6, 4);
-
-            odatab.Add("eqs_issuedate", yy + "-" + mm + "-" + dd);
-
-            dd = documentdtl.ExpiryDate.ToString().Substring(0, 2);
-            mm = documentdtl.ExpiryDate.ToString().Substring(3, 2);
-            yy = documentdtl.ExpiryDate.ToString().Substring(6, 4);
-
-            odatab.Add("eqs_expirydate", yy + "-" + mm + "-" + dd);
-            odatab.Add("eqs_verificationstatus", documentdtl.VerificationStatus.ToString());
-
-            dd = documentdtl.VerifiedOn.ToString().Substring(0, 2);
-            mm = documentdtl.VerifiedOn.ToString().Substring(3, 2);
-            yy = documentdtl.VerifiedOn.ToString().Substring(6, 4);
-
-            odatab.Add("eqs_verifiedon", yy + "-" + mm + "-" + dd);
-
-            string validateby = await this._commonFunc.getSystemuserId(documentdtl.VerifiedBy.ToString());
-            if (!string.IsNullOrEmpty(validateby))
-            {
-                odatab.Add("eqs_verifiedbyid@odata.bind", $"systemusers({validateby})");
-            }
-
-            string leadid = await this._commonFunc.getLeadId(documentdtl.MappedCustomerLead.ToString());
-            if (!string.IsNullOrEmpty(validateby))
-            {
-                odatab.Add("eqs_leadid@odata.bind", $"leads({leadid})");
-            }
-            string LeadAccount = await this._commonFunc.getLeadAccountId(documentdtl.MappedAccountLead.ToString());
-            if (!string.IsNullOrEmpty(validateby))
-            {
-                odatab.Add("eqs_leadaccountid@odata.bind", $"eqs_leadaccounts({LeadAccount})");
-            }
-            string customerid = await this._commonFunc.getCustomerId(documentdtl.MappedUCIC.ToString());
-            if (!string.IsNullOrEmpty(validateby))
-            {
-                odatab.Add("eqs_ucicid@odata.bind", $"contacts({customerid})");
-            }
-            string accountid = await this._commonFunc.getAccountId(documentdtl.MappedAccount.ToString());
-            if (!string.IsNullOrEmpty(validateby))
-            {
-                odatab.Add("eqs_accountnumberid@odata.bind", $"eqs_accounts({accountid})");
-            }
-            string caseid = await this._commonFunc.getCaseId(documentdtl.MappedServiceRequest.ToString());
-            if (!string.IsNullOrEmpty(validateby))
-            {
-                odatab.Add("eqs_CaseId@odata.bind", $"incidents({caseid})");
-            }
-
-            string postDataParametr = JsonConvert.SerializeObject(odatab);
-            var Document_details = await this._queryParser.HttpApiCall($"eqs_leaddocuments()?$select=eqs_documentid", HttpMethod.Post, postDataParametr);
-            var Documentid = CommonFunction.GetIdFromPostRespons201(Document_details[0]["responsebody"], "eqs_documentid");
-            return Documentid;
-
-        }
-
-        private async Task<string> UpdateDocument(dynamic documentdtl)
-        {
-            Dictionary<string, string> odatab = new Dictionary<string, string>();
-            string DocumentID = await this._commonFunc.getDocumentID(documentdtl.CRMDocumentID.ToString());
-            if (!string.IsNullOrEmpty(DocumentID))
+            try
             {
                 string catId = await this._commonFunc.getDocCategoryId(documentdtl.CategoryCode.ToString());
                 if (!string.IsNullOrEmpty(catId))
@@ -252,7 +169,7 @@
                 {
                     odatab.Add("eqs_doctype@odata.bind", $"eqs_doctypes({doctype})");
                 }
-                   
+
 
                 odatab.Add("eqs_dmsrequestid", documentdtl.DmsDocumentID.ToString());
                 odatab.Add("eqs_issuedat", documentdtl.IssuedAt.ToString());
@@ -260,7 +177,7 @@
                 string dd = documentdtl.IssueDate.ToString().Substring(0, 2);
                 string mm = documentdtl.IssueDate.ToString().Substring(3, 2);
                 string yy = documentdtl.IssueDate.ToString().Substring(6, 4);
-               
+
                 odatab.Add("eqs_issuedate", yy + "-" + mm + "-" + dd);
 
                 dd = documentdtl.ExpiryDate.ToString().Substring(0, 2);
@@ -308,18 +225,117 @@
                     odatab.Add("eqs_CaseId@odata.bind", $"incidents({caseid})");
                 }
 
-
-
-
                 string postDataParametr = JsonConvert.SerializeObject(odatab);
-                var Document_details = await this._queryParser.HttpApiCall($"eqs_leaddocuments({DocumentID})", HttpMethod.Patch, postDataParametr);
-
-                return documentdtl.CRMDocumentID.ToString();
+                var Document_details = await this._queryParser.HttpApiCall($"eqs_leaddocuments()?$select=eqs_documentid", HttpMethod.Post, postDataParametr);
+                var Documentid = CommonFunction.GetIdFromPostRespons201(Document_details[0]["responsebody"], "eqs_documentid");
+                return Documentid;
             }
-            else
+            catch (Exception ex)
             {
-                return await this.CreateDocument(documentdtl);
+                this._logger.LogError("CreateDocument", ex.Message);
+                throw ex;
             }
+
+        }
+
+        private async Task<string> UpdateDocument(dynamic documentdtl)
+        {
+            try
+            {
+                Dictionary<string, string> odatab = new Dictionary<string, string>();
+                string DocumentID = await this._commonFunc.getDocumentID(documentdtl.CRMDocumentID.ToString());
+                if (!string.IsNullOrEmpty(DocumentID))
+                {
+                    string catId = await this._commonFunc.getDocCategoryId(documentdtl.CategoryCode.ToString());
+                    if (!string.IsNullOrEmpty(catId))
+                    {
+                        odatab.Add("eqs_doccategory@odata.bind", $"eqs_doccategories({catId})");
+                    }
+                    string subcatId = await this._commonFunc.getDocSubentityId(documentdtl.SubcategoryCode.ToString());
+                    if (!string.IsNullOrEmpty(subcatId))
+                    {
+                        odatab.Add("eqs_docsubcategory@odata.bind", $"eqs_docsubcategories({subcatId})");
+                    }
+                    string doctype = await this._commonFunc.getDocTypeId(documentdtl.DocumentType.ToString());
+                    if (!string.IsNullOrEmpty(doctype))
+                    {
+                        odatab.Add("eqs_doctype@odata.bind", $"eqs_doctypes({doctype})");
+                    }
+
+
+                    odatab.Add("eqs_dmsrequestid", documentdtl.DmsDocumentID.ToString());
+                    odatab.Add("eqs_issuedat", documentdtl.IssuedAt.ToString());
+
+                    string dd = documentdtl.IssueDate.ToString().Substring(0, 2);
+                    string mm = documentdtl.IssueDate.ToString().Substring(3, 2);
+                    string yy = documentdtl.IssueDate.ToString().Substring(6, 4);
+
+                    odatab.Add("eqs_issuedate", yy + "-" + mm + "-" + dd);
+
+                    dd = documentdtl.ExpiryDate.ToString().Substring(0, 2);
+                    mm = documentdtl.ExpiryDate.ToString().Substring(3, 2);
+                    yy = documentdtl.ExpiryDate.ToString().Substring(6, 4);
+
+                    odatab.Add("eqs_expirydate", yy + "-" + mm + "-" + dd);
+                    odatab.Add("eqs_verificationstatus", documentdtl.VerificationStatus.ToString());
+
+                    dd = documentdtl.VerifiedOn.ToString().Substring(0, 2);
+                    mm = documentdtl.VerifiedOn.ToString().Substring(3, 2);
+                    yy = documentdtl.VerifiedOn.ToString().Substring(6, 4);
+
+                    odatab.Add("eqs_verifiedon", yy + "-" + mm + "-" + dd);
+
+                    string validateby = await this._commonFunc.getSystemuserId(documentdtl.VerifiedBy.ToString());
+                    if (!string.IsNullOrEmpty(validateby))
+                    {
+                        odatab.Add("eqs_verifiedbyid@odata.bind", $"systemusers({validateby})");
+                    }
+
+                    string leadid = await this._commonFunc.getLeadId(documentdtl.MappedCustomerLead.ToString());
+                    if (!string.IsNullOrEmpty(validateby))
+                    {
+                        odatab.Add("eqs_leadid@odata.bind", $"leads({leadid})");
+                    }
+                    string LeadAccount = await this._commonFunc.getLeadAccountId(documentdtl.MappedAccountLead.ToString());
+                    if (!string.IsNullOrEmpty(validateby))
+                    {
+                        odatab.Add("eqs_leadaccountid@odata.bind", $"eqs_leadaccounts({LeadAccount})");
+                    }
+                    string customerid = await this._commonFunc.getCustomerId(documentdtl.MappedUCIC.ToString());
+                    if (!string.IsNullOrEmpty(validateby))
+                    {
+                        odatab.Add("eqs_ucicid@odata.bind", $"contacts({customerid})");
+                    }
+                    string accountid = await this._commonFunc.getAccountId(documentdtl.MappedAccount.ToString());
+                    if (!string.IsNullOrEmpty(validateby))
+                    {
+                        odatab.Add("eqs_accountnumberid@odata.bind", $"eqs_accounts({accountid})");
+                    }
+                    string caseid = await this._commonFunc.getCaseId(documentdtl.MappedServiceRequest.ToString());
+                    if (!string.IsNullOrEmpty(validateby))
+                    {
+                        odatab.Add("eqs_CaseId@odata.bind", $"incidents({caseid})");
+                    }
+
+
+
+
+                    string postDataParametr = JsonConvert.SerializeObject(odatab);
+                    var Document_details = await this._queryParser.HttpApiCall($"eqs_leaddocuments({DocumentID})", HttpMethod.Patch, postDataParametr);
+
+                    return documentdtl.CRMDocumentID.ToString();
+                }
+                else
+                {
+                    return await this.CreateDocument(documentdtl);
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("UpdateDocument", ex.Message);
+                throw ex;
+            }
+
         }
 
         public async Task<GetDgDocDtlReturn> GetDocumentList(dynamic RequestData)

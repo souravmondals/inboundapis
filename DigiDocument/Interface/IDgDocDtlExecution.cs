@@ -11,7 +11,7 @@
         public Task<UpdateDgDocDtlReturn> ValidateDocumentInput(dynamic CaseData);
         public Task<GetDgDocDtlReturn> GetDocumentList(dynamic RequestData);
         public Task<string> EncriptRespons(string ResponsData);
-        public Task CRMLog(string InputRequest, string OutputRespons, string CallStatus);
+        
        
 
     }

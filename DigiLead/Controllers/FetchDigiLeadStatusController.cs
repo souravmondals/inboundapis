@@ -53,7 +53,7 @@
                 LeadStatus.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
                 string response = await _ftchDgLdStsExecution.EncriptRespons(JsonConvert.SerializeObject(LeadStatus));
-                this._ftchDgLdStsExecution.CRMLog(JsonConvert.SerializeObject(request), response, LeadStatus.ReturnCode);
+               
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

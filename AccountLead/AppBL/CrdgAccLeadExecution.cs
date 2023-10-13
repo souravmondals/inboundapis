@@ -171,23 +171,23 @@
                     }
                     else
                     {
-                        this._logger.LogInformation("CreateAccountLead", "Input parameters are incorrect");
+                        this._logger.LogInformation("CreateAccountLead", "Account Applicent creation fail.");
                         accountLeadReturn.ReturnCode = "CRM-ERROR-102";
-                        accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+                        accountLeadReturn.Message = "Account Applicent creation fail.";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("CreateAccountLead", "Input parameters are incorrect");
+                    this._logger.LogInformation("CreateAccountLead", "Lead Account creation fail.");
                     accountLeadReturn.ReturnCode = "CRM-ERROR-102";
-                    accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+                    accountLeadReturn.Message = "Lead Account creation fail.";
                 }
             }
             else
             {
-                this._logger.LogInformation("CreateAccountLead", "Input parameters are incorrect");
+                this._logger.LogInformation("CreateAccountLead", "Lead creation fail.");
                 accountLeadReturn.ReturnCode = "CRM-ERROR-102";
-                accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+                accountLeadReturn.Message = "Lead creation fail.";
             }
 
             return accountLeadReturn;

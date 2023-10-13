@@ -11,7 +11,7 @@
         public Task<GFSProducrListReturn> getApplicentToProduct(string leadId, string CategoryCode);
         public Task<GFSProducrListReturn> ValidateProductInput(dynamic CaseData);
         public Task<string> EncriptRespons(string ResponsData);
-        public Task CRMLog(string InputRequest, string OutputRespons, string CallStatus);
+        
 
 
     }

@@ -101,32 +101,32 @@
                             }
                             else
                             {
-                                this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
+                                this._logger.LogInformation("ValidateProductInput", "leadId or customerID is incorrect");
                                 ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                                ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                                ldRtPrm.Message = "leadId or customerID is incorrect";
                             }
                             
 
                         }
                         else
                         {
-                            this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
+                            this._logger.LogInformation("ValidateProductInput", "CategoryCode is incorrect");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                            ldRtPrm.Message = "CategoryCode is incorrect";
                         }
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateProductInput", "Transaction_ID or  Channel_ID is incorrect.");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "Transaction_ID or  Channel_ID is incorrect.";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateProductInput", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateProductInput", "AppKey incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "AppKey incorrect";
                 }
 
                 return ldRtPrm;
@@ -198,6 +198,12 @@
 
                     csRtPrm = await this.getProductDetails(product_Filter, CategoryCode);
                 }
+                else
+                {
+                    this._logger.LogInformation("getUcicToProduct", "Applicent Details not found.");
+                    csRtPrm.ReturnCode = "CRM-ERROR-102";
+                    csRtPrm.Message = "Applicent Details not found.";
+                }
             }
             catch(Exception ex)
             {
@@ -258,9 +264,9 @@
                 }
                 else
                 {
-                    this._logger.LogInformation("getApplicentToProduct", "No product found in the lead");
+                    this._logger.LogInformation("getUcicToProduct", "Applicent Details not found.");
                     csRtPrm.ReturnCode = "CRM-ERROR-102";
-                    csRtPrm.Message = OutputMSG.Resource_n_Found;
+                    csRtPrm.Message = "Applicent Details not found.";
                 }
 
             }
@@ -363,16 +369,6 @@
             return csRtPrm;
         }
 
-        public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
-        {
-            Dictionary<string, string> CRMProp = new Dictionary<string, string>();
-            CRMProp.Add("eqs_name", this.Transaction_ID);
-            CRMProp.Add("eqs_requestbody", InputRequest);
-            CRMProp.Add("eqs_responsebody", OutputRespons);
-            CRMProp.Add("eqs_requeststatus", (CallStatus.Contains("ERROR")) ? "615290001" : "615290000");
-            string postDataParametr = JsonConvert.SerializeObject(CRMProp);
-            await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
-        }
 
         public async Task<string> EncriptRespons(string ResponsData)
         {
@@ -383,29 +379,35 @@
         {
 
             dynamic rejusetJson;
-
-            var EncryptedData = inputData.req_root.body.payload;
-            string BankCode = inputData.req_root.header.BankCode.ToString();
-            this.Bank_Code = BankCode;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlData);
-            string xpath = "PIDBlock/payload";
-            var nodes = xmlDoc.SelectSingleNode(xpath);
-            foreach (XmlNode childrenNode in nodes)
+            try
             {
-                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+                var EncryptedData = inputData.req_root.body.payload;
+                string BankCode = inputData.req_root.header.cde.ToString();
+                this.Bank_Code = BankCode;
+                string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlData);
+                string xpath = "PIDBlock/payload";
+                var nodes = xmlDoc.SelectSingleNode(xpath);
+                foreach (XmlNode childrenNode in nodes)
+                {
+                    JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
 
-                dynamic payload = rejusetJson1[APIname];
+                    dynamic payload = rejusetJson1[APIname];
 
-                this.appkey = payload.msgHdr.authInfo.token.ToString();
-                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
-                this.Channel_ID = payload.msgHdr.channelID.ToString();
+                    this.appkey = payload.msgHdr.authInfo.token.ToString();
+                    this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                    this.Channel_ID = payload.msgHdr.channelID.ToString();
 
-                rejusetJson = payload.msgBdy;
+                    rejusetJson = payload.msgBdy;
 
-                return rejusetJson;
+                    return rejusetJson;
 
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getRequestData", ex.Message);
             }
 
             return "";

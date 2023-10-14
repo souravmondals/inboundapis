@@ -150,8 +150,11 @@
                 {
                     msgBdy.DEMOGRAPHIC_INFORMATION.FIRST_NAME = applicentDtls[0]["eqs_companynamepart1"].ToString();
                     msgBdy.DEMOGRAPHIC_INFORMATION.LAST_NAME = applicentDtls[0]["eqs_companynamepart2"].ToString();
-                    msgBdy.DEMOGRAPHIC_INFORMATION.MIDDLE_NAME = applicentDtls[0]["eqs_companynamepart3"].ToString();                    
-                    msgBdy.DEMOGRAPHIC_INFORMATION.DATE_OF_INC = applicentDtls[0]["eqs_dateofincorporation"].ToString();
+                    msgBdy.DEMOGRAPHIC_INFORMATION.MIDDLE_NAME = applicentDtls[0]["eqs_companynamepart3"].ToString();
+                    string dd = applicentDtls[0]["eqs_dateofincorporation"].ToString().Substring(0, 2);
+                    string mm = applicentDtls[0]["eqs_dateofincorporation"].ToString().Substring(3, 2);
+                    string yy = applicentDtls[0]["eqs_dateofincorporation"].ToString().Substring(6, 4);
+                    msgBdy.DEMOGRAPHIC_INFORMATION.DATE_OF_INC = dd + "-" + mm + "-" + yy;
                 }
 
                 msgBdy.DEMOGRAPHIC_INFORMATION.PAN = applicentDtls[0]["eqs_internalpan"].ToString();

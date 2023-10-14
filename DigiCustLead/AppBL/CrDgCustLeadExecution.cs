@@ -104,11 +104,24 @@
                                 ValidationError = 1;
                                 errorText = "LastName";
                             }
-                            if (IndvData.PAN == null || string.IsNullOrEmpty(IndvData.PAN.ToString()) || IndvData.PAN.ToString() == "")
+                            if (IndvData.PANForm60 == null || string.IsNullOrEmpty(IndvData.PANForm60.ToString()) || IndvData.PANForm60.ToString() == "")
                             {
                                 ValidationError = 1;
-                                errorText = "PAN";
+                                errorText = "PANForm60";
                             }
+                            else
+                            {
+                                if (IndvData.PANForm60 == "PAN Card")
+                                {
+                                    if (IndvData.PAN == null || string.IsNullOrEmpty(IndvData.PAN.ToString()) || IndvData.PAN.ToString() == "")
+                                    {
+                                        ValidationError = 1;
+                                        errorText = "PAN";
+                                    }
+                                }
+
+                            }
+                            
                             if (RequestData.ProductCode == null || string.IsNullOrEmpty(RequestData.ProductCode.ToString()) || RequestData.ProductCode.ToString() == "")
                             {
                                 ValidationError = 1;
@@ -223,7 +236,7 @@
                     custLeadElement.eqs_dob = CustLeadData.IndividualEntry.Dob;
                     custLeadElement.eqs_internalpan = CustLeadData.IndividualEntry.PAN;
 
-                    CRMLeadmappingFields.Add("eqs_panform60code", "615290000");
+                    CRMLeadmappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("lead", "eqs_panform60code", CustLeadData.IndividualEntry.PANForm60.ToString()));
                     CRMLeadmappingFields.Add("eqs_pan", "**********");
                     CRMLeadmappingFields.Add("eqs_titleid@odata.bind", $"eqs_titles({TitleId})");
                     CRMLeadmappingFields.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
@@ -273,7 +286,7 @@
                     CRMCustomermappingFields.Add("eqs_name", custLeadElement.firstname + " " + custLeadElement.middlename + " " + custLeadElement.lastname);
                     CRMCustomermappingFields.Add("eqs_mobilenumber", custLeadElement.mobilephone);
                     CRMCustomermappingFields.Add("eqs_dob", custLeadElement.eqs_dob);
-                    CRMCustomermappingFields.Add("eqs_panform60code", "615290000");
+                    CRMCustomermappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("eqs_accountapplicant", "eqs_panform60code", CustLeadData.IndividualEntry.PANForm60.ToString()));
                     CRMCustomermappingFields.Add("eqs_pan", "**********");
                     CRMCustomermappingFields.Add("eqs_internalpan", custLeadElement.eqs_internalpan);
                     CRMCustomermappingFields.Add("eqs_passportnumber", custLeadElement.eqs_passportnumber);

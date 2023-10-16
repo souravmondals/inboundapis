@@ -98,15 +98,15 @@
                 {
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID))
                     {
-                        if (!string.IsNullOrEmpty(RequestData.accountLead.ToString()))
+                        if (!string.IsNullOrEmpty(RequestData.AccountLeadId.ToString()))
                         {
-                            ldRtPrm = await this.CreateAccountByLead(RequestData.accountLead.ToString());
+                            ldRtPrm = await this.CreateAccountByLead(RequestData.AccountLeadId.ToString());
                         }
                         else
                         {
-                            this._logger.LogInformation("ValidateLeadtInput", "AccountLead can not be null.");
+                            this._logger.LogInformation("ValidateLeadtInput", "AccountLeadId can not be null.");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = "AccountLead can not be null.";
+                            ldRtPrm.Message = "AccountLeadId can not be null.";
                         }
                     }
                     else
@@ -247,7 +247,7 @@
                         accountLeadReturn.Message = responsD.msgHdr.error[0].reason.ToString();
                         accountLeadReturn.ReturnCode = "CRM-ERROR-102";
                     }
-                    else if(responsD.createAccountResponse.msgBdy != null)
+                    else if(responsD.createAccountResponse!= null && responsD.createAccountResponse.msgBdy != null)
                     {
                         Dictionary<string,string> fieldInput = new Dictionary<string,string>();
                         

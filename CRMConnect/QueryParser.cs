@@ -70,6 +70,7 @@
                             httpcontent.Add(x)
                         );
                 List<JObject> results = await this.SendBatchRequestAsync(httpClient, httpcontent, this._log).ConfigureAwait(true);
+                _errorLogger.LogInformation("HttpApiCall",$"URL :- {odataQuery} \n Request Param:- {parameterToPost}", JsonConvert.SerializeObject(results));
                 return results;
             }
             catch (Exception ex)

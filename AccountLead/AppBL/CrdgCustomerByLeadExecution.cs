@@ -99,13 +99,13 @@
                 {
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID))
                     {
-                        if (!string.IsNullOrEmpty(RequestData.ApplicentID.ToString()))
+                        if (!string.IsNullOrEmpty(RequestData.ApplicantID.ToString()))
                         {
-                            ldRtPrm = await this.CreateCustomerByLead(RequestData.ApplicentID.ToString());
+                            ldRtPrm = await this.CreateCustomerByLead(RequestData.ApplicantID.ToString());
                         }
                         else
                         {
-                            this._logger.LogInformation("ValidateLeadtInput", "ApplicentID can not be null.");
+                            this._logger.LogInformation("ValidateLeadtInput", "ApplicantID can not be null.");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
                             ldRtPrm.Message = "ApplicentID can not be null.";
                         }

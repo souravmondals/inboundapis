@@ -579,7 +579,12 @@ namespace ManageCase
                                 case_details.AdditionalField = (JObject)JsonConvert.DeserializeObject(caseDetails["eqs_casepayload"].ToString());
 
                                 case_details.Description = caseDetails["description"].ToString();
-                                case_details.Priority = this._Priority[Convert.ToInt32(caseDetails["prioritycode"])];
+
+                                if (!string.IsNullOrEmpty(caseDetails["prioritycode"].ToString()))
+                                {
+                                    case_details.Priority = this._Priority[Convert.ToInt32(caseDetails["prioritycode"].ToString())];
+                                }
+                                
                                 case_details.Channel = await this._commonFunc.getChannelCode(caseDetails["_eqs_casechannel_value"].ToString());
                                 case_details.Source = await this._commonFunc.getSourceCode(caseDetails["_eqs_casesource_value"].ToString());
                                 case_details.Accountid = await this._commonFunc.getAccountNumber(caseDetails["_eqs_account_value"].ToString());

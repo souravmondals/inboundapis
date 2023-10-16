@@ -65,9 +65,8 @@
         private AccountLead _accountLead;
         private LeadParam _leadParam;
         private List<AccountApplicant> _accountApplicants;
-        Dictionary<string, string> AccountType = new Dictionary<string, string>();
-        Dictionary<string, string> KitOption = new Dictionary<string, string>();
-        Dictionary<string, string> DepositMode = new Dictionary<string, string>();
+    
+      
         private ICommonFunction _commonFunc;
 
         public CrdgAccLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
@@ -83,19 +82,7 @@
             _accountLead = new AccountLead();
             _accountApplicants = new List<AccountApplicant>();
 
-            AccountType.Add("Single", "615290000");
-            AccountType.Add("Joint", "615290001");
-
-            KitOption.Add("Non Insta Kit", "615290000");
-            KitOption.Add("Insta Kit", "615290001");
-            KitOption.Add("Instant A/C No kit", "615290002");
-
-            DepositMode.Add("Cheque", "789030000");
-            DepositMode.Add("Cash", "789030001");
-            DepositMode.Add("Remittance (NRI)", "789030002");
-            DepositMode.Add("Cheque from Existing NRI Account", "789030003");
-            DepositMode.Add("IP waiver", "789030004");
-            DepositMode.Add("Fund Transfer", "789030005");
+           
         }
 
 
@@ -284,14 +271,14 @@
             odatab.Add("eqs_productid@odata.bind", $"eqs_products({_leadParam.productid})");
             odatab.Add("eqs_Lead@odata.bind", $"leads({_leadParam.leadid})");
 
-            odatab.Add("eqs_accountownershipcode", this.AccountType[_accountLead.accountType]);
+            odatab.Add("eqs_accountownershipcode", await this._queryParser.getOptionSetTextToValue("eqs_leadaccount", "eqs_accountownershipcode", _accountLead.accountType.ToString()));
 
-            if(!string.IsNullOrEmpty(_leadParam.branchid))
+            if (!string.IsNullOrEmpty(_leadParam.branchid))
                 odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({_leadParam.branchid})");
 
 
-            odatab.Add("eqs_instakitoptioncode", this.KitOption[_accountLead.accountOpeningFlow]);
-            odatab.Add("eqs_initialdepositmodecode", this.DepositMode[_accountLead.initialDepositType]);
+            odatab.Add("eqs_instakitoptioncode", await this._queryParser.getOptionSetTextToValue("eqs_leadaccount", "eqs_instakitoptioncode", _accountLead.accountOpeningFlow.ToString()));
+            odatab.Add("eqs_initialdepositmodecode",  await this._queryParser.getOptionSetTextToValue("eqs_leadaccount", "eqs_initialdepositmodecode", _accountLead.initialDepositType.ToString()));
 
             odatab.Add("eqs_sourcebyemployeecode", _accountLead.fieldEmployeeCode);
 
@@ -301,7 +288,7 @@
             odatab.Add("eqs_fundstobedebitedfrom", _accountLead.fundsTobeDebitedFrom);           
             odatab.Add("eqs_modeofoperationremarks", _accountLead.mopRemarks);
 
-            odatab.Add("eqs_initialdepositamountcode", (_accountLead.initialDeposit == "Up To Rs. 500000") ? "789030000" : "789030001");
+            odatab.Add("eqs_initialdepositamountcode", await this._queryParser.getOptionSetTextToValue("eqs_leadaccount", "eqs_initialdepositamountcode", _accountLead.initialDeposit.ToString()));
 
             if (!string.IsNullOrEmpty(_accountLead.fdAccOpeningDate))
                 odatab.Add("eqs_fdvaluedate", _accountLead.fdAccOpeningDate);

@@ -102,7 +102,7 @@
                     if (!string.IsNullOrEmpty(Transaction_ID) && !string.IsNullOrEmpty(Channel_ID))
                     {
                         
-                        if (!string.IsNullOrEmpty(RequestData.LeadAccountId.ToString()))
+                        if (!string.IsNullOrEmpty(RequestData.AccountLeadId.ToString()))
                         {
                             ldRtPrm = await this.CreateDDELeadAccount(RequestData);
                         }
@@ -143,7 +143,7 @@
         {
             UpAccountLeadReturn accountLeadReturn = new UpAccountLeadReturn();
 
-            var _leadDetails  = await this._commonFunc.getLeadAccountDetails(RequestData.LeadAccountId.ToString());
+            var _leadDetails  = await this._commonFunc.getLeadAccountDetails(RequestData.AccountLeadId.ToString());
             if (_leadDetails.Count>0)
             {
                 List<string> Preferences;

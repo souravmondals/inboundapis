@@ -89,14 +89,9 @@ namespace ManageCase
             this._CaseType.Add("1", "Query");
             this._CaseType.Add("789030002", "Suggestion");
 
-            this.Priority.Add("High", 1);
-            this.Priority.Add("Normal", 2);
-            this.Priority.Add("Low", 3);
+         
 
-            this._Priority.Add(1, "High");
-            this._Priority.Add(2, "Normal");
-            this._Priority.Add(3, "Low");
-
+           
             this.StatusCodes.Add("5", "Problem Solved");
             this.StatusCodes.Add("1000", "Information Provided");
             this.StatusCodes.Add("2000", "Merged");
@@ -145,11 +140,11 @@ namespace ManageCase
                             ValidationError = 1;
                             errorText = "Source";
                         }
-                        if (CaseData.AccountNumber == null || string.IsNullOrEmpty(CaseData.AccountNumber.ToString()) || CaseData.AccountNumber.ToString() == "")
-                        {
-                            ValidationError = 1;
-                            errorText = "AccountNumber";
-                        }
+                        //if (CaseData.AccountNumber == null || string.IsNullOrEmpty(CaseData.AccountNumber.ToString()) || CaseData.AccountNumber.ToString() == "")
+                        //{
+                        //    ValidationError = 1;
+                        //    errorText = "AccountNumber";
+                        //}
 
 
                         if (string.Equals(CaseData.CaseType.ToString(), "Request"))
@@ -286,7 +281,7 @@ namespace ManageCase
                                 CSRtPrm.AdditionalField = JsonConvert.DeserializeObject(statusCodeId[0]["eqs_casepayload"].ToString());
 
                                 CSRtPrm.Description = statusCodeId[0]["description"];
-                                CSRtPrm.Priority = this._Priority[Convert.ToInt32(statusCodeId[0]["prioritycode"])];
+                                CSRtPrm.Priority = await this._queryParser.getOptionSetValuToText("incident", "eqs_casepriority", statusCodeId[0]["eqs_casepriority"].ToString());
                                 CSRtPrm.Channel = await this._commonFunc.getChannelCode(statusCodeId[0]["_eqs_casechannel_value"].ToString());
                                 CSRtPrm.Source = await this._commonFunc.getSourceCode(statusCodeId[0]["_eqs_casesource_value"].ToString());
                                 CSRtPrm.Accountid = await this._commonFunc.getAccountNumber(statusCodeId[0]["_eqs_account_value"].ToString());
@@ -334,13 +329,19 @@ namespace ManageCase
 
                 case_Property.eqs_casetype = this.CaseType[CaseData.CaseType.ToString()];
                 case_Property.title = CaseData.Subject.ToString();
-                case_Property.prioritycode = this.Priority[CaseData.Priority.ToString()];
+                case_Property.eqs_casepriority = await this._queryParser.getOptionSetTextToValue("incident", "", CaseData.Priority.ToString());
                 case_Property.description = CaseData.Description.ToString();
 
                 csProperty.eqs_customerid = CaseData.UCIC.ToString();
                 csProperty.channelId = await this._commonFunc.getChannelId(CaseData.Channel.ToString());
                 csProperty.customerid = await this._commonFunc.getCustomerId(csProperty.eqs_customerid);
-                csProperty.Accountid = await this._commonFunc.getAccountId(CaseData.AccountNumber.ToString());
+
+                if (!string.IsNullOrEmpty(CaseData.AccountNumber.ToString()))
+                {
+                    csProperty.Accountid = await this._commonFunc.getAccountId(CaseData.AccountNumber.ToString());
+                }
+               
+
                 csProperty.ccs_classification = await this._commonFunc.getclassificationId(CaseData.Classification.ToString());
                 csProperty.CategoryId = await this._commonFunc.getCategoryId(CaseData.Category.ToString());
                 csProperty.SubCategoryId = await this._commonFunc.getSubCategoryId(CaseData.SubCategory.ToString(), csProperty.CategoryId);
@@ -419,13 +420,13 @@ namespace ManageCase
                 {
                     odatab.Add("eqs_account@odata.bind", $"eqs_accounts({csProperty.Accountid})");
                 }
-                else
-                {
-                    this._logger.LogError("CreateCase", "Accountid can not be null.");
-                    csRtPrm.ReturnCode = "CRM-ERROR-102";
-                    csRtPrm.Message = "Accountid can not be null.";
-                    return csRtPrm;
-                }
+                //else
+                //{
+                //    this._logger.LogError("CreateCase", "Accountid can not be null.");
+                //    csRtPrm.ReturnCode = "CRM-ERROR-102";
+                //    csRtPrm.Message = "Accountid can not be null.";
+                //    return csRtPrm;
+                //}
                 if (csProperty.channelId.Length > 4)
                 {
                     odatab.Add("eqs_CaseChannel@odata.bind", $"eqs_casechannels({csProperty.channelId})");
@@ -545,12 +546,12 @@ namespace ManageCase
                         if (custId==1)
                         {
                             string customerid = await this._commonFunc.getCustomerId(CaseData.CustomerID.ToString());
-                            query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value,eqs_casepayload,description,prioritycode,_eqs_casechannel_value,_eqs_casesource_value,_eqs_account_value,_customerid_value&$filter=_customerid_value eq '{customerid}'";
+                            query_url = $"incidents()?$top=50&$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value,eqs_casepayload,description,eqs_casepriority,_eqs_casechannel_value,_eqs_casesource_value,_eqs_account_value,_customerid_value&$filter=_customerid_value eq '{customerid}'";
                         }
                         if (AccId == 1)
                         {
                             string Accountid = await this._commonFunc.getAccountId(CaseData.AccountID.ToString());
-                            query_url = $"incidents()?$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value,eqs_casepayload,description,prioritycode,_eqs_casechannel_value,_eqs_casesource_value,_eqs_account_value,_customerid_value&$filter=_eqs_account_value eq '{Accountid}'";
+                            query_url = $"incidents()?$top=50&$select=ticketnumber,statuscode,title,createdon,modifiedon,ccs_resolveddate,eqs_casetype,_ccs_classification_value,_ccs_category_value,_ccs_subcategory_value,eqs_casepayload,description,eqs_casepriority,_eqs_casechannel_value,_eqs_casesource_value,_eqs_account_value,_customerid_value&$filter=_eqs_account_value eq '{Accountid}'";
                         }
 
                         var caseresponsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
@@ -580,9 +581,9 @@ namespace ManageCase
 
                                 case_details.Description = caseDetails["description"].ToString();
 
-                                if (!string.IsNullOrEmpty(caseDetails["prioritycode"].ToString()))
+                                if (!string.IsNullOrEmpty(caseDetails["eqs_casepriority"].ToString()))
                                 {
-                                    case_details.Priority = this._Priority[Convert.ToInt32(caseDetails["prioritycode"].ToString())];
+                                    case_details.Priority = await this._queryParser.getOptionSetValuToText("incident", "eqs_casepriority", caseDetails["eqs_casepriority"].ToString()); 
                                 }
                                 
                                 case_details.Channel = await this._commonFunc.getChannelCode(caseDetails["_eqs_casechannel_value"].ToString());

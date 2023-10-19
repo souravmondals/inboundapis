@@ -206,7 +206,7 @@
                 odatab.Add("eqs_ucic", appitem.UCIC);
                 odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({appitem.contactid})");
                 odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({appitem.title})");
-                odatab.Add("eqs_leadsourceid@odata.bind", $"eqs_leadsources({await this._commonFunc.getLeadSourceId(_accountLead.leadsource)})");
+                
                 odatab.Add("leadsourcecode", "15");
                 odatab.Add("firstname", appitem.firstname);
                 odatab.Add("lastname", appitem.lastname);
@@ -225,12 +225,33 @@
 
                 odatab.Add("eqs_gendercode", appitem.gender);
                 odatab.Add("eqs_createdfromonline", "true");
-                odatab.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
-                odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({Productcategoryid})");
-                odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({Businesscategoryid})");
-
-                odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({appitem.entityType})");
-                odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({appitem.subentityType})");
+                if (!string.IsNullOrEmpty(_accountLead.leadsource.ToString()))
+                {
+                    odatab.Add("eqs_leadsourceid@odata.bind", $"eqs_leadsources({await this._commonFunc.getLeadSourceId(_accountLead.leadsource)})");
+                }
+                if (!string.IsNullOrEmpty(ProductId))
+                {
+                    odatab.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
+                }
+                if (!string.IsNullOrEmpty(Productcategoryid))
+                {
+                    odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({Productcategoryid})");
+                }
+                if (!string.IsNullOrEmpty(Businesscategoryid))
+                {
+                    odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({Businesscategoryid})");
+                }
+                if (!string.IsNullOrEmpty(appitem.entityType))
+                {
+                    odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({appitem.entityType})");
+                }
+                if (!string.IsNullOrEmpty(appitem.subentityType))
+                {
+                    odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({appitem.subentityType})");
+                }
+                    
+               
+                
 
                 string postDataParametr = JsonConvert.SerializeObject(odatab);
 

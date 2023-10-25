@@ -537,7 +537,11 @@ namespace CreateLeads
 
                     if (LeadData.ProductCode != null && LeadData.ProductCode.ToString() != "")
                     {
-                        var productDetails = await this._commonFunc.getProductId(LeadData.ProductCode.ToString());
+                        
+                    }
+                    else
+                    {
+                        var productDetails = await this._commonFunc.getProductId("1005");
                         ldProperty.ProductId = productDetails["ProductId"];
                         ldProperty.Businesscategoryid = productDetails["businesscategoryid"];
                         ldProperty.Productcategoryid = productDetails["productcategory"];
@@ -546,6 +550,7 @@ namespace CreateLeads
                         odatab.Add("eqs_productid@odata.bind", $"eqs_products({ldProperty.ProductId})");
                         odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({ldProperty.Productcategoryid})");
                         odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({ldProperty.Businesscategoryid})");
+
                     }
 
                    

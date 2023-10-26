@@ -329,7 +329,7 @@ namespace ManageCase
 
                 case_Property.eqs_casetype = this.CaseType[CaseData.CaseType.ToString()];
                 case_Property.title = CaseData.Subject.ToString();
-                case_Property.eqs_casepriority = await this._queryParser.getOptionSetTextToValue("incident", "", CaseData.Priority.ToString());
+                case_Property.eqs_casepriority = await this._queryParser.getOptionSetTextToValue("incident", "eqs_casepriority", CaseData.Priority.ToString());
                 case_Property.description = CaseData.Description.ToString();
 
                 csProperty.eqs_customerid = CaseData.UCIC.ToString();

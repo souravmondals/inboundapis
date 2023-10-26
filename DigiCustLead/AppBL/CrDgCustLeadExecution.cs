@@ -237,7 +237,7 @@
                     custLeadElement.eqs_internalpan = CustLeadData.IndividualEntry.PAN;
 
                     CRMLeadmappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("lead", "eqs_panform60code", CustLeadData.IndividualEntry.PANForm60.ToString()));
-                    CRMLeadmappingFields.Add("eqs_pan", "**********");
+                  //  CRMLeadmappingFields.Add("eqs_pan", "**********");
                     CRMLeadmappingFields.Add("eqs_titleid@odata.bind", $"eqs_titles({TitleId})");
                     CRMLeadmappingFields.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
                     CRMLeadmappingFields.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({Productcategoryid})");
@@ -287,7 +287,7 @@
                     CRMCustomermappingFields.Add("eqs_mobilenumber", custLeadElement.mobilephone);
                     CRMCustomermappingFields.Add("eqs_dob", custLeadElement.eqs_dob);
                     CRMCustomermappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("eqs_accountapplicant", "eqs_panform60code", CustLeadData.IndividualEntry.PANForm60.ToString()));
-                    CRMCustomermappingFields.Add("eqs_pan", "**********");
+                  //  CRMCustomermappingFields.Add("eqs_pan", "**********");
                     CRMCustomermappingFields.Add("eqs_internalpan", custLeadElement.eqs_internalpan);
                     CRMCustomermappingFields.Add("eqs_passportnumber", custLeadElement.eqs_passportnumber);
                     CRMCustomermappingFields.Add("eqs_voterid", custLeadElement.eqs_voterid);
@@ -311,7 +311,7 @@
                             string Lead_ID = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "leadid");
                             CRMCustomermappingFields.Add("eqs_leadid@odata.bind", $"leads({Lead_ID})");
                             postDataParametr = JsonConvert.SerializeObject(CRMCustomermappingFields);
-                            List<JObject> Customer_details = await this._queryParser.HttpApiCall("eqs_accountapplicants?$select=eqs_applicantid", HttpMethod.Post, postDataParametr);
+                            List<JObject> Customer_details = await this._queryParser.HttpApiCall("eqs_accountapplicants()?$select=eqs_applicantid", HttpMethod.Post, postDataParametr);
                             
                             if (Customer_details.Count > 0)
                             {
@@ -397,7 +397,7 @@
                     CRMLeadmappingFields.Add("lastname", CustLeadData.CorporateEntry.CompanyName2.ToString());
                    // CRMLeadmappingFields.Add("yomifullname", CustLeadData.eqs_companynamepart1 + " " + CustLeadData.eqs_companynamepart2);
                     CRMLeadmappingFields.Add("eqs_panform60code", "615290000");
-                    CRMLeadmappingFields.Add("eqs_pan", "**********");
+                   // CRMLeadmappingFields.Add("eqs_pan", "**********");
                     CRMLeadmappingFields.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
                     CRMLeadmappingFields.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({Productcategoryid})");
                     CRMLeadmappingFields.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({Businesscategoryid})");
@@ -435,7 +435,7 @@
 
                     CRMCustomermappingFields.Add("eqs_dateofincorporation", CustLeadData.CorporateEntry.DateOfIncorporation.ToString());
                     CRMCustomermappingFields.Add("eqs_panform60code", "615290000");
-                    CRMCustomermappingFields.Add("eqs_pan", "**********");
+                  //  CRMCustomermappingFields.Add("eqs_pan", "**********");
                     CRMCustomermappingFields.Add("eqs_internalpan", custLeadElement.eqs_internalpan);
 
                     if (!string.IsNullOrEmpty(purpose) && purpose != "")

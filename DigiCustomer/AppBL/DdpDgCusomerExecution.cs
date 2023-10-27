@@ -144,7 +144,10 @@
                     msgBdy.DEMOGRAPHIC_INFORMATION.FIRST_NAME = applicentDtls[0]["eqs_firstname"].ToString();
                     msgBdy.DEMOGRAPHIC_INFORMATION.LAST_NAME = applicentDtls[0]["eqs_lastname"].ToString();
                     msgBdy.DEMOGRAPHIC_INFORMATION.MIDDLE_NAME = applicentDtls[0]["eqs_middlename"].ToString();
-                    msgBdy.DEMOGRAPHIC_INFORMATION.DATE_OF_BIRTH = applicentDtls[0]["eqs_dob"].ToString();
+                    string mm = applicentDtls[0]["eqs_dob"].ToString().Substring(0, 2);
+                    string dd = applicentDtls[0]["eqs_dob"].ToString().Substring(3, 2);
+                    string yy = applicentDtls[0]["eqs_dob"].ToString().Substring(6, 4);
+                    msgBdy.DEMOGRAPHIC_INFORMATION.DATE_OF_BIRTH = dd + "-" + mm + "-" + yy;
                 }
                 else
                 {

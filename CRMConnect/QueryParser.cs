@@ -388,8 +388,8 @@
                     HttpClient httpClient = new HttpClient();
                     string requestUri = this._keyVaultService.ReadSecret("wso2AuthUrl");
 
-                    string username = "1tSAaPFOcAjWihSNn_JNctGxxbga"; 
-                    string password = "3OnItTOcaEU_m8DzeeXdQVgdHdUa";
+                    string username = this._keyVaultService.ReadSecret("CBSUsername"); 
+                    string password = this._keyVaultService.ReadSecret("CBSPassword"); 
                     string encoded = System.Convert.ToBase64String(System.Text.Encoding.ASCII.GetBytes(username + ":" + password));
 
                     List<KeyValuePair<string, string>> Data = new List<KeyValuePair<string, string>>

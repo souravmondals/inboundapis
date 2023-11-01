@@ -19,6 +19,7 @@ namespace DedupeDigiLead
 
         private ILoggers _logger;
         private IQueryParser _queryParser;
+        public string Bank_Code { set; get; }
 
         public string Channel_ID
         {
@@ -98,36 +99,37 @@ namespace DedupeDigiLead
                         }
                         ldRtPrm.accountData = dedupDgChk;
 
-                        if (AccLead_data.Count<1)
+                        if (AccLead_data.Count>0)
                         {
-                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Resource_n_Found;
+                            ldRtPrm.ReturnCode = "CRM-SUCCESS";
+                            ldRtPrm.Message = OutputMSG.Case_Success;
                         }
                         else
                         {
-                            ldRtPrm.ReturnCode = "CRM-SUCCESS";
-                            ldRtPrm.Message =  OutputMSG.Case_Success;
+                            ldRtPrm.ReturnCode = "CRM-ERROR-102";
+                            ldRtPrm.Message = "No LeadAccount data found.";
+                            
                         }
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateFtchDgLdSts", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateDedupDgAccNL", "LeadAccount is incorrect");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "LeadAccount is incorrect";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateFtchDgLdSts", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateDedupDgAccNL", "Appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Appkey is incorrect";
                 }
 
                 return ldRtPrm;
             }
             catch (Exception ex)
             {
-                this._logger.LogError("ValidateFtchDgLdSts", ex.Message);               
+                this._logger.LogError("ValidateDedupDgAccNL", ex.Message);               
                 ldRtPrm.ReturnCode = "CRM-ERROR-101";
                 ldRtPrm.Message = OutputMSG.Resource_n_Found;
                 return ldRtPrm;
@@ -234,8 +236,8 @@ namespace DedupeDigiLead
                 }
                 catch (Exception ex)
                 {
-
-                    ldRtPrm=null;
+                    this._logger.LogError("getDedupDgAccNLStatus", ex.Message);
+                    ldRtPrm =null;
                 }
 
             }
@@ -245,34 +247,42 @@ namespace DedupeDigiLead
 
         public async Task<string> EncriptRespons(string ResponsData)
         {
-            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID, this.Bank_Code);
         }
 
         private async Task<dynamic> getRequestData(dynamic inputData, string APIname)
         {
 
             dynamic rejusetJson;
-
-            var EncryptedData = inputData.req_root.body.payload;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlData);
-            string xpath = "PIDBlock/payload";
-            var nodes = xmlDoc.SelectSingleNode(xpath);
-            foreach (XmlNode childrenNode in nodes)
+            try
             {
-                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+                var EncryptedData = inputData.req_root.body.payload;
+                string BankCode = inputData.req_root.header.cde.ToString();
+                this.Bank_Code = BankCode;
+                string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlData);
+                string xpath = "PIDBlock/payload";
+                var nodes = xmlDoc.SelectSingleNode(xpath);
+                foreach (XmlNode childrenNode in nodes)
+                {
+                    JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
 
-                dynamic payload = rejusetJson1[APIname];
+                    dynamic payload = rejusetJson1[APIname];
 
-                this.appkey = payload.msgHdr.authInfo.token.ToString();
-                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
-                this.Channel_ID = payload.msgHdr.channelID.ToString();
+                    this.appkey = payload.msgHdr.authInfo.token.ToString();
+                    this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                    this.Channel_ID = payload.msgHdr.channelID.ToString();
 
-                rejusetJson = payload.msgBdy;
+                    rejusetJson = payload.msgBdy;
 
-                return rejusetJson;
+                    return rejusetJson;
 
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getRequestData", ex.Message);
             }
 
             return "";

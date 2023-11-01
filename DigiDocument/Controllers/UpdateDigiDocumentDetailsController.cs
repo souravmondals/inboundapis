@@ -22,10 +22,10 @@
     public class UpdateDigiDocumentDetailsController : ControllerBase
     {
 
-        private readonly IDgDocDtlExecutiontExecution _dgdocDtlExecution;
+        private readonly IDgDocDtlExecution _dgdocDtlExecution;
         private Stopwatch watch;
 
-        public UpdateDigiDocumentDetailsController(IDgDocDtlExecutiontExecution dgdocDtExecution)
+        public UpdateDigiDocumentDetailsController(IDgDocDtlExecution dgdocDtExecution)
         {
             watch = new System.Diagnostics.Stopwatch();
             watch.Start();
@@ -45,16 +45,19 @@
                 
                 _dgdocDtlExecution.API_Name = "UpdateDigiDocumentDetails";
                 _dgdocDtlExecution.Input_payload = request.ToString();
-                DgDocDtlReturn api_Return = await _dgdocDtlExecution.ValidateProductInput(request);
+                UpdateDgDocDtlReturn api_Return = await _dgdocDtlExecution.ValidateDocumentInput(request);
 
                 watch.Stop();
                 api_Return.TransactionID = this._dgdocDtlExecution.Transaction_ID;
                 api_Return.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
                 string response = await _dgdocDtlExecution.EncriptRespons(JsonConvert.SerializeObject(api_Return));
-                this._dgdocDtlExecution.CRMLog(JsonConvert.SerializeObject(request), response, api_Return.ReturnCode);
+                
 
-                return Ok(api_Return);
+                var contentResult = new ContentResult();
+                contentResult.Content = response;
+                contentResult.ContentType = "application/json";
+                return contentResult;
 
 
             }

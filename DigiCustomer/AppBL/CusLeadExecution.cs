@@ -22,6 +22,7 @@
 
         private ILoggers _logger;
         private IQueryParser _queryParser;
+        public string Bank_Code { set; get; }
 
         public string Channel_ID
         {
@@ -101,24 +102,24 @@
                         }
                         else
                         {
-                            this._logger.LogInformation("ValidateInput", "Input UCIC are incorrect");
+                            this._logger.LogInformation("ValidateInput", "customerLeadID is incorrect");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                            ldRtPrm.Message = "customerLeadID is incorrect";
                         }
                         
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateInput", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateInput", "Transaction_ID or Channel_ID in incorrect.");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "Transaction_ID or Channel_ID in incorrect.";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateInput", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateInput", "Appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Appkey is incorrect";
                 }
 
                 return ldRtPrm;
@@ -208,9 +209,9 @@
             }            
             else
             {
-                this._logger.LogInformation("getCustomerLead", "Input parameters are incorrect");
+                this._logger.LogInformation("getCustomerLead", "Applicent Detail not found");
                 accountLeadReturn.ReturnCode = "CRM-ERROR-102";
-                accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+                accountLeadReturn.Message = "Applicent Detail not found";
             }
 
             return accountLeadReturn;
@@ -235,50 +236,47 @@
             }
         }
 
-               
-                
 
-        public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
-        {
-            Dictionary<string, string> CRMProp = new Dictionary<string, string>();
-            CRMProp.Add("eqs_name", this.Transaction_ID);
-            CRMProp.Add("eqs_requestbody", InputRequest);
-            CRMProp.Add("eqs_responsebody", OutputRespons);
-            CRMProp.Add("eqs_requeststatus", (CallStatus.Contains("ERROR")) ? "615290001" : "615290000");
-            string postDataParametr = JsonConvert.SerializeObject(CRMProp);
-            await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
-        }
+       
 
         public async Task<string> EncriptRespons(string ResponsData)
         {
-            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID, this.Bank_Code);
         }
 
         private async Task<dynamic> getRequestData(dynamic inputData, string APIname)
         {
 
             dynamic rejusetJson;
-
-            var EncryptedData = inputData.req_root.body.payload;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlData);
-            string xpath = "PIDBlock/payload";
-            var nodes = xmlDoc.SelectSingleNode(xpath);
-            foreach (XmlNode childrenNode in nodes)
+            try
             {
-                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+                var EncryptedData = inputData.req_root.body.payload;
+                string BankCode = inputData.req_root.header.cde.ToString();
+                this.Bank_Code = BankCode;
+                string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlData);
+                string xpath = "PIDBlock/payload";
+                var nodes = xmlDoc.SelectSingleNode(xpath);
+                foreach (XmlNode childrenNode in nodes)
+                {
+                    JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
 
-                dynamic payload = rejusetJson1[APIname];
+                    dynamic payload = rejusetJson1[APIname];
 
-                this.appkey = payload.msgHdr.authInfo.token.ToString();
-                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
-                this.Channel_ID = payload.msgHdr.channelID.ToString();
+                    this.appkey = payload.msgHdr.authInfo.token.ToString();
+                    this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                    this.Channel_ID = payload.msgHdr.channelID.ToString();
 
-                rejusetJson = payload.msgBdy;
+                    rejusetJson = payload.msgBdy;
 
-                return rejusetJson;
+                    return rejusetJson;
 
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getRequestData", ex.Message);
             }
 
             return "";

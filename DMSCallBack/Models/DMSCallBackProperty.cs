@@ -6,8 +6,7 @@ namespace DMSCallBack
 
      
     public class DMSCallBackReturn
-    {
-        
+    {        
        public string Documentid { get; set; } 
         public string ReturnCode { get; set; } 
         public string Message { get; set; }

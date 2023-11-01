@@ -1,4 +1,4 @@
-﻿namespace CustomerLead.Controllers
+﻿namespace AccountLead.Controllers
 {
 
     using Microsoft.AspNetCore.Http;
@@ -15,23 +15,20 @@
     using CRMConnect;
     using System.Diagnostics;
 
-
-
     [Route("[controller]")]
     [ApiController]
-    public class GetDigiCustomerLeadNSDL : ControllerBase
+    public class CreateDigiCustomerByLeadController : ControllerBase
     {
 
-        private readonly ICusLeadExecution _cusLeadExecution;
+        private readonly ICrdgCustomerByLeadExecution _crdgcustleadbyExecution;
         private Stopwatch watch;
 
-        public GetDigiCustomerLeadNSDL(ICusLeadExecution cusLeadExecution)
+        public CreateDigiCustomerByLeadController(ICrdgCustomerByLeadExecution crdgcustbyleadExecution)
         {
             watch = new System.Diagnostics.Stopwatch();
             watch.Start();
-            this._cusLeadExecution = cusLeadExecution;
+            this._crdgcustleadbyExecution = crdgcustbyleadExecution;
         }
-
 
 
         [HttpPost]
@@ -43,17 +40,17 @@
                 StreamReader requestReader = new StreamReader(Request.Body);
                 dynamic request = JObject.Parse(await requestReader.ReadToEndAsync());
 
-                
-                _cusLeadExecution.API_Name = "GetDigiCustomerLead";
-                _cusLeadExecution.Input_payload = request.ToString();
-                CustomerLeadReturn AccountDetails = await _cusLeadExecution.ValidateInput(request);
+
+                _crdgcustleadbyExecution.API_Name = "CreateDigiCustomerByLead";
+                _crdgcustleadbyExecution.Input_payload = request.ToString();
+                CustomerByLeadReturn AccountDetails = await _crdgcustleadbyExecution.ValidateLeadtInput(request);
 
                 watch.Stop();
-                AccountDetails.TransactionID = this._cusLeadExecution.Transaction_ID;
+                AccountDetails.TransactionID = this._crdgcustleadbyExecution.Transaction_ID;
                 AccountDetails.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
-                string response = await _cusLeadExecution.EncriptRespons(JsonConvert.SerializeObject(AccountDetails));
-                this._cusLeadExecution.CRMLog(JsonConvert.SerializeObject(request), response, AccountDetails.ReturnCode);
+                string response = await _crdgcustleadbyExecution.EncriptRespons(JsonConvert.SerializeObject(AccountDetails), _crdgcustleadbyExecution.Bank_Code);
+                
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

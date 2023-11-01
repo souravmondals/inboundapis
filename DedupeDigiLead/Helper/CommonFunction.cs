@@ -154,10 +154,29 @@ namespace DedupeDigiLead
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
-            string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
-            var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            string TableId = await this.getIDFromGetResponce(idfield, responsdtails);
-            return TableId;
+            try
+            {
+                string Table_Id;
+                string TableId;
+                if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+                {
+                    string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
+                    var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                    TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+
+                    this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                }
+                else
+                {
+                    TableId = Table_Id;
+                }
+                return TableId;
+            }
+            catch (Exception ex)
+            {
+                this._loggers.LogError("getIDfromMSDTable", ex.Message, $"Table {tablename} filterkey {filterkey} filtervalue {filtervalue}");
+                throw;
+            }
         }
 
         public async Task<string> getclassificationId(string classification)
@@ -167,25 +186,33 @@ namespace DedupeDigiLead
 
         public async Task<List<string>> getLeadAccData(string LeadAccId)
         {
-            List<string> Accounts = new List<string>();
-            List<string> Accounts1;
-            if (!this.GetMvalue<List<string>>("LeadAccId" + LeadAccId, out Accounts1))
+            try
             {
-                string lead_accountid = await this.getIDfromMSDTable("eqs_leadaccounts", "eqs_leadaccountid", "eqs_crmleadaccountid", LeadAccId);
-                string query_url = $"eqs_accountapplicants()?$select=eqs_applicantid&$filter=_eqs_leadaccountid_value eq '{lead_accountid}'";
-                var AccountDetails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Account_Details = await this.getDataFromResponce(AccountDetails);
-                foreach (var account in Account_Details)
+                List<string> Accounts = new List<string>();
+                List<string> Accounts1;
+                if (!this.GetMvalue<List<string>>("LeadAccId" + LeadAccId, out Accounts1))
                 {
-                    Accounts.Add(account["eqs_applicantid"].ToString());
+                    string lead_accountid = await this.getIDfromMSDTable("eqs_leadaccounts", "eqs_leadaccountid", "eqs_crmleadaccountid", LeadAccId);
+                    string query_url = $"eqs_accountapplicants()?$select=eqs_applicantid&$filter=_eqs_leadaccountid_value eq '{lead_accountid}'";
+                    var AccountDetails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                    var Account_Details = await this.getDataFromResponce(AccountDetails);
+                    foreach (var account in Account_Details)
+                    {
+                        Accounts.Add(account["eqs_applicantid"].ToString());
+                    }
+                    this.SetMvalue<List<string>>("LeadAccId" + LeadAccId, 5, Accounts);
                 }
-                this.SetMvalue<List<string>>("LeadAccId" + LeadAccId, 5, Accounts);
+                else
+                {
+                    Accounts = Accounts1;
+                }
+                return Accounts;
             }
-            else
+            catch (Exception ex)
             {
-                Accounts = Accounts1;
+                this._loggers.LogError("getLeadAccData", ex.Message);
+                throw ex;
             }
-            return Accounts; 
         }
 
         public async Task<JArray> getLeadData(string ApplicantId)

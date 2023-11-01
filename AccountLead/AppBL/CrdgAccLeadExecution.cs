@@ -22,6 +22,7 @@
 
         private ILoggers _logger;
         private IQueryParser _queryParser;
+        public string Bank_Code { set; get; }
 
         public string Channel_ID
         {
@@ -64,9 +65,8 @@
         private AccountLead _accountLead;
         private LeadParam _leadParam;
         private List<AccountApplicant> _accountApplicants;
-        Dictionary<string, string> AccountType = new Dictionary<string, string>();
-        Dictionary<string, string> KitOption = new Dictionary<string, string>();
-        Dictionary<string, string> DepositMode = new Dictionary<string, string>();
+    
+      
         private ICommonFunction _commonFunc;
 
         public CrdgAccLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
@@ -82,19 +82,7 @@
             _accountLead = new AccountLead();
             _accountApplicants = new List<AccountApplicant>();
 
-            AccountType.Add("Single", "615290000");
-            AccountType.Add("Joint", "615290001");
-
-            KitOption.Add("Non Insta Kit", "615290000");
-            KitOption.Add("Insta Kit", "615290001");
-            KitOption.Add("Instant A/C No kit", "615290002");
-
-            DepositMode.Add("Cheque", "789030000");
-            DepositMode.Add("Cash", "789030001");
-            DepositMode.Add("Remittance (NRI)", "789030002");
-            DepositMode.Add("Cheque from Existing NRI Account", "789030003");
-            DepositMode.Add("IP waiver", "789030004");
-            DepositMode.Add("Fund Transfer", "789030005");
+           
         }
 
 
@@ -119,28 +107,28 @@
                             {
                                 this._logger.LogInformation("ValidateLeadtInput", "Input UCIC are incorrect");
                                 ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                                ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                                ldRtPrm.Message = "Input UCIC are incorrect";
                             }
                         }
                         else
                         {
-                            this._logger.LogInformation("ValidateLeadtInput", "Input parameters are incorrect");
+                            this._logger.LogInformation("ValidateLeadtInput", "AccountLead or AccountApplicent is incorrect");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                            ldRtPrm.Message = "AccountLead or AccountApplicent is incorrect";
                         }
                     }
                     else
                     {
-                        this._logger.LogInformation("ValidateLeadtInput", "Input parameters are incorrect");
+                        this._logger.LogInformation("ValidateLeadtInput", "Transaction_ID or Channel_ID is incorrect.");
                         ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                        ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                        ldRtPrm.Message = "Transaction_ID or Channel_ID is incorrect.";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("ValidateLeadtInput", "Input parameters are incorrect");
+                    this._logger.LogInformation("ValidateLeadtInput", "Appkey is incorrect");
                     ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                    ldRtPrm.Message = OutputMSG.Incorrect_Input;
+                    ldRtPrm.Message = "Appkey is incorrect";
                 }
 
                 return ldRtPrm;
@@ -170,23 +158,23 @@
                     }
                     else
                     {
-                        this._logger.LogInformation("CreateAccountLead", "Input parameters are incorrect");
+                        this._logger.LogInformation("CreateAccountLead", "Account Applicent creation fail.");
                         accountLeadReturn.ReturnCode = "CRM-ERROR-102";
-                        accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+                        accountLeadReturn.Message = "Account Applicent creation fail.";
                     }
                 }
                 else
                 {
-                    this._logger.LogInformation("CreateAccountLead", "Input parameters are incorrect");
+                    this._logger.LogInformation("CreateAccountLead", "Lead Account creation fail.");
                     accountLeadReturn.ReturnCode = "CRM-ERROR-102";
-                    accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+                    accountLeadReturn.Message = "Lead Account creation fail.";
                 }
             }
             else
             {
-                this._logger.LogInformation("CreateAccountLead", "Input parameters are incorrect");
+                this._logger.LogInformation("CreateAccountLead", "Lead creation fail.");
                 accountLeadReturn.ReturnCode = "CRM-ERROR-102";
-                accountLeadReturn.Message = OutputMSG.Resource_n_Found;
+                accountLeadReturn.Message = "Lead creation fail.";
             }
 
             return accountLeadReturn;
@@ -218,7 +206,7 @@
                 odatab.Add("eqs_ucic", appitem.UCIC);
                 odatab.Add("eqs_etbcustomerid@odata.bind", $"contacts({appitem.contactid})");
                 odatab.Add("eqs_titleid@odata.bind", $"eqs_titles({appitem.title})");
-                odatab.Add("eqs_leadsourceid@odata.bind", $"eqs_leadsources({await this._commonFunc.getLeadSourceId(_accountLead.leadsource)})");
+                
                 odatab.Add("leadsourcecode", "15");
                 odatab.Add("firstname", appitem.firstname);
                 odatab.Add("lastname", appitem.lastname);
@@ -237,12 +225,33 @@
 
                 odatab.Add("eqs_gendercode", appitem.gender);
                 odatab.Add("eqs_createdfromonline", "true");
-                odatab.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
-                odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({Productcategoryid})");
-                odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({Businesscategoryid})");
-
-                odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({appitem.entityType})");
-                odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({appitem.subentityType})");
+                if (!string.IsNullOrEmpty(_accountLead.leadsource.ToString()))
+                {
+                    odatab.Add("eqs_leadsourceid@odata.bind", $"eqs_leadsources({await this._commonFunc.getLeadSourceId(_accountLead.leadsource)})");
+                }
+                if (!string.IsNullOrEmpty(ProductId))
+                {
+                    odatab.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
+                }
+                if (!string.IsNullOrEmpty(Productcategoryid))
+                {
+                    odatab.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({Productcategoryid})");
+                }
+                if (!string.IsNullOrEmpty(Businesscategoryid))
+                {
+                    odatab.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({Businesscategoryid})");
+                }
+                if (!string.IsNullOrEmpty(appitem.entityType))
+                {
+                    odatab.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({appitem.entityType})");
+                }
+                if (!string.IsNullOrEmpty(appitem.subentityType))
+                {
+                    odatab.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({appitem.subentityType})");
+                }
+                    
+               
+                
 
                 string postDataParametr = JsonConvert.SerializeObject(odatab);
 
@@ -283,14 +292,14 @@
             odatab.Add("eqs_productid@odata.bind", $"eqs_products({_leadParam.productid})");
             odatab.Add("eqs_Lead@odata.bind", $"leads({_leadParam.leadid})");
 
-            odatab.Add("eqs_accountownershipcode", this.AccountType[_accountLead.accountType]);
+            odatab.Add("eqs_accountownershipcode", await this._queryParser.getOptionSetTextToValue("eqs_leadaccount", "eqs_accountownershipcode", _accountLead.accountType.ToString()));
 
-            if(!string.IsNullOrEmpty(_leadParam.branchid))
+            if (!string.IsNullOrEmpty(_leadParam.branchid))
                 odatab.Add("eqs_branchid@odata.bind", $"eqs_branchs({_leadParam.branchid})");
 
 
-            odatab.Add("eqs_instakitoptioncode", this.KitOption[_accountLead.accountOpeningFlow]);
-            odatab.Add("eqs_initialdepositmodecode", this.DepositMode[_accountLead.initialDepositType]);
+            odatab.Add("eqs_instakitoptioncode", await this._queryParser.getOptionSetTextToValue("eqs_leadaccount", "eqs_instakitoptioncode", _accountLead.accountOpeningFlow.ToString()));
+            odatab.Add("eqs_initialdepositmodecode",  await this._queryParser.getOptionSetTextToValue("eqs_leadaccount", "eqs_initialdepositmodecode", _accountLead.initialDepositType.ToString()));
 
             odatab.Add("eqs_sourcebyemployeecode", _accountLead.fieldEmployeeCode);
 
@@ -300,7 +309,7 @@
             odatab.Add("eqs_fundstobedebitedfrom", _accountLead.fundsTobeDebitedFrom);           
             odatab.Add("eqs_modeofoperationremarks", _accountLead.mopRemarks);
 
-            odatab.Add("eqs_initialdepositamountcode", (_accountLead.initialDeposit == "Up To Rs. 500000") ? "789030000" : "789030001");
+            odatab.Add("eqs_initialdepositamountcode", await this._queryParser.getOptionSetTextToValue("eqs_leadaccount", "eqs_initialdepositamountcode", _accountLead.initialDeposit.ToString()));
 
             if (!string.IsNullOrEmpty(_accountLead.fdAccOpeningDate))
                 odatab.Add("eqs_fdvaluedate", _accountLead.fdAccOpeningDate);
@@ -655,47 +664,46 @@
 
         
 
-        public async Task CRMLog(string InputRequest, string OutputRespons, string CallStatus)
-        {
-            Dictionary<string, string> CRMProp = new Dictionary<string, string>();
-            CRMProp.Add("eqs_name", this.Transaction_ID);
-            CRMProp.Add("eqs_requestbody", InputRequest);
-            CRMProp.Add("eqs_responsebody", OutputRespons);
-            CRMProp.Add("eqs_requeststatus", (CallStatus.Contains("ERROR")) ? "615290001" : "615290000");
-            string postDataParametr = JsonConvert.SerializeObject(CRMProp);
-            await this._queryParser.HttpApiCall("eqs_apilogs", HttpMethod.Post, postDataParametr);
-        }
+       
 
         public async Task<string> EncriptRespons(string ResponsData)
         {
-            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID);
+            return await _queryParser.PayloadEncryption(ResponsData, Transaction_ID, this.Bank_Code);
         }
 
         private async Task<dynamic> getRequestData(dynamic inputData, string APIname)
         {
 
             dynamic rejusetJson;
-
-            var EncryptedData = inputData.req_root.body.payload;
-            string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString());
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlData);
-            string xpath = "PIDBlock/payload";
-            var nodes = xmlDoc.SelectSingleNode(xpath);
-            foreach (XmlNode childrenNode in nodes)
+            try
             {
-                JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
+                var EncryptedData = inputData.req_root.body.payload;
+                string BankCode = inputData.req_root.header.cde.ToString();
+                this.Bank_Code = BankCode;
+                string xmlData = await this._queryParser.PayloadDecryption(EncryptedData.ToString(), BankCode);
+                XmlDocument xmlDoc = new XmlDocument();
+                xmlDoc.LoadXml(xmlData);
+                string xpath = "PIDBlock/payload";
+                var nodes = xmlDoc.SelectSingleNode(xpath);
+                foreach (XmlNode childrenNode in nodes)
+                {
+                    JObject rejusetJson1 = (JObject)JsonConvert.DeserializeObject(childrenNode.Value);
 
-                dynamic payload = rejusetJson1[APIname];
+                    dynamic payload = rejusetJson1[APIname];
 
-                this.appkey = payload.msgHdr.authInfo.token.ToString();
-                this.Transaction_ID = payload.msgHdr.conversationID.ToString();
-                this.Channel_ID = payload.msgHdr.channelID.ToString();
+                    this.appkey = payload.msgHdr.authInfo.token.ToString();
+                    this.Transaction_ID = payload.msgHdr.conversationID.ToString();
+                    this.Channel_ID = payload.msgHdr.channelID.ToString();
 
-                rejusetJson = payload.msgBdy;
+                    rejusetJson = payload.msgBdy;
 
-                return rejusetJson;
+                    return rejusetJson;
 
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getRequestData", ex.Message);
             }
 
             return "";

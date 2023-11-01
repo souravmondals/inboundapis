@@ -123,52 +123,33 @@
 
         public async Task<string> getIDfromMSDTable(string tablename, string idfield, string filterkey, string filtervalue)
         {
-            string Table_Id;
-            string TableId;
-            if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+            try
             {
-                string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
-                var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                TableId = await this.getIDFromGetResponce(idfield, responsdtails);
+                string Table_Id;
+                string TableId;
+                if (!this.GetMvalue<string>(tablename + filtervalue, out Table_Id))
+                {
+                    string query_url = $"{tablename}()?$select={idfield}&$filter={filterkey} eq '{filtervalue}'";
+                    var responsdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                    TableId = await this.getIDFromGetResponce(idfield, responsdtails);
 
-                this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                    this.SetMvalue<string>(tablename + filtervalue, 1400, TableId);
+                }
+                else
+                {
+                    TableId = Table_Id;
+                }
+                return TableId;
             }
-            else
+            catch (Exception ex)
             {
-                TableId = Table_Id;
+                this._logger.LogError("getIDfromMSDTable", ex.Message, $"Table {tablename} filterkey {filterkey} filtervalue {filtervalue}");
+                throw;
             }
-            return TableId;
+
         }
 
-        public async Task<string> getDocCategoryId(string Category_code)
-        {
-            return await this.getIDfromMSDTable("eqs_doccategories", "eqs_doccategoryid", "eqs_doccategorycode", Category_code);
-        }
-
-        public async Task<string> getDocSubcatId(string Subcat_code)
-        {
-            return await this.getIDfromMSDTable("eqs_docsubcategories", "eqs_docsubcategoryid", "eqs_docsubcategorycode", Subcat_code);
-        }
-
-        public async Task<string> getProductId(string Productcode)
-        {
-            return await this.getIDfromMSDTable("eqs_products", "eqs_productid", "eqs_productcode", Productcode);
-        }
-        
-        public async Task<string> getProductCategoryId(string Productcatcode)
-        {
-            return await this.getIDfromMSDTable("eqs_productcategories", "eqs_productcategoryid", "eqs_productcategorycode", Productcatcode);
-        }       
-
-        public async Task<string> getDocTypeId(string Type_code)
-        {
-            return await this.getIDfromMSDTable("eqs_doctypemasters", "eqs_doctypemasterid", "eqs_doctypemasteridvalue", Type_code);
-        }
-
-        public async Task<string> getRelationShipId(string RelationShipCode)
-        {
-            return await this.getIDfromMSDTable("eqs_relationships", "eqs_relationshipid", "eqs_relationship", RelationShipCode);
-        }
+            
 
         public async Task<string> getTitle(string TitleId)
         {
@@ -181,72 +162,41 @@
         } 
         
         public async Task<JArray> getApplicentDetail(string ApplicantId)
-        {           
-            string query_url = $"eqs_accountapplicants()?$select=_eqs_customerid_value,_eqs_entitytypeid_value,eqs_customertypecode,_eqs_titleid_value,eqs_firstname,eqs_middlename,eqs_lastname,eqs_internalpan,eqs_companynamepart1,eqs_companynamepart2,eqs_companynamepart3,eqs_tannumber&$filter=eqs_applicantid eq '{ApplicantId}'";
-            var custDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var cust_dtails = await this._queryParser.getDataFromResponce(custDtl);
-            return cust_dtails;
+        {
+            try
+            {
+                string query_url = $"eqs_accountapplicants()?$select=_eqs_customerid_value,_eqs_entitytypeid_value,_eqs_leadid_value,eqs_customertypecode,_eqs_titleid_value,eqs_firstname,eqs_middlename,eqs_lastname,eqs_dob,eqs_internalpan,eqs_companynamepart1,eqs_companynamepart2,eqs_companynamepart3,eqs_dateofincorporation,eqs_tannumber,eqs_internalpan,eqs_aadhaarreference,eqs_passportnumber,eqs_voterid&$filter=eqs_applicantid eq '{ApplicantId}'";
+                var custDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var cust_dtails = await this._queryParser.getDataFromResponce(custDtl);
+                return cust_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getApplicentDetail", ex.Message);
+                throw ex;
+            }
         }
 
 
         public async Task<JArray> getCustomerDetails(string CustId)
         {
-            string query_url = $"contacts({CustId})?$select=_eqs_entitytypeid_value,_eqs_titleid_value,firstname,middlename,lastname,eqs_pan,eqs_companyname,eqs_companyname2,eqs_companyname3,eqs_tannumber";
-            var custDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-            var cust_dtails = await this._queryParser.getDataFromResponce(custDtl);
-            return cust_dtails;
-        }
-
-        public async Task<JArray> getApplicentsSetails(string LeadAccId)
-        {
             try
             {
-                string query_url = $"eqs_accountapplicants()?$filter=_eqs_leadaccountid_value eq '{LeadAccId}'";
-                var Applicantdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Applicant_dtails = await this._queryParser.getDataFromResponce(Applicantdtails);
-                return Applicant_dtails;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("getApplicantDetails", ex.Message);
-                throw ex;
-            }
-        }
-        
-        public async Task<JArray> getPreferences(string applicantid)
-        {
-            try
-            {
-                string query_url = $"eqs_customerpreferences()?$filter=_eqs_applicantid_value eq '{applicantid}'";
-                var Customerdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Customer_dtails = await this._queryParser.getDataFromResponce(Customerdtails);
-                return Customer_dtails;
+                string query_url = $"contacts({CustId})?$select=_eqs_entitytypeid_value,_eqs_titleid_value,firstname,middlename,lastname,eqs_pan,eqs_companyname,eqs_companyname2,eqs_companyname3,eqs_tannumber";
+                var custDtl = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var cust_dtails = await this._queryParser.getDataFromResponce(custDtl);
+                return cust_dtails;
             }
             catch (Exception ex)
             {
                 this._logger.LogError("getCustomerDetails", ex.Message);
                 throw ex;
             }
+
         }
 
-        
-
-        public async Task<JArray> getLeadDetails(string Lead_id)
-        {
-            try
-            {
-                string query_url = $"leads({Lead_id})?";
-                var LeadDetails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
-                var Lead_dtails = await this._queryParser.getDataFromResponce(LeadDetails);
-                return Lead_dtails;
-            }
-            catch (Exception ex)
-            {
-                this._logger.LogError("getLeadDetails", ex.Message);
-                throw ex;
-            }
-        }
-
+               
+       
       
 
         public async Task<string> MeargeJsonString(string json1, string json2)

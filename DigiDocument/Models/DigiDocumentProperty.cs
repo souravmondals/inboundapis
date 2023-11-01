@@ -4,26 +4,44 @@ using System.Text.Json.Serialization;
 namespace DigiDocument
 {
 
-    public class productFilter
+    public class GetDgDocDtlReturn
     {
-        public string gender { get; set; }
-        public string age { get; set; }
-        public string subentity { get; set; }
-        public string customerSegment { get; set; }
-        public string IsStaff { get; set; }
-        public string productCategory { get; set; }
+        public List<Document> DocumentIDs { get; set; }
+        public string ReturnCode { get; set; }
+        public string Message { get; set; }
+        public string TransactionID { get; set; }
+        public string ExecutionTime { get; set; }
+
     }
 
-    
-    public class DgDocDtlReturn
-    {
-       
-       
+    public class UpdateDgDocDtlReturn
+    {       
+        public List<string> DocumentIDs { get; set; }
         public string ReturnCode { get; set; } 
         public string Message { get; set; }
         public string TransactionID { get; set; }
         public string ExecutionTime { get; set; }
 
+    }
+
+    public class Document
+    {
+        public string CRMDocumentID { get; set; }
+        public string DocumentType { get; set; }
+        public string CategoryCode { get; set; }
+        public string SubcategoryCode { get; set; }
+        public string IssuedAt { get; set; }
+        public string IssueDate { get; set; }
+        public string ExpiryDate { get; set; }
+        public string DmsDocumentID { get; set; }
+        public string VerificationStatus { get; set; }
+        public string VerifiedBy { get; set; }
+        public string VerifiedOn { get; set; }
+        public string MappedCustomerLead { get; set; }
+        public string MappedAccountLead { get; set; }
+        public string MappedUCIC { get; set; }
+        public string MappedAccount { get; set; }
+        public string MappedServiceRequest { get; set; }
     }
 
 }

@@ -39,6 +39,16 @@ namespace AccountLead
 
     }
 
+    public class CustomerByLeadReturn
+    {
+        public string customerId { get; set; }
+        public string ReturnCode { get; set; }
+        public string Message { get; set; }
+        public string TransactionID { get; set; }
+        public string ExecutionTime { get; set; }
+
+    }
+
     public class ApplicentRelation
     {
         public string customerId { get; set; }

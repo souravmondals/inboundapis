@@ -53,7 +53,7 @@
                 productList.ExecutionTime = watch.ElapsedMilliseconds.ToString() + " ms";
 
                 string response = await _fetchGFSProductExecution.EncriptRespons(JsonConvert.SerializeObject(productList));
-                this._fetchGFSProductExecution.CRMLog(JsonConvert.SerializeObject(request), response, productList.ReturnCode);
+               
 
                 var contentResult = new ContentResult();
                 contentResult.Content = response;

@@ -285,6 +285,10 @@
         {
             return await this.getIDfromMSDTable("eqs_purposeofcreations", "eqs_name", "eqs_purposeofcreationid", Purpose);
         }
+        public async Task<string> getFatcaAddressID(string FatcaID)
+        {
+            return await this.getIDfromMSDTable("eqs_leadaddresses", "eqs_leadaddressid", "_eqs_applicantfatca_value", FatcaID);
+        }
         public async Task<string> getAddressID(string DDEID, string types)
         {
             if (types == "indv")

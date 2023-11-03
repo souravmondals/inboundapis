@@ -12,6 +12,7 @@
     using CRMConnect;
     using System.Xml;
     using System.Threading.Channels;
+    using System.Text.RegularExpressions;
 
     public class UpDgCustLeadExecution : IUpDgCustLeadExecution
     {
@@ -56,7 +57,7 @@
         }
 
         private readonly IKeyVaultService _keyVaultService;
-        public string DDEId, AddressID,FatcaId;
+        public string DDEId, AddressID, FatcaAddressID, FatcaId;
                 
         private ICommonFunction _commonFunc;
 
@@ -193,7 +194,8 @@
                 CRMDDEmappingFields.Add("eqs_physicalaornumber", CustIndvData.General.PhysicalAOFnumber.ToString());
 
                 CRMDDEmappingFields1.Add("eqs_ismficustomer", Convert.ToBoolean(CustIndvData.General.IsMFICustomer.ToString()));
-                CRMDDEmappingFields.Add("eqs_deferralcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_deferralcode", CustIndvData.General.IsDeferral.ToString())); 
+                CRMDDEmappingFields.Add("eqs_deferralcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_deferralcode", CustIndvData.General.IsDeferral.ToString()));
+                CRMDDEmappingFields.Add("eqs_isdeferral", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_isdeferral", CustIndvData.General.Deferral.ToString()));
 
 
                 /*********** Prospect Details *********/
@@ -246,8 +248,9 @@
           
 
                 /*********** Identification Details *********/
-                CRMDDEmappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_panform60code", CustIndvData.IdentificationDetails.Pan.ToString()));               
+                CRMDDEmappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_panform60code", CustIndvData.IdentificationDetails.PanForm60.ToString()));               
                 CRMDDEmappingFields.Add("eqs_passportnumber", CustIndvData.IdentificationDetails.PassportNumber.ToString());
+                CRMDDEmappingFields.Add("ReasonforNotApplicable", CustIndvData.IdentificationDetails.ReasonforNotApplicable.ToString());
                 CRMDDEmappingFields.Add("eqs_ckycreferencenumber", CustIndvData.IdentificationDetails.CKYCreferenceNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_kycverificationmodecode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_kycverificationmodecode", CustIndvData.IdentificationDetails.KYCVerificationMode.ToString()));
                 
@@ -260,6 +263,18 @@
                 /*********** FATCA *********/
                 CRMDDEmappingFields1.Add("eqs_taxresident", (await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_taxresident", CustIndvData.FATCA.TaxResident.ToString()) == "1") ? true : false);
                 CRMDDEmappingFields.Add("eqs_cityofbirth", CustIndvData.FATCA.CityofBirth.ToString());
+
+                /*********** NRI Details *********/
+                CRMDDEmappingFields.Add("eqs_residencestatuscode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_residencestatuscode", CustIndvData.NRIDetails.ResidenceStatus.ToString()));
+                CRMDDEmappingFields1.Add("eqs_seafarer", (await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_seafarer", CustIndvData.NRIDetails.Seafarer.ToString()) == "1") ? true : false);
+                CRMDDEmappingFields1.Add("eqs_kycmode", (await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_kycmode", CustIndvData.NRIDetails.Nrikycmode.ToString()) == "1") ? true : false);
+                CRMDDEmappingFields1.Add("eqs_mobilepreference", (await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_mobilepreference", CustIndvData.NRIDetails.Nrimobilenopre.ToString()) == "1") ? true : false);
+                CRMDDEmappingFields.Add("eqs_visatypecode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_visatypecode", CustIndvData.NRIDetails.Nrivisatype.ToString()));
+
+                //CRMDDEmappingFields.Add("eqs_communitycode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_communitycode", CustIndvData.NRIDetails.Community.ToString()));
+                // CRMDDEmappingFields.Add("eqs_professioncode", CustIndvData.NRIDetails.Designation.ToString());
+                // CRMDDEmappingFields.Add("eqs_accountapplicantid", CustIndvData.NRIDetails.AddressID.ToString());
+
 
                 /*********** RM Details *********/
                 CRMDDEmappingFields.Add("eqs_servicermcode", CustIndvData.RMDetails.ServiceRMCode.ToString());
@@ -341,27 +356,77 @@
 
                 /*********** FATCA Link *********/
                 CRMDDEmappingFields = new Dictionary<string, string>();
-
-                CRMDDEmappingFields.Add("eqs_countryid@odata.bind", $"eqs_countries({await this._commonFunc.getCountryID(CustIndvData.FATCA.CountryCode.ToString())})");
-                CRMDDEmappingFields.Add("eqs_otheridentificationnumber", CustIndvData.FATCA.OtherIdentificationNumber.ToString());
-                CRMDDEmappingFields.Add("eqs_taxidentificationnumber", CustIndvData.FATCA.TaxIdentificationNumber.ToString());
-                CRMDDEmappingFields.Add("eqs_addresstype", await this._queryParser.getOptionSetTextToValue("eqs_customerfactcaother", "eqs_addresstype", CustIndvData.FATCA.AddressType.ToString()));
-                CRMDDEmappingFields.Add("eqs_indivapplicantddeid@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
-
-                postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
-
-                this.FatcaId = await this._commonFunc.getFatcaID(this.DDEId,"indv");
-
-                if (string.IsNullOrEmpty(this.FatcaId))
+                if(await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_taxresident", CustIndvData.FATCA.TaxResident.ToString()) == "1")
                 {
-                    List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_customerfactcaothers()?$select=eqs_customerfactcaotherid", HttpMethod.Post, postDataParametr);
-                    var fatcaid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_customerfactcaotherid");
-                    this.FatcaId = fatcaid;
+                    CRMDDEmappingFields.Add("eqs_countryid@odata.bind", $"eqs_countries({await this._commonFunc.getCountryID(CustIndvData.FATCA.CountryCode.ToString())})");
+                    CRMDDEmappingFields.Add("eqs_otheridentificationnumber", CustIndvData.FATCA.OtherIdentificationNumber.ToString());
+                    CRMDDEmappingFields.Add("eqs_taxidentificationnumber", CustIndvData.FATCA.TaxIdentificationNumber.ToString());
+                    CRMDDEmappingFields.Add("eqs_addresstype", await this._queryParser.getOptionSetTextToValue("eqs_customerfactcaother", "eqs_addresstype", CustIndvData.FATCA.AddressType.ToString()));
+                    CRMDDEmappingFields.Add("eqs_indivapplicantddeid@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
+
+                    postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
+
+                    this.FatcaId = await this._commonFunc.getFatcaID(this.DDEId, "indv");
+                    string Fatca_Id = "";
+                    if (string.IsNullOrEmpty(this.FatcaId))
+                    {
+                        List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_customerfactcaothers()?$select=eqs_customerfactcaotherid,eqs_name", HttpMethod.Post, postDataParametr);
+                        var fatcaid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_customerfactcaotherid");
+                        Fatca_Id = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_name");
+                        this.FatcaId = fatcaid;
+                    }
+                    else
+                    {
+                        var response = await this._queryParser.HttpApiCall($"eqs_customerfactcaothers({this.FatcaId})?", HttpMethod.Patch, postDataParametr);
+                        Fatca_Id = CommonFunction.GetIdFromPostRespons201(response[0]["responsebody"], "eqs_name");
+                    }
+
+                    if(CustIndvData.FATCA.AddressType.ToString().Contains("Fatca Other Address") && CustIndvData.FATCA.Address!= null)
+                    {
+                        CRMDDEmappingFields = new Dictionary<string, string>();
+                        CRMDDEmappingFields1 = new Dictionary<string, bool>();
+
+                        CRMDDEmappingFields.Add("eqs_name", Fatca_Id + " - " + CustIndvData.FATCA.AddressType.ToString());
+                       
+                        CRMDDEmappingFields.Add("eqs_addresstypecode", await this._queryParser.getOptionSetTextToValue("eqs_leadaddress", "eqs_addresstypecode", CustIndvData.FATCA.AddressType.ToString()));
+                        CRMDDEmappingFields.Add("eqs_addressline1", CustIndvData.FATCA.Address.AddressLine1.ToString());
+                        CRMDDEmappingFields.Add("eqs_addressline2", CustIndvData.FATCA.Address.AddressLine2.ToString());
+                        CRMDDEmappingFields.Add("eqs_addressline3", CustIndvData.FATCA.Address.AddressLine3.ToString());
+                        CRMDDEmappingFields.Add("eqs_addressline4", CustIndvData.FATCA.Address.AddressLine4.ToString());
+                        CRMDDEmappingFields.Add("eqs_faxnumber", CustIndvData.FATCA.Address.FaxNumber.ToString());
+                        CRMDDEmappingFields.Add("eqs_overseasmobilenumber", CustIndvData.FATCA.Address.OverseasMobileNumber.ToString());
+                        CRMDDEmappingFields.Add("eqs_pincodemaster@odata.bind", $"eqs_pincodes({await this._commonFunc.getPincodeID(CustIndvData.FATCA.Address.PinCodeMaster.ToString())})");
+                        CRMDDEmappingFields.Add("eqs_cityid@odata.bind", $"eqs_cities({await this._commonFunc.getCityID(CustIndvData.FATCA.Address.CityId.ToString())})");
+                        CRMDDEmappingFields.Add("eqs_district", CustIndvData.FATCA.Address.District.ToString());
+                        CRMDDEmappingFields.Add("eqs_stateid@odata.bind", $"eqs_states({await this._commonFunc.getStateID(CustIndvData.FATCA.Address.StateId.ToString())})");
+                        CRMDDEmappingFields.Add("eqs_countryid@odata.bind", $"eqs_countries({await this._commonFunc.getCountryID(CustIndvData.FATCA.Address.CountryId.ToString())})");
+                        CRMDDEmappingFields.Add("eqs_pincode", CustIndvData.FATCA.Address.PinCode.ToString());
+                        CRMDDEmappingFields.Add("eqs_pobox", CustIndvData.FATCA.Address.POBox.ToString());
+                        CRMDDEmappingFields.Add("eqs_landmark", CustIndvData.FATCA.Address.Landmark.ToString());
+                        CRMDDEmappingFields.Add("eqs_landlinenumber", CustIndvData.FATCA.Address.LandlineNumber.ToString());
+                        CRMDDEmappingFields.Add("eqs_alternatemobilenumber", CustIndvData.FATCA.Address.AlternateMobileNumber.ToString());
+                        CRMDDEmappingFields1.Add("eqs_localoverseas", (await this._queryParser.getOptionSetTextToValue("eqs_leadaddress", "eqs_localoverseas", CustIndvData.FATCA.Address.LocalOverseas.ToString()) == "1") ? true : false);
+                        CRMDDEmappingFields.Add("eqs_applicantfatca@odata.bind", $"eqs_customerfactcaothers({this.FatcaId})");
+
+                        postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
+                        postDataParametr1 = JsonConvert.SerializeObject(CRMDDEmappingFields1);
+                        postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+
+                        this.FatcaAddressID = await this._commonFunc.getFatcaAddressID(this.FatcaId);
+
+                        if (string.IsNullOrEmpty(this.FatcaAddressID))
+                        {
+                            List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_leadaddresses()?$select=eqs_leadaddressid", HttpMethod.Post, postDataParametr);
+                            var addressid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_leadaddressid");
+                            this.FatcaAddressID = addressid;
+                        }
+                        else
+                        {
+                            var response = await this._queryParser.HttpApiCall($"eqs_leadaddresses({this.FatcaAddressID})?", HttpMethod.Patch, postDataParametr);
+                        }
+                    }
                 }
-                else
-                {
-                    var response = await this._queryParser.HttpApiCall($"eqs_customerfactcaothers({this.AddressID})?", HttpMethod.Patch, postDataParametr);
-                }
+                
 
                 /*********** Document Link *********/
                 if (CustIndvData.Documents.Count>0)
@@ -435,7 +500,7 @@
                 this.DDEId = await this._commonFunc.getDDEFinalAccountCorpData(Applicant_Data["eqs_accountapplicantid"].ToString());
                 string dd, mm, yyyy;
                 /*********** General *********/
-                CRMDDEmappingFields.Add("eqs_dataentryoperator", Applicant_Data.eqs_name.ToString());
+                CRMDDEmappingFields.Add("eqs_dataentryoperator", Applicant_Data.eqs_applicantid.ToString() + "  - Final");
                 CRMDDEmappingFields.Add("eqs_dataentrystage", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_dataentrystage", "Final"));
                 CRMDDEmappingFields.Add("eqs_entitytypeId@odata.bind", $"eqs_entitytypes({Applicant_Data._eqs_entitytypeid_value.ToString()})");
                 CRMDDEmappingFields.Add("eqs_subentitytypeId@odata.bind", $"eqs_subentitytypes({Applicant_Data._eqs_subentity_value.ToString()})");
@@ -477,6 +542,7 @@
                 CRMDDEmappingFields.Add("eqs_currentemployeestrength", CustCorpData.AboutProspect.CurrentEmployeeStrength.ToString());
                 CRMDDEmappingFields.Add("eqs_averagesalarytoemployee", CustCorpData.AboutProspect.AverageSalarytoEmployee.ToString());
                 CRMDDEmappingFields.Add("eqs_minimumsalarytoemployee", CustCorpData.AboutProspect.MinimumSalarytoEmployee.ToString());
+                CRMDDEmappingFields.Add("eqs_industryothers", CustCorpData.AboutProspect.IndustryOthers.ToString());
                 CRMDDEmappingFields1.Add("eqs_ismficustomer", Convert.ToBoolean(CustCorpData.AboutProspect.IsMFIcustomer.ToString()));
                 CRMDDEmappingFields.Add("eqs_programcode", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_programcode", CustCorpData.AboutProspect.Program.ToString()));
                 CRMDDEmappingFields.Add("eqs_npopocode", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_npopocode", CustCorpData.AboutProspect.NPOPO.ToString()));
@@ -487,7 +553,7 @@
 
                 /*********** Identification Details *********/
 
-                CRMDDEmappingFields.Add("eqs_pocpanform60code", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_pocpanform60code", CustCorpData.IdentificationDetails.Pan.ToString()));
+                CRMDDEmappingFields.Add("eqs_pocpanform60code", await this._queryParser.getOptionSetTextToValue("eqs_ddecorporatecustomer", "eqs_pocpanform60code", CustCorpData.IdentificationDetails.PanForm60.ToString()));
                 
                 CRMDDEmappingFields.Add("eqs_gstnumber", CustCorpData.IdentificationDetails.GSTNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_ckycnumber", CustCorpData.IdentificationDetails.CKYCRefenceNumber.ToString());
@@ -609,22 +675,95 @@
                 CRMDDEmappingFields.Add("eqs_otheridentificationnumber", CustCorpData.FATCA.OtherIdentificationNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_taxidentificationnumber", CustCorpData.FATCA.TaxIdentificationNumber.ToString());
                 CRMDDEmappingFields.Add("eqs_addresstype", await this._queryParser.getOptionSetTextToValue("eqs_customerfactcaother", "eqs_addresstype", CustCorpData.FATCA.AddressType.ToString()));
+
+                CRMDDEmappingFields.Add("eqs_typeofnonfinancialentitycode", await this._queryParser.getOptionSetTextToValue("eqs_customerfactcaother", "eqs_typeofnonfinancialentitycode", CustCorpData.FATCA.TypeofNonFinancialEntity.ToString()));
+                CRMDDEmappingFields.Add("eqs_listingtypecode", await this._queryParser.getOptionSetTextToValue("eqs_customerfactcaother", "eqs_listingtypecode", CustCorpData.FATCA.ListingType.ToString()));
+                CRMDDEmappingFields.Add("eqs_nameofstockexchange",  CustCorpData.FATCA.NameofStockExchange.ToString());
+                CRMDDEmappingFields.Add("eqs_nameoflistingcompany", CustCorpData.FATCA.NameofListingCompany.ToString());
+                if (CustCorpData.FATCA.TypeofNonFinancialEntity.ToString() == "Passive")
+                {
+                    CRMDDEmappingFields.Add("eqs_nameofnonfinancialentity", CustCorpData.FATCA.NameofNonFinancialEntity.ToString());
+
+                    dd = CustCorpData.FATCA.CustomerDOB.ToString().Substring(0, 2);
+                    mm = CustCorpData.FATCA.CustomerDOB.ToString().Substring(3, 2);
+                    yyyy = CustCorpData.FATCA.CustomerDOB.ToString().Substring(6, 4);
+                    CRMDDEmappingFields.Add("eqs_customerdob", yyyy + "-" + mm + "-" + dd);
+                    CRMDDEmappingFields.Add("eqs_beneficiaryinterest", CustCorpData.FATCA.BeneficiaryInterest.ToString());
+                    CRMDDEmappingFields.Add("eqs_taxidentificationnumbernf", CustCorpData.FATCA.TaxIdentificationNumberNF.ToString());
+                    CRMDDEmappingFields.Add("eqs_otheridentificationnumbernf", CustCorpData.FATCA.OtherIdentificationNumberNF.ToString());
+
+                    customer_Dtl = await this._commonFunc.getContactData(CustCorpData.FATCA.CustomerUCIC.ToString());
+                    CRMDDEmappingFields.Add("eqs_customerucic", CustCorpData.FATCA.CustomerUCIC.ToString());
+                    CRMDDEmappingFields.Add("eqs_customerlookup@odata.bind", $"contacts({customer_Dtl[0]["contactid"].ToString()})");
+                    CRMDDEmappingFields.Add("eqs_customername", customer_Dtl[0]["fullname"].ToString());
+
+                    CRMDDEmappingFields.Add("eqs_countryoftaxresidencyid@odata.bind", $"eqs_countries({await this._commonFunc.getCountryID(CustCorpData.FATCA.CountryofTaxResidency.ToString())})");
+                    CRMDDEmappingFields.Add("eqs_panofnonfinancialentity", CustCorpData.FATCA.PanofNonFinancialEntity.ToString());
+                    CRMDDEmappingFields.Add("eqs_nfoccupationtype", await this._queryParser.getOptionSetTextToValue("eqs_customerfactcaother", "eqs_nfoccupationtype", CustCorpData.FATCA.NFOccupationType.ToString()));
+                   
+                }
                 CRMDDEmappingFields.Add("eqs_ddecorporatecustomerid@odata.bind", $"eqs_ddecorporatecustomers({this.DDEId})");
 
                 postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
 
                 this.FatcaId = await this._commonFunc.getFatcaID(this.DDEId, "corp");
-
+                string Fatca_Id = "";
                 if (string.IsNullOrEmpty(this.FatcaId))
                 {
                     List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_customerfactcaothers()?$select=eqs_name", HttpMethod.Post, postDataParametr);
-                    var fatcaid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_name");
+                    var fatcaid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_customerfactcaotherid");
+                    Fatca_Id = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_name");
                     this.FatcaId = fatcaid;
                 }
                 else
                 {
                     var response = await this._queryParser.HttpApiCall($"eqs_customerfactcaothers({this.FatcaId})?$select=eqs_name", HttpMethod.Patch, postDataParametr);
-                    this.FatcaId = CommonFunction.GetIdFromPostRespons201(response[0]["responsebody"], "eqs_name");
+                    Fatca_Id = CommonFunction.GetIdFromPostRespons201(response[0]["responsebody"], "eqs_name");
+                }
+
+                if (CustCorpData.FATCA.AddressType.ToString().Contains("Fatca Other Address") && CustCorpData.FATCA.Address != null)
+                {
+                    CRMDDEmappingFields = new Dictionary<string, string>();
+                    CRMDDEmappingFields1 = new Dictionary<string, bool>();
+
+                    CRMDDEmappingFields.Add("eqs_name", Fatca_Id + " - " + CustCorpData.FATCA.AddressType.ToString());
+
+                    CRMDDEmappingFields.Add("eqs_addresstypecode", await this._queryParser.getOptionSetTextToValue("eqs_leadaddress", "eqs_addresstypecode", CustCorpData.FATCA.AddressType.ToString()));
+                    CRMDDEmappingFields.Add("eqs_addressline1", CustCorpData.FATCA.Address.AddressLine1.ToString());
+                    CRMDDEmappingFields.Add("eqs_addressline2", CustCorpData.FATCA.Address.AddressLine2.ToString());
+                    CRMDDEmappingFields.Add("eqs_addressline3", CustCorpData.FATCA.Address.AddressLine3.ToString());
+                    CRMDDEmappingFields.Add("eqs_addressline4", CustCorpData.FATCA.Address.AddressLine4.ToString());
+                    CRMDDEmappingFields.Add("eqs_faxnumber", CustCorpData.FATCA.Address.FaxNumber.ToString());
+                    CRMDDEmappingFields.Add("eqs_overseasmobilenumber", CustCorpData.FATCA.Address.OverseasMobileNumber.ToString());
+                    CRMDDEmappingFields.Add("eqs_pincodemaster@odata.bind", $"eqs_pincodes({await this._commonFunc.getPincodeID(CustCorpData.FATCA.Address.PinCodeMaster.ToString())})");
+                    CRMDDEmappingFields.Add("eqs_cityid@odata.bind", $"eqs_cities({await this._commonFunc.getCityID(CustCorpData.FATCA.Address.CityId.ToString())})");
+                    CRMDDEmappingFields.Add("eqs_district", CustCorpData.FATCA.Address.District.ToString());
+                    CRMDDEmappingFields.Add("eqs_stateid@odata.bind", $"eqs_states({await this._commonFunc.getStateID(CustCorpData.FATCA.Address.StateId.ToString())})");
+                    CRMDDEmappingFields.Add("eqs_countryid@odata.bind", $"eqs_countries({await this._commonFunc.getCountryID(CustCorpData.FATCA.Address.CountryId.ToString())})");
+                    CRMDDEmappingFields.Add("eqs_pincode", CustCorpData.FATCA.Address.PinCode.ToString());
+                    CRMDDEmappingFields.Add("eqs_pobox", CustCorpData.FATCA.Address.POBox.ToString());
+                    CRMDDEmappingFields.Add("eqs_landmark", CustCorpData.FATCA.Address.Landmark.ToString());
+                    CRMDDEmappingFields.Add("eqs_landlinenumber", CustCorpData.FATCA.Address.LandlineNumber.ToString());
+                    CRMDDEmappingFields.Add("eqs_alternatemobilenumber", CustCorpData.FATCA.Address.AlternateMobileNumber.ToString());
+                    CRMDDEmappingFields1.Add("eqs_localoverseas", (await this._queryParser.getOptionSetTextToValue("eqs_leadaddress", "eqs_localoverseas", CustCorpData.FATCA.Address.LocalOverseas.ToString()) == "1") ? true : false);
+                    CRMDDEmappingFields.Add("eqs_applicantfatca@odata.bind", $"eqs_customerfactcaothers({this.FatcaId})");
+
+                    postDataParametr = JsonConvert.SerializeObject(CRMDDEmappingFields);
+                    postDataParametr1 = JsonConvert.SerializeObject(CRMDDEmappingFields1);
+                    postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
+
+                    this.FatcaAddressID = await this._commonFunc.getFatcaAddressID(this.FatcaId);
+
+                    if (string.IsNullOrEmpty(this.FatcaAddressID))
+                    {
+                        List<JObject> DDE_details = await this._queryParser.HttpApiCall("eqs_leadaddresses()?$select=eqs_leadaddressid", HttpMethod.Post, postDataParametr);
+                        var addressid = CommonFunction.GetIdFromPostRespons201(DDE_details[0]["responsebody"], "eqs_leadaddressid");
+                        this.FatcaAddressID = addressid;
+                    }
+                    else
+                    {
+                        var response = await this._queryParser.HttpApiCall($"eqs_leadaddresses({this.FatcaAddressID})?", HttpMethod.Patch, postDataParametr);
+                    }
                 }
 
                 /*********** Document Link *********/
@@ -670,15 +809,27 @@
                 /*********** BO *********/
                 CRMDDEmappingFields = new Dictionary<string, string>();
 
+                CRMDDEmappingFields.Add("eqs_name", CustCorpData.BODetails.BOName.ToString());
                 customer_Dtl = await this._commonFunc.getContactData(CustCorpData.BODetails.BOUCIC.ToString());
+                if (CustCorpData.BODetails.BOUCIC.ToString() != "" && customer_Dtl.Count < 1)
+                {
+                    this._logger.LogInformation("createDigiCustLeadCorp", "BOUCIC is incorrect.");
+                    csRtPrm.ReturnCode = "CRM-ERROR-102";
+                    csRtPrm.Message = "BOUCIC is incorrect.";
+                    return csRtPrm;
+                }
+                else
+                {
+                    CRMDDEmappingFields.Add("eqs_boexistingcustomer@odata.bind", $"contacts({customer_Dtl[0]["contactid"].ToString()})");
+                    CRMDDEmappingFields.Add("eqs_boucic", customer_Dtl[0]["eqs_customerid"].ToString());                    
+                    CRMDDEmappingFields["eqs_name"] = customer_Dtl[0]["fullname"].ToString();
+                }
 
                 CRMDDEmappingFields.Add("eqs_botypecode", await this._queryParser.getOptionSetTextToValue("eqs_customerbo", "eqs_botypecode", CustCorpData.BODetails.BOType.ToString()));
-                CRMDDEmappingFields.Add("eqs_bolistingtypecode", await this._queryParser.getOptionSetTextToValue("eqs_customerbo", "eqs_bolistingtypecode", CustCorpData.BODetails.BOListingType.ToString()));
-                CRMDDEmappingFields.Add("eqs_boexistingcustomer@odata.bind", $"contacts({customer_Dtl[0]["contactid"].ToString()})");
-                CRMDDEmappingFields.Add("eqs_boucic", customer_Dtl[0]["eqs_customerid"].ToString());
-                CRMDDEmappingFields.Add("eqs_name", customer_Dtl[0]["fullname"].ToString());
+                CRMDDEmappingFields.Add("eqs_bolistingtypecode", await this._queryParser.getOptionSetTextToValue("eqs_customerbo", "eqs_bolistingtypecode", CustCorpData.BODetails.BOListingType.ToString()));                
                 CRMDDEmappingFields.Add("eqs_bolistingdetails", CustCorpData.BODetails.BOListingDetails.ToString());
-                CRMDDEmappingFields.Add("eqs_holding", CustCorpData.BODetails.Holding.ToString());
+                
+                CRMDDEmappingFields.Add("eqs_holding", (Convert.ToInt32(CustCorpData.BODetails.Holding.ToString())>100) ? "100" : CustCorpData.BODetails.Holding.ToString());
 
 
                 CRMDDEmappingFields.Add("eqs_ddecorporatecustomerid@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
@@ -699,13 +850,25 @@
                 /*********** CP *********/
                 CRMDDEmappingFields = new Dictionary<string, string>();
 
+                CRMDDEmappingFields.Add("eqs_name", CustCorpData.CPDetails.NameofCP.ToString());
+
                 customer_Dtl = await this._commonFunc.getContactData(CustCorpData.CPDetails.CPUCIC.ToString());
-
-                CRMDDEmappingFields.Add("eqs_cpexistingcustomerid@odata.bind", $"contacts({customer_Dtl[0]["contactid"].ToString()})");
-                CRMDDEmappingFields.Add("eqs_cpucic", customer_Dtl[0]["eqs_customerid"].ToString());
-                CRMDDEmappingFields.Add("eqs_name", customer_Dtl[0]["fullname"].ToString());               
-                CRMDDEmappingFields.Add("eqs_holding", CustCorpData.CPDetails.Holding.ToString());
-
+                if (CustCorpData.CPDetails.CPUCIC.ToString() != "" && customer_Dtl.Count < 1)
+                {
+                    this._logger.LogInformation("createDigiCustLeadCorp", "CPUCIC is incorrect.");
+                    csRtPrm.ReturnCode = "CRM-ERROR-102";
+                    csRtPrm.Message = "CPUCIC is incorrect.";
+                    return csRtPrm;
+                }
+                else
+                {
+                    CRMDDEmappingFields.Add("eqs_cpexistingcustomerid@odata.bind", $"contacts({customer_Dtl[0]["contactid"].ToString()})");
+                    CRMDDEmappingFields.Add("eqs_cpucic", customer_Dtl[0]["eqs_customerid"].ToString());                    
+                    CRMDDEmappingFields["eqs_name"] = customer_Dtl[0]["fullname"].ToString();
+                }
+                             
+                CRMDDEmappingFields.Add("eqs_holding", (Convert.ToInt32(CustCorpData.CPDetails.Holding.ToString()) > 100) ? "100" : CustCorpData.CPDetails.Holding.ToString());
+                
 
                 CRMDDEmappingFields.Add("eqs_ddecorporatecustomerid@odata.bind", $"eqs_ddeindividualcustomers({this.DDEId})");
 

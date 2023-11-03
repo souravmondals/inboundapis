@@ -38,6 +38,7 @@ namespace DigiCustLead
         public Task<string> getBranchText(string BranchwId);
         public Task<string> getRelationshipText(string relationshipId);
         public Task<string> getAccRelationshipText(string accrelationshipId);
+        public Task<string> getFatcaAddressID(string FatcaID);
         public Task<string> getPurposeText(string Purpose);
         public Task<string> getCountryText(string CountryId);
         public Task<string> getBusinessTypeText(string businessTypeId);

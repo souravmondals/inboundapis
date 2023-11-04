@@ -64,8 +64,9 @@ namespace DigiCustLead
     {
       
         public string FATCAID { get; set; }
-        public List<string> Documents { get; set; }
-
+        public List<string> Address { get; set; }
+        public string BOID { get; set; }
+        public string CPID { get; set; }
         public string ReturnCode { get; set; }
         public string Message { get; set; }
         public string TransactionID { get; set; }

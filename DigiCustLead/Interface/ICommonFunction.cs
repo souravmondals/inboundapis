@@ -41,6 +41,10 @@ namespace DigiCustLead
         public Task<string> getFatcaAddressID(string FatcaID);
         public Task<string> getPurposeText(string Purpose);
         public Task<string> getCountryText(string CountryId);
+        public Task<string> getcorporatemasterID(string CorporateCode);
+        public Task<string> getcorporatemasterText(string CorporateId);
+        public Task<string> getdesignationmasterID(string DesignatioCode);
+        public Task<string> getdesignationmasterText(string DesignatioId);
         public Task<string> getBusinessTypeText(string businessTypeId);
         public Task<string> getIndustryText(string industryId);
         public Task<string> getStateText(string StateID);
@@ -50,6 +54,7 @@ namespace DigiCustLead
         public Task<string> getFatcaText(string FatcaID);
         public Task<string> getIndividualDDEText(string DDEID);
         public Task<JArray> getDDEFinalFatcaDetail(string DDEId, string type);
+        public Task<string> getKYCVerificationID(string DDEId, string type);
         public Task<string> getCustomerText(string customerId);
         public Task<JArray> getDDEFinalDocumentDetail(string DDEId, string type);
         public Task<string> getDocCategoryText(string doccatId);

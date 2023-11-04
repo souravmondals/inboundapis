@@ -257,6 +257,23 @@
         {
             return await this.getIDfromMSDTable("eqs_countries", "eqs_countrycode", "eqs_countryid", CountryId);
         }
+        public async Task<string> getcorporatemasterID(string CorporateCode)
+        {
+            return await this.getIDfromMSDTable("eqs_corporatemasters", "eqs_corporatemasterid", "eqs_corporatecode", CorporateCode);
+        }
+        public async Task<string> getcorporatemasterText(string CorporateId)
+        {
+            return await this.getIDfromMSDTable("eqs_corporatemasters", "eqs_corporatecode", "eqs_corporatemasterid",  CorporateId);
+        }
+        public async Task<string> getdesignationmasterID(string DesignatioCode)
+        {
+            return await this.getIDfromMSDTable("eqs_designationmasters", "eqs_designationmasterid", "eqs_name", DesignatioCode);
+        }
+        public async Task<string> getdesignationmasterText(string DesignatioId)
+        {
+            return await this.getIDfromMSDTable("eqs_designationmasters", "eqs_name", "eqs_designationmasterid", DesignatioId);
+        }
+
         public async Task<string> getStateID(string StateCode)
         {
             return await this.getIDfromMSDTable("eqs_states", "eqs_stateid", "eqs_statecode", StateCode);
@@ -357,13 +374,13 @@
         {
             return await this.getIDfromMSDTable("eqs_businessnatures", "eqs_name", "eqs_businessnatureid", industryId);
         }
-        public async Task<string> getBOId(string DDEID)
+        public async Task<string> getBOId(string BOid)
         {
-            return await this.getIDfromMSDTable("eqs_customerbos", "eqs_customerboid", "_eqs_ddecorporatecustomerid_value", DDEID);
+            return await this.getIDfromMSDTable("eqs_customerbos", "eqs_customerboid", "eqs_boid", BOid);
         }
-        public async Task<string> getCPId(string DDEID)
+        public async Task<string> getCPId(string CPid)
         {
-            return await this.getIDfromMSDTable("eqs_customercps", "eqs_customercpid", "_eqs_ddecorporatecustomerid_value", DDEID);
+            return await this.getIDfromMSDTable("eqs_customercps", "eqs_customercpid", "eqs_cpid", CPid);
         }
         public async Task<string> getIndividualDDEText(string DDEID)
         {
@@ -385,6 +402,19 @@
         {
             return await this.getIDfromMSDTable("contacts", "fullname", "contactid", customerId);
         }
+        public async Task<string> getKYCVerificationID(string DDEId, string type)
+        {
+            if (type== "Corp")
+            {
+                return await this.getIDfromMSDTable("eqs_ddeindividualcustomers", "_eqs_kycverificationdetailid_value", "eqs_ddeindividualcustomerid", DDEId);
+            }
+            else
+            {
+                return await this.getIDfromMSDTable("eqs_ddecorporatecustomers", "_eqs_kycverificationdetailid_value", "eqs_ddecorporatecustomerid", DDEId);
+            }
+           
+        }
+
 
         public async Task<string> getDDEFinalAccountIndvData(string AccountNumber)
         {

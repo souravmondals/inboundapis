@@ -56,7 +56,7 @@
             }
         }
 
-        Dictionary<int, string> Status_Code = new Dictionary<int, string>();
+
         Dictionary<string, string> IdentityType = new Dictionary<string, string>();
 
         private readonly IKeyVaultService _keyVaultService;
@@ -73,18 +73,6 @@
             this._queryParser = queryParser;
             this._commonFunc = commonFunction;
 
-            this.Status_Code.Add(7, "Duplicate Lead");
-            this.Status_Code.Add(615290000, "Pushed to LOS");
-            this.Status_Code.Add(615290001, "Onboarding");
-            this.Status_Code.Add(615290002, "Clousre");
-            this.Status_Code.Add(8, "Not Qualified");
-            this.Status_Code.Add(3, "Onboarded");
-            this.Status_Code.Add(4, "Lead Not Interested");
-            this.Status_Code.Add(5, "Lead Not Eligible");
-            this.Status_Code.Add(0, "Identification");
-            this.Status_Code.Add(1, "Qualification");
-            this.Status_Code.Add(6, "Lead Rejected");
-            this.Status_Code.Add(2, "Doc Verification");
 
             this.IdentityType.Add("615290000", "PAN Card");
             this.IdentityType.Add("615290001", "8Form 60 + Form 49 A");
@@ -161,7 +149,7 @@
                     string Entity_type = await this._commonFunc.getLeadType(LeadData._eqs_entitytypeid_value.ToString());
                     csRtPrm.LeadID = RequestData.LeadID;
                     
-                    csRtPrm.Status = this.Status_Code[Convert.ToInt32(LeadData.statuscode.ToString())];
+                    csRtPrm.Status = await this._queryParser.getOptionSetValuToText("lead", "statuscode", LeadData.statuscode.ToString());
                     csRtPrm.EntityType = await this._commonFunc.getEntityType(LeadData._eqs_entitytypeid_value.ToString());
                     csRtPrm.SubEntityType = await this._commonFunc.getSubEntityType(LeadData._eqs_subentitytypeid_value.ToString()); 
 

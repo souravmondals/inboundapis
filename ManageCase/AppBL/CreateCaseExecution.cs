@@ -416,7 +416,7 @@ namespace ManageCase
                 }
 
                 odatab.Add("customerid_contact@odata.bind", $"contacts({csProperty.customerid})");
-                if (csProperty.Accountid.Length > 4)
+                if (csProperty.Accountid != null && csProperty.Accountid.Length > 4)
                 {
                     odatab.Add("eqs_account@odata.bind", $"eqs_accounts({csProperty.Accountid})");
                 }

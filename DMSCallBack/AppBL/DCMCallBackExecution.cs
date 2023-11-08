@@ -163,41 +163,47 @@
             DMSCallBackReturn csRtPrm = new DMSCallBackReturn();
             try
             {
-                Dictionary<string, string> DataMapping = new Dictionary<string, string>();
-              
-                DataMapping.Add("eqs_dmsdocumentname", succData.docNm.ToString());
-                DataMapping.Add("eqs_dmsdocumentid", succData.docIndx.ToString());
-                string update_date = DateTime.Now.Date.ToString("yyyy-MM-dd") + " " + DateTime.Now.ToString("HH") + ":" + DateTime.Now.ToString("mm") + ":" + DateTime.Now.ToString("ss");
-              
-                DataMapping.Add("eqs_uploadeddatetimefordms", update_date);
-                DataMapping.Add("eqs_dmsdocumentuploadstatus", "true");
-
-                string postDataParametr = JsonConvert.SerializeObject(DataMapping);
-
-                var document_details = await this._queryParser.HttpApiCall($"eqs_leaddocuments({RequestId})?$select=eqs_documentid", HttpMethod.Patch, postDataParametr);
-
-                if (document_details.Count > 0)
+                foreach (var item in succData)
                 {
-                    dynamic respons_code = document_details[0];
-                    if (respons_code.responsecode == 200)
+                    Dictionary<string, string> DataMapping = new Dictionary<string, string>();
+
+                    DataMapping.Add("eqs_dmsdocumentname", item.docNm.ToString());
+                    DataMapping.Add("eqs_dmsdocumentid", item.docIndx.ToString());
+                    string update_date = DateTime.Now.Date.ToString("yyyy-MM-dd") + " " + DateTime.Now.ToString("HH") + ":" + DateTime.Now.ToString("mm") + ":" + DateTime.Now.ToString("ss");
+
+                    DataMapping.Add("eqs_uploadeddatetimefordms", update_date);
+                    DataMapping.Add("eqs_dmsdocumentuploadstatus", "true");
+
+                    string postDataParametr = JsonConvert.SerializeObject(DataMapping);
+
+                    var document_details = await this._queryParser.HttpApiCall($"eqs_leaddocuments({RequestId})?$select=eqs_documentid", HttpMethod.Patch, postDataParametr);
+
+                    if (document_details.Count > 0)
                     {
-                        csRtPrm.Documentid = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "eqs_documentid");
-                        csRtPrm.ReturnCode = "CRM - SUCCESS";
-                        csRtPrm.Message = OutputMSG.Case_Success;
+                        dynamic respons_code = document_details[0];
+                        if (respons_code.responsecode == 200)
+                        {
+                            csRtPrm.Documentid = CommonFunction.GetIdFromPostRespons201(respons_code.responsebody, "eqs_documentid");
+                            csRtPrm.ReturnCode = "CRM - SUCCESS";
+                            csRtPrm.Message = OutputMSG.Case_Success;
+                        }
+                        else if (respons_code.responsecode == null || respons_code.responsecode == 400)
+                        {
+                            this._logger.LogInformation("UpdateDCMSuccess", JsonConvert.SerializeObject(document_details));
+                            csRtPrm.ReturnCode = "CRM-ERROR-102";
+                            csRtPrm.Message = "DMS Call back fail.";
+                        }
                     }
-                    else if(respons_code.responsecode == null || respons_code.responsecode == 400)
+                    else
                     {
                         this._logger.LogInformation("UpdateDCMSuccess", JsonConvert.SerializeObject(document_details));
                         csRtPrm.ReturnCode = "CRM-ERROR-102";
                         csRtPrm.Message = "DMS Call back fail.";
                     }
                 }
-                else
-                {
-                    this._logger.LogInformation("UpdateDCMSuccess", JsonConvert.SerializeObject(document_details));
-                    csRtPrm.ReturnCode = "CRM-ERROR-102";
-                    csRtPrm.Message = "DMS Call back fail.";
-                }
+                
+
+                
 
             }
             catch (Exception ex)

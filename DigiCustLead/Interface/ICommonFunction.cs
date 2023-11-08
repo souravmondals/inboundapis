@@ -10,9 +10,11 @@ namespace DigiCustLead
         public Task<JArray> getContactData(string contact_id);
         public Task<string> getEntityID(string Entity);
         public Task<string> getSubentitytypeID(string Subentitytype);
+        public Task<string> getSubentitytypeText(string SubentitytypeID);
         public Task<string> getPurposeID(string Purpose);
         public Task<Dictionary<string, string>> getProductId(string ProductCode);
         public Task<string> getTitleId(string Title);
+        public Task<string> getTitleText(string TitleID);
         public Task<string> MeargeJsonString(string json1, string json2);
         public Task<JArray> getApplicentData(string Applicent_id);
         public Task<string> getEntityName(string EntityId);
@@ -56,12 +58,18 @@ namespace DigiCustLead
         public Task<JArray> getDDEFinalFatcaDetail(string DDEId, string type);
         public Task<string> getKYCVerificationID(string DDEId, string type);
         public Task<string> getCustomerText(string customerId);
+        public Task<string> getAccountapplicantName(string AccountapplicantId);
+        public Task<string> getLeadsourceName(string leadsourceid);
+        public Task<string> getSystemuserName(string systemuserid);
+        public Task<string> getBankName(string bankid);
         public Task<JArray> getDDEFinalDocumentDetail(string DDEId, string type);
+        public Task<JArray> getkycverificationDetail(string kycverificationId);
         public Task<string> getDocCategoryText(string doccatId);
         public Task<string> getDocSubCategoryText(string docsubcatId);
         public Task<string> getDocTypeText(string docTypeId);
         public Task<JArray> getDDEFinalCPDetail(string DDEId);
         public Task<JArray> getDDEFinalBODetail(string DDEId);
+        public Task<JArray> getFATCAAddress(string FatcaID);
 
 
     }

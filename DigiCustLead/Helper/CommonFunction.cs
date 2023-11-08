@@ -220,6 +220,10 @@
         {
             return await this.getIDfromMSDTable("eqs_titles", "eqs_titleid", "eqs_name", Title);
         }
+        public async Task<string> getTitleText(string TitleID)
+        {
+            return await this.getIDfromMSDTable("eqs_titles", "eqs_name", "eqs_titleid", TitleID);
+        }
         public async Task<string> getEntityID(string Entity)
         {
             return await this.getIDfromMSDTable("eqs_entitytypes", "eqs_entitytypeid", "eqs_name", Entity);
@@ -231,6 +235,10 @@
         public async Task<string> getSubentitytypeID(string Subentitytype)
         {
             return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_subentitytypeid", "eqs_key", Subentitytype);
+        }
+        public async Task<string> getSubentitytypeText(string SubentitytypeID)
+        {
+            return await this.getIDfromMSDTable("eqs_subentitytypes", "eqs_key", "eqs_subentitytypeid", SubentitytypeID);
         }
 
         public async Task<string> getRelationshipID(string relationshipCode)
@@ -402,6 +410,23 @@
         {
             return await this.getIDfromMSDTable("contacts", "fullname", "contactid", customerId);
         }
+        public async Task<string> getAccountapplicantName(string AccountapplicantId)
+        {
+            return await this.getIDfromMSDTable("eqs_accountapplicants", "eqs_name", "eqs_accountapplicantid", AccountapplicantId);
+        }        
+        public async Task<string> getLeadsourceName(string leadsourceid)
+        {
+            return await this.getIDfromMSDTable("eqs_leadsources", "eqs_name", "eqs_leadsourceid", leadsourceid);
+        }
+        public async Task<string> getSystemuserName(string systemuserid)
+        {
+            return await this.getIDfromMSDTable("systemusers", "fullname", "systemuserid", systemuserid);
+        }
+        public async Task<string> getBankName(string bankid)
+        {
+            return await this.getIDfromMSDTable("eqs_bankmasters", "eqs_name", "eqs_ddecorporatecustomerid", bankid);
+        }
+
         public async Task<string> getKYCVerificationID(string DDEId, string type)
         {
             if (type== "Corp")
@@ -458,6 +483,23 @@
             catch (Exception ex)
             {
                 this._logger.LogError("getDDEFinalIndvDetail", ex.Message);
+                throw ex;
+            }
+
+        }
+        
+        public async Task<JArray> getkycverificationDetail(string kycverificationId)
+        {
+            try
+            {              
+                string query_url = $"eqs_kycverificationdetailses()?$filter=eqs_kycverificationdetailsid eq '{kycverificationId}'";
+                var KYCdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var KYC_dtails = await this.getDataFromResponce(KYCdtails);
+                return KYC_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getkycverificationDetail", ex.Message);
                 throw ex;
             }
 
@@ -583,6 +625,22 @@
                 var BOdtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
                 var BO_dtails = await this.getDataFromResponce(BOdtails);
                 return BO_dtails;
+            }
+            catch (Exception ex)
+            {
+                this._logger.LogError("getDDEFinalBODetail", ex.Message);
+                throw ex;
+            }
+        }
+        public async Task<JArray> getFATCAAddress(string FatcaID)
+        {
+            try
+            {
+                string query_url = $"eqs_leadaddresses()?$filter=_eqs_applicantfatca_value eq '{FatcaID}'";
+
+                var adddtails = await this._queryParser.HttpApiCall(query_url, HttpMethod.Get, "");
+                var add_dtails = await this.getDataFromResponce(adddtails);
+                return add_dtails;
             }
             catch (Exception ex)
             {

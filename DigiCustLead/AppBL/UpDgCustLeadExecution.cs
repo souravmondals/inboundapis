@@ -197,7 +197,7 @@
 
                 CRMDDEmappingFields1.Add("eqs_ismficustomer", Convert.ToBoolean(CustIndvData.General.IsMFICustomer.ToString()));
                 CRMDDEmappingFields.Add("eqs_deferralcode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_deferralcode", CustIndvData.General.IsDeferral.ToString()));
-                CRMDDEmappingFields.Add("eqs_isdeferral", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_isdeferral", CustIndvData.General.Deferral.ToString()));
+                CRMDDEmappingFields1.Add("eqs_isdeferral", (await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_isdeferral", CustIndvData.General.Deferral.ToString()) == "1") ? true : false);
                 CRMDDEmappingFields1.Add("eqs_ispermaddrandcurraddrsame", Convert.ToBoolean(CustIndvData.General.IsPermAddrAndCurrAddrSame.ToString()));
 
                 /*********** Prospect Details *********/
@@ -270,14 +270,37 @@
                 CRMDDEmappingFields.Add("eqs_cityofbirth", CustIndvData.FATCA.CityofBirth.ToString());
 
                 /*********** NRI Details *********/
-                CRMDDEmappingFields.Add("eqs_residencestatuscode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_residencestatuscode", CustIndvData.NRIDetails.ResidenceStatus.ToString()));
+                CRMDDEmappingFields.Add("eqs_visatypecode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_visatypecode", CustIndvData.NRIDetails.VisaType.ToString()));
+                dd = CustIndvData.NRIDetails.VisaIssuedDate.ToString().Substring(0, 2);
+                mm = CustIndvData.NRIDetails.VisaIssuedDate.ToString().Substring(3, 2);
+                yyyy = CustIndvData.NRIDetails.VisaIssuedDate.ToString().Substring(6, 4);
+                CRMDDEmappingFields.Add("eqs_visaissueddate", yyyy + "-" + mm + "-" + dd);
+                dd = CustIndvData.NRIDetails.VisaExpiryDate.ToString().Substring(0, 2);
+                mm = CustIndvData.NRIDetails.VisaExpiryDate.ToString().Substring(3, 2);
+                yyyy = CustIndvData.NRIDetails.VisaExpiryDate.ToString().Substring(6, 4);
+                CRMDDEmappingFields.Add("eqs_visaexpirydate", yyyy + "-" + mm + "-" + dd);
+                CRMDDEmappingFields.Add("eqs_taxidentificationnumber", CustIndvData.NRIDetails.TaxIdentificationNumber.ToString());
+                CRMDDEmappingFields.Add("eqs_othertaxnumber", CustIndvData.NRIDetails.OtherIdentificationNumber.ToString());
+                CRMDDEmappingFields.Add("eqs_passportissuedat", CustIndvData.NRIDetails.PassportIssuedAt.ToString());
+                CRMDDEmappingFields.Add("eqs_taxtype", CustIndvData.NRIDetails.ТахТуре.ToString());
+
+                CRMDDEmappingFields1.Add("eqs_kycmode", (await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_kycmode", CustIndvData.NRIDetails.KYCMode.ToString()) == "1") ? true : false);
                 CRMDDEmappingFields1.Add("eqs_seafarer", (await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_seafarer", CustIndvData.NRIDetails.Seafarer.ToString()) == "1") ? true : false);
-                CRMDDEmappingFields1.Add("eqs_kycmode", (await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_kycmode", CustIndvData.NRIDetails.Nrikycmode.ToString()) == "1") ? true : false);
-                CRMDDEmappingFields1.Add("eqs_mobilepreference", (await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_mobilepreference", CustIndvData.NRIDetails.Nrimobilenopre.ToString()) == "1") ? true : false);
-                CRMDDEmappingFields.Add("eqs_visatypecode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_visatypecode", CustIndvData.NRIDetails.Nrivisatype.ToString()));
+                CRMDDEmappingFields.Add("eqs_residencestatuscode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_residencestatuscode", CustIndvData.NRIDetails.ResidenceStatus.ToString()));
+                CRMDDEmappingFields.Add("eqs_visanumber", CustIndvData.NRIDetails.VISAOCICDCNumber.ToString());
+                CRMDDEmappingFields1.Add("eqs_mobilepreference", (await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_mobilepreference", CustIndvData.NRIDetails.SMSOTPMobilepreference.ToString()) == "1") ? true : false);
+
+                dd = CustIndvData.NRIDetails.PassportIssuedDate.ToString().Substring(0, 2);
+                mm = CustIndvData.NRIDetails.PassportIssuedDate.ToString().Substring(3, 2);
+                yyyy = CustIndvData.NRIDetails.PassportIssuedDate.ToString().Substring(6, 4);
+                CRMDDEmappingFields.Add("eqs_passportissuedate", yyyy + "-" + mm + "-" + dd);
+                dd = CustIndvData.NRIDetails.PassportExpiryDate.ToString().Substring(0, 2);
+                mm = CustIndvData.NRIDetails.PassportExpiryDate.ToString().Substring(3, 2);
+                yyyy = CustIndvData.NRIDetails.PassportExpiryDate.ToString().Substring(6, 4);
+                CRMDDEmappingFields.Add("eqs_passportexpirydate", yyyy + "-" + mm + "-" + dd);
 
 
-                
+
                 /*********** RM Details *********/
                 CRMDDEmappingFields.Add("eqs_servicermcode", CustIndvData.RMDetails.ServiceRMCode.ToString());
                 CRMDDEmappingFields.Add("eqs_servicermname", CustIndvData.RMDetails.ServiceRMName.ToString());

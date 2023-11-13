@@ -202,7 +202,10 @@ using CRMConnect;
         {            
             return await this.getIDfromMSDTable("eqs_customerpreferences", "eqs_customerpreferenceid", $"_eqs_leadaccountdde_value eq '{DDEID}' and eqs_preferenceid", PrederenceId);
         }
-
+        public async Task<string> getAccountId(string accountNo)
+        {
+            return await this.getIDfromMSDTable("eqs_accounts", "eqs_accountid", "eqs_accountno", accountNo);
+        }
 
         public async Task<JArray> getLeadAccountDetails(string LdApplicantId)
         {

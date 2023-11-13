@@ -13,6 +13,7 @@ namespace UpdateAccountLead
         public Task<string> getNomineeID(string ddeID);
         public Task<string> getDocTypeId(string Type_code);
         public Task<string> getRelationShipId(string RelationShipCode);
+        public Task<string> getAccountId(string accountNo);
         public Task<string> getCityId(string City_code);
         public Task<string> getCuntryId(string cuntry_code);
         public Task<string> getStateId(string state_code);

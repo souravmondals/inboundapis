@@ -582,7 +582,7 @@
             }
             catch(Exception ex)
             {
-                this._log.LogError("getOptionSetTextToValue", ex.Message,$"Table:- {tableName} Eield name:- {fieldName} option value :- {OptionText}");
+                _errorLogger.LogError("getOptionSetTextToValue", ex.Message,$"Table:- {tableName} Eield name:- {fieldName} option value :- {OptionText}");
                 return null;
             }
            
@@ -626,8 +626,8 @@
 
             }
             catch (Exception ex)
-            {               
-                this._log.LogError("getOptionSetValuToText", ex.Message, $"Table:- {tableName} Eield name:- {fieldName} option value :- {OptionValue}");
+            {
+                _errorLogger.LogError("getOptionSetValuToText", ex.Message, $"Table:- {tableName} Eield name:- {fieldName} option value :- {OptionValue}");
                 return null;
             }
 

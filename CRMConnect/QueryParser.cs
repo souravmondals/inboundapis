@@ -46,7 +46,7 @@
             this._errorLogger = loggers;
         }
 
-        public async Task<List<JObject>> HttpApiCall(string odataQuery, HttpMethod httpMethod, string parameterToPost = "")
+        public async Task<List<JObject>> HttpApiCall(string odataQuery, HttpMethod httpMethod, string parameterToPost = "", bool isFormattedValueRequired = false)
         {
             try
             {
@@ -59,11 +59,11 @@
                
                 if (!string.IsNullOrEmpty(parameterToPost))
                 {
-                    odataRequestforChild.Add(this.CreateHttpMessageContent(httpMethod, odataQuery, this._log, 1, parameterToPost));
+                    odataRequestforChild.Add(this.CreateHttpMessageContent(httpMethod, odataQuery, this._log, 1, parameterToPost, isFormattedValueRequired));
                 }
                 else
                 {
-                    odataRequestforChild.Add(this.CreateHttpMessageContent(httpMethod, odataQuery, this._log));
+                    odataRequestforChild.Add(this.CreateHttpMessageContent(httpMethod, odataQuery, this._log, isFormattedValueRequired: isFormattedValueRequired));
                 }
 
                 odataRequestforChild.ForEach(x =>
@@ -93,7 +93,8 @@
                 stringContent.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json;type=entry");
                 requestMessage.Content = stringContent;
                 requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token);
-
+                
+                _errorLogger.LogInformation("HttpCBSApiCall Request", parameterToPost, "JWD Token \n" + Token);
                 var response = await httpClient.SendAsync(requestMessage).ConfigureAwait(false);
                 responJsonText = await response.Content.ReadAsStringAsync();
                 dynamic responsej = JsonConvert.DeserializeObject(responJsonText);
@@ -101,7 +102,7 @@
                 if (responsej.req_root!=null)
                 {
                     string xmlData = await PayloadDecryption(responsej.req_root.body.payload.ToString(), "FI0060");
-                    _errorLogger.LogInformation("HttpCBSApiCall response", parameterToPost, xmlData);
+                    _errorLogger.LogInformation("HttpCBSApiCall Response", xmlData, parameterToPost);
                     string xpath = "PIDBlock/payload";
                     XmlDocument xmlDoc = new XmlDocument();
                     xmlDoc.LoadXml(xmlData);
@@ -131,7 +132,7 @@
         }
 
 
-        public HttpMessageContent CreateHttpMessageContent(HttpMethod httpMethod, string requestUri, ILogger log, int contentId = 0, string content = null, bool isUpsert = false)
+        public HttpMessageContent CreateHttpMessageContent(HttpMethod httpMethod, string requestUri, ILogger log, int contentId = 0, string content = null, bool isFormattedValueRequired = false)
         {
             try
             {
@@ -145,6 +146,8 @@
                 if (httpMethod == HttpMethod.Get)
                 {
                     requestMessage.Headers.Add("Accept", "application/json");
+                    if (isFormattedValueRequired)
+                        requestMessage.Headers.Add("Prefer", "odata.include-annotations=*");
                 }
                 else if (httpMethod == HttpMethod.Delete)
                 {
@@ -411,7 +414,7 @@
                     TokenId = responsej.access_token.ToString();
 
 
-                    this.SetMvalue<string>("wso2token", 3600, TokenId);
+                    this.SetMvalue<string>("wso2token", 40, TokenId);
                 }
                 else
                 {

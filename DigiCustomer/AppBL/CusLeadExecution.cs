@@ -206,6 +206,12 @@
 
                     }
                 }
+
+                //Set PAN Validation Mode = "System"
+                Dictionary<string, string> odatab = new Dictionary<string, string>();
+                odatab.Add("eqs_panvalidationmode", "958570001");
+                string postDataParametr = JsonConvert.SerializeObject(odatab);
+                var resp = await this._queryParser.HttpApiCall($"eqs_accountapplicants({Customerdtl[0]["eqs_accountapplicantid"].ToString()})", HttpMethod.Patch, postDataParametr);
             }            
             else
             {

@@ -223,7 +223,9 @@
                 if (!string.IsNullOrEmpty(appitem.dob))
                     odatab.Add("eqs_dob", appitem.dob);
 
-                odatab.Add("eqs_gendercode", appitem.gender);
+                if (!string.IsNullOrEmpty(appitem.gender))
+                    odatab.Add("eqs_gendercode", appitem.gender);
+
                 odatab.Add("eqs_createdfromonline", "true");
                 if (!string.IsNullOrEmpty(_accountLead.leadsource.ToString()))
                 {
@@ -380,7 +382,11 @@
                 odatab.Add("eqs_name", applicant.firstname + " " + applicant.lastname);
                 odatab.Add("eqs_emailaddress", applicant.customerEmailID);
                 odatab.Add("eqs_mobilenumber", applicant.customerPhoneNumber);
-                odatab.Add("eqs_gendercode", applicant.gender);
+                if (!string.IsNullOrEmpty(applicant.gender))
+                {
+                    odatab.Add("eqs_gendercode", applicant.gender);
+                }
+                
                 odatab.Add("eqs_dob", applicant.dob);
                 odatab.Add("eqs_pan", applicant.pan);
               

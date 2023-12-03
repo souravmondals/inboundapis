@@ -12,6 +12,7 @@
     using CRMConnect;
     using System.Xml;
     using System.Threading.Channels;
+    using Microsoft.VisualBasic;
 
     public class CrDgCustLeadExecution : ICrDgCustLeadExecution
     {
@@ -45,31 +46,36 @@
 
         public string appkey { get; set; }
 
-        public string API_Name { set
+        public string API_Name
+        {
+            set
             {
                 _logger.API_Name = value;
             }
         }
-        public string Input_payload { set {
+        public string Input_payload
+        {
+            set
+            {
                 _logger.Input_payload = value;
-            } 
+            }
         }
 
         private readonly IKeyVaultService _keyVaultService;
 
-                
+
         private ICommonFunction _commonFunc;
 
         public CrDgCustLeadExecution(ILoggers logger, IQueryParser queryParser, IKeyVaultService keyVaultService, ICommonFunction commonFunction)
         {
-                    
+
             this._logger = logger;
-            
+
             this._keyVaultService = keyVaultService;
             this._queryParser = queryParser;
             this._commonFunc = commonFunction;
-           
-           
+
+
         }
 
 
@@ -79,35 +85,57 @@
             RequestData = await this.getRequestData(RequestData);
             try
             {
-               
+
                 if (!string.IsNullOrEmpty(this.appkey) && this.appkey != "" && checkappkey(this.appkey, "CreateDigiCustLeadappkey"))
                 {
                     if (!string.IsNullOrEmpty(this.Transaction_ID) && !string.IsNullOrEmpty(this.Channel_ID))
                     {
                         int ValidationError = 0;
-                        string errorText = "";
+                        List<string> errorText = new List<string>();
+
+                        if (RequestData.ProductCode == null || string.IsNullOrEmpty(RequestData.ProductCode.ToString()) || RequestData.ProductCode.ToString() == "")
+                        {
+                            ValidationError = 1;
+                            errorText.Add("ProductCode");
+                        }
+                        if (RequestData.BranchCode == null || string.IsNullOrEmpty(RequestData.BranchCode.ToString()) || RequestData.BranchCode.ToString() == "")
+                        {
+                            ValidationError = 1;
+                            errorText.Add("BranchCode");
+                        }
+
                         if (string.Equals(RequestData.EntityType.ToString(), "Individual"))
                         {
                             var IndvData = RequestData.IndividualEntry;
                             if (IndvData.Title == null || string.IsNullOrEmpty(IndvData.Title.ToString()) || IndvData.Title.ToString() == "")
                             {
                                 ValidationError = 1;
-                                errorText = "Title";
+                                errorText.Add("Title");
                             }
                             if (IndvData.FirstName == null || string.IsNullOrEmpty(IndvData.FirstName.ToString()) || IndvData.FirstName.ToString() == "")
                             {
                                 ValidationError = 1;
-                                errorText = "FirstName";
+                                errorText.Add("FirstName");
                             }
                             if (IndvData.LastName == null || string.IsNullOrEmpty(IndvData.LastName.ToString()) || IndvData.LastName.ToString() == "")
                             {
                                 ValidationError = 1;
-                                errorText = "LastName";
+                                errorText.Add("LastName");
+                            }
+                            if (IndvData.MobilePhone == null || string.IsNullOrEmpty(IndvData.MobilePhone.ToString()) || IndvData.MobilePhone.ToString() == "")
+                            {
+                                ValidationError = 1;
+                                errorText.Add("MobilePhone");
+                            }
+                            if (IndvData.Dob == null || string.IsNullOrEmpty(IndvData.Dob.ToString()) || IndvData.Dob.ToString() == "")
+                            {
+                                ValidationError = 1;
+                                errorText.Add("Dob");
                             }
                             if (IndvData.PANForm60 == null || string.IsNullOrEmpty(IndvData.PANForm60.ToString()) || IndvData.PANForm60.ToString() == "")
                             {
                                 ValidationError = 1;
-                                errorText = "PANForm60";
+                                errorText.Add("PANForm60");
                             }
                             else
                             {
@@ -116,17 +144,14 @@
                                     if (IndvData.PAN == null || string.IsNullOrEmpty(IndvData.PAN.ToString()) || IndvData.PAN.ToString() == "")
                                     {
                                         ValidationError = 1;
-                                        errorText = "PAN";
+                                        errorText.Add("PAN");
                                     }
                                 }
 
                             }
+
                             
-                            if (RequestData.ProductCode == null || string.IsNullOrEmpty(RequestData.ProductCode.ToString()) || RequestData.ProductCode.ToString() == "")
-                            {
-                                ValidationError = 1;
-                                errorText = "ProductCode";
-                            }
+                           
                         }
                         else if (string.Equals(RequestData.EntityType.ToString(), "Corporate"))
                         {
@@ -134,18 +159,24 @@
                             if (CorpData.CompanyName == null || string.IsNullOrEmpty(CorpData.CompanyName.ToString()) || CorpData.CompanyName.ToString() == "")
                             {
                                 ValidationError = 1;
-                                errorText = "CompanyName";
+                                errorText.Add("CompanyName");
                             }
-                            if (CorpData.PAN == null || string.IsNullOrEmpty(CorpData.PAN.ToString()) || CorpData.PAN.ToString() == "")
+                            if (CorpData.PocNumber == null || string.IsNullOrEmpty(CorpData.PocNumber.ToString()) || CorpData.PocNumber.ToString() == "")
                             {
                                 ValidationError = 1;
-                                errorText = "PAN";
+                                errorText.Add("PocNumber");
                             }
-                            if (RequestData.ProductCode == null || string.IsNullOrEmpty(RequestData.ProductCode.ToString()) || RequestData.ProductCode.ToString() == "")
+                            if (CorpData.PocName == null || string.IsNullOrEmpty(CorpData.PocName.ToString()) || CorpData.PocName.ToString() == "")
                             {
                                 ValidationError = 1;
-                                errorText = "ProductCode";
+                                errorText.Add("PocName");
                             }
+                            if (CorpData.DateOfIncorporation == null || string.IsNullOrEmpty(CorpData.DateOfIncorporation.ToString()) || CorpData.DateOfIncorporation.ToString() == "")
+                            {
+                                ValidationError = 1;
+                                errorText.Add("DateOfIncorporation");
+                            }
+                            
                         }
                         else
                         {
@@ -155,16 +186,17 @@
                             return ldRtPrm;
                         }
 
-                        
+
                         if (ValidationError == 1)
                         {
-                            this._logger.LogInformation("ValidateCustLeadDetls", $"{errorText} field can not be null.");
+                            string errfield = string.Join(",", errorText);
+                            this._logger.LogInformation("ValidateCustLeadDetls", $"{errfield} field can not be null.");
                             ldRtPrm.ReturnCode = "CRM-ERROR-102";
-                            ldRtPrm.Message = $"{errorText} field can not be null.";
+                            ldRtPrm.Message = $"{errfield} field can not be null.";
                         }
                         else
                         {
-                            
+
                             ldRtPrm = (string.Equals(RequestData.EntityType.ToString(), "Corporate")) ? await this.createDigiCustLeadCorp(RequestData) : await this.createDigiCustLeadIndv(RequestData);
                         }
 
@@ -190,7 +222,7 @@
                 this._logger.LogError("ValidateCustLeadDetls", ex.Message);
                 throw ex;
             }
-            
+
         }
 
 
@@ -206,11 +238,11 @@
             }
         }
 
-        
+
 
         public async Task<CreateCustLeadReturn> createDigiCustLeadIndv(dynamic CustLeadData)
         {
-            string Applicent_ID = "", Lead_Id = ""; 
+            string Applicent_ID = "", Lead_Id = "", Pan_Number = "";
             CreateCustLeadReturn csRtPrm = new CreateCustLeadReturn();
             CustLeadElement custLeadElement = new CustLeadElement();
             Dictionary<string, string> CRMLeadmappingFields = new Dictionary<string, string>();
@@ -218,11 +250,12 @@
             try
             {
                 var productDetails = await this._commonFunc.getProductId(CustLeadData.ProductCode.ToString());
-                if (!string.IsNullOrEmpty( CustLeadData.IndividualEntry.ApplicantId.ToString()))
+                if (!string.IsNullOrEmpty(CustLeadData.IndividualEntry.ApplicantId.ToString()))
                 {
                     var applicentDtl = await this._commonFunc.getApplicentData(CustLeadData.IndividualEntry.ApplicantId.ToString());
                     Applicent_ID = applicentDtl[0]["eqs_accountapplicantid"].ToString();
                     Lead_Id = applicentDtl[0]["eqs_leadid"]["leadid"].ToString();
+                    Pan_Number = applicentDtl[0]["eqs_internalpan"].ToString();
                 }
                 string ProductId = productDetails["ProductId"];
                 string Businesscategoryid = productDetails["businesscategoryid"];
@@ -247,7 +280,7 @@
 
                     if (!string.IsNullOrEmpty(CustLeadData?.IndividualEntry?.PAN?.ToString()) && !string.IsNullOrEmpty(CustLeadData?.IndividualEntry?.PANForm60?.ToString()))
                     {
-                        if(CustLeadData.IndividualEntry.PANForm60.ToString() == "PAN Card")
+                        if (CustLeadData?.IndividualEntry?.PANForm60?.ToString() == "PAN Card")
                         {
                             CRMLeadmappingFields.Add("eqs_pan", "**********");
                         }
@@ -258,24 +291,40 @@
                     CRMLeadmappingFields.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({Businesscategoryid})");
                     CRMLeadmappingFields.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({EntityID})");
                     CRMLeadmappingFields.Add("eqs_subentitytypeid@odata.bind", $"eqs_subentitytypes({SubEntityID})");
-                    CRMLeadmappingFields.Add("eqs_aadhaarreference", CustLeadData.IndividualEntry.AadharReference.ToString());
+
+                    if (!string.IsNullOrEmpty(CustLeadData.IndividualEntry.AadharReference.ToString()))
+                    {
+                        CRMLeadmappingFields.Add("eqs_aadhaarreference", CustLeadData.IndividualEntry.AadharReference.ToString());
+                    }                    
 
                     CRMLeadmappingFields.Add("eqs_createdfrompartnerchannel", "true");
 
-                    if (CustLeadData.IndividualEntry.Pincode != null && CustLeadData.IndividualEntry.Pincode.ToString() != "")
+                    if (!string.IsNullOrEmpty(CustLeadData.IndividualEntry.Pincode.ToString()))
+                    {
                         custLeadElement.eqs_pincode = CustLeadData.IndividualEntry.Pincode;
+                    }
+                        
 
-                    if (CustLeadData.IndividualEntry.Voterid != null && CustLeadData.IndividualEntry.Voterid.ToString() != "")
+                    if (!string.IsNullOrEmpty(CustLeadData.IndividualEntry.Voterid.ToString()))
+                    {
                         custLeadElement.eqs_voterid = CustLeadData.IndividualEntry.Voterid;
+                    }                        
 
-                    if (CustLeadData.IndividualEntry.Drivinglicense != null && CustLeadData.IndividualEntry.Drivinglicense.ToString() != "")
+                    if (!string.IsNullOrEmpty(CustLeadData.IndividualEntry.Drivinglicense.ToString()))
+                    {
                         custLeadElement.eqs_dlnumber = CustLeadData.IndividualEntry.Drivinglicense;
-
-                    if (CustLeadData.IndividualEntry.Passport != null && CustLeadData.IndividualEntry.Passport.ToString() != "")
+                    }
+                        
+                    if (!string.IsNullOrEmpty(CustLeadData.IndividualEntry.Passport.ToString()))
+                    {
                         custLeadElement.eqs_passportnumber = CustLeadData.IndividualEntry.Passport;
+                    }                       
 
-                    if (CustLeadData.IndividualEntry.CKYCNumber != null && CustLeadData.IndividualEntry.CKYCNumber.ToString() != "")
+                    if (!string.IsNullOrEmpty(CustLeadData.IndividualEntry.CKYCNumber.ToString()))
+                    {
                         custLeadElement.eqs_ckycnumber = CustLeadData.IndividualEntry.CKYCNumber;
+                    }
+                       
 
                     string BranchId = await this._commonFunc.getBranchId(CustLeadData.BranchCode.ToString());
                     if (BranchId != null && BranchId != "")
@@ -289,7 +338,7 @@
 
                     postDataParametr = await this._commonFunc.MeargeJsonString(postDataParametr, postDataParametr1);
                     List<JObject> Lead_details;
-                    if (Lead_Id=="")
+                    if (Lead_Id == "")
                     {
                         Lead_details = await this._queryParser.HttpApiCall("leads?$select=eqs_crmleadid", HttpMethod.Post, postDataParametr);
                     }
@@ -297,32 +346,72 @@
                     {
                         Lead_details = await this._queryParser.HttpApiCall($"leads({Lead_Id})?$select=eqs_crmleadid", HttpMethod.Patch, postDataParametr);
                     }
-                    
-
-                    string purpose = await this._commonFunc.getPurposeID(CustLeadData.IndividualEntry.PurposeOfCreation.ToString());
+                                        
 
                     CRMCustomermappingFields.Add("eqs_titleid@odata.bind", $"eqs_titles({TitleId})");
-                    CRMCustomermappingFields.Add("eqs_firstname", custLeadElement.firstname);
-                    CRMCustomermappingFields.Add("eqs_middlename", custLeadElement.middlename);
+                    CRMCustomermappingFields.Add("eqs_firstname", custLeadElement.firstname);                   
                     CRMCustomermappingFields.Add("eqs_lastname", custLeadElement.lastname);
                     CRMCustomermappingFields.Add("eqs_name", custLeadElement.firstname + " " + custLeadElement.middlename + " " + custLeadElement.lastname);
                     CRMCustomermappingFields.Add("eqs_mobilenumber", custLeadElement.mobilephone);
                     CRMCustomermappingFields.Add("eqs_dob", custLeadElement.eqs_dob);
-                    CRMCustomermappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("eqs_accountapplicant", "eqs_panform60code", CustLeadData.IndividualEntry.PANForm60.ToString()));
-                  //  CRMCustomermappingFields.Add("eqs_pan", "**********");
-                    CRMCustomermappingFields.Add("eqs_internalpan", custLeadElement.eqs_internalpan);
-                    CRMCustomermappingFields.Add("eqs_passportnumber", custLeadElement.eqs_passportnumber);
-                    CRMCustomermappingFields.Add("eqs_voterid", custLeadElement.eqs_voterid);
-                    CRMCustomermappingFields.Add("eqs_dlnumber", custLeadElement.eqs_dlnumber);
-                    CRMCustomermappingFields.Add("eqs_ckycnumber", custLeadElement.eqs_ckycnumber);
+                    
+                    if (!string.IsNullOrEmpty(custLeadElement?.eqs_internalpan?.ToString()) && !string.IsNullOrEmpty(CustLeadData.IndividualEntry?.PANForm60?.ToString()))
+                    {
+                        CRMCustomermappingFields.Add("eqs_panform60code", await this._queryParser.getOptionSetTextToValue("eqs_accountapplicant", "eqs_panform60code", CustLeadData.IndividualEntry.PANForm60.ToString()));
+                        CRMCustomermappingFields.Add("eqs_internalpan", custLeadElement.eqs_internalpan);
+
+                        if (CustLeadData.IndividualEntry?.PANForm60?.ToString() == "PAN Card")
+                        {
+                            CRMCustomermappingFields.Add("eqs_pan", "**********");
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(Applicent_ID?.ToString()))
+                    {
+                        if (custLeadElement?.eqs_internalpan?.ToString() != Pan_Number)
+                        {
+                            CRMCustomermappingFields.Add("eqs_panvalidationmode", "958570001");
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(custLeadElement.middlename))
+                    {
+                        CRMCustomermappingFields.Add("eqs_middlename", custLeadElement.middlename);
+                    }
+                    if (!string.IsNullOrEmpty(custLeadElement.eqs_passportnumber))
+                    {
+                        CRMCustomermappingFields.Add("eqs_passportnumber", custLeadElement.eqs_passportnumber);
+                    }
+                    if (!string.IsNullOrEmpty(custLeadElement.eqs_voterid))
+                    {
+                        CRMCustomermappingFields.Add("eqs_voterid", custLeadElement.eqs_voterid);
+                    }
+                    if (!string.IsNullOrEmpty(custLeadElement.eqs_dlnumber))
+                    {
+                        CRMCustomermappingFields.Add("eqs_dlnumber", custLeadElement.eqs_dlnumber);
+                    }
+                    if (!string.IsNullOrEmpty(custLeadElement.eqs_ckycnumber))
+                    {
+                        CRMCustomermappingFields.Add("eqs_ckycnumber", custLeadElement.eqs_ckycnumber);
+                    }
+                    if (!string.IsNullOrEmpty(CustLeadData.IndividualEntry.AadharReference.ToString()))
+                    {
+                        CRMCustomermappingFields.Add("eqs_aadhaarreference", CustLeadData.IndividualEntry.AadharReference.ToString());
+                    }
+                    
+
                     CRMCustomermappingFields.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({EntityID})");
                     CRMCustomermappingFields.Add("eqs_subentity@odata.bind", $"eqs_subentitytypes({SubEntityID})");
-                    CRMCustomermappingFields.Add("eqs_aadhaarreference", CustLeadData.IndividualEntry.AadharReference.ToString());
-                    if (!string.IsNullOrEmpty(purpose) && purpose!="")
+
+                    string purpose = "";
+                    if (!string.IsNullOrEmpty(CustLeadData.IndividualEntry.PurposeOfCreation.ToString()))
+                    {
+                        purpose = await this._commonFunc.getPurposeID(CustLeadData.IndividualEntry.PurposeOfCreation.ToString());
+                    }
+                    
+                    if (!string.IsNullOrEmpty(purpose))
                     {
                         CRMCustomermappingFields.Add("eqs_purposeofcreationid@odata.bind", $"eqs_purposeofcreations({purpose})");
                     }
-                   
+
 
                     if (Lead_details.Count > 0)
                     {
@@ -342,8 +431,8 @@
                             {
                                 Customer_details = await this._queryParser.HttpApiCall($"eqs_accountapplicants({Applicent_ID})?$select=eqs_applicantid", HttpMethod.Patch, postDataParametr);
                             }
-                            
-                            
+
+
                             if (Customer_details.Count > 0)
                             {
                                 respons_code = Customer_details[0];
@@ -362,7 +451,7 @@
                                 }
                             }
                         }
-                           
+
                     }
                     else
                     {
@@ -379,28 +468,35 @@
                     csRtPrm.Message = OutputMSG.Incorrect_Input;
                 }
 
-                
+
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 this._logger.LogError("createDigiCustLeadIndv", ex.Message);
                 csRtPrm.ReturnCode = "CRM-ERROR-102";
                 csRtPrm.Message = OutputMSG.Incorrect_Input;
             }
-            
-            
+
+
 
             return csRtPrm;
         }
 
         public async Task<CreateCustLeadReturn> createDigiCustLeadCorp(dynamic CustLeadData)
         {
+            string Applicent_ID = "", Pan_Number = "";
             CreateCustLeadReturn csRtPrm = new CreateCustLeadReturn();
             CustLeadElementCorp custLeadElement = new CustLeadElementCorp();
             Dictionary<string, string> CRMLeadmappingFields = new Dictionary<string, string>();
             Dictionary<string, string> CRMCustomermappingFields = new Dictionary<string, string>();
-            try 
+            try
             {
+                if (!string.IsNullOrEmpty(CustLeadData.CorporateEntry?.ApplicantId?.ToString()))
+                {
+                    var applicentDtl = await this._commonFunc.getApplicentData(CustLeadData.CorporateEntry?.ApplicantId?.ToString());
+                    Applicent_ID = applicentDtl[0]["eqs_accountapplicantid"].ToString();
+                    Pan_Number = applicentDtl[0]["eqs_internalpan"].ToString();
+                }
                 var productDetails = await this._commonFunc.getProductId(CustLeadData.ProductCode.ToString());
                 string ProductId = productDetails["ProductId"];
                 string Businesscategoryid = productDetails["businesscategoryid"];
@@ -418,22 +514,41 @@
                     custLeadElement.eqs_contactmobile = CustLeadData.CorporateEntry.PocNumber;
                     custLeadElement.eqs_contactperson = CustLeadData.CorporateEntry.PocName;
 
-                    custLeadElement.eqs_cinnumber = CustLeadData.CorporateEntry.CinNumber;
-                    custLeadElement.eqs_tannumber = CustLeadData.CorporateEntry.TanNumber;
-                    custLeadElement.eqs_gstnumber = CustLeadData.CorporateEntry.GstNumber;
-                    custLeadElement.eqs_cstvatnumber = CustLeadData.CorporateEntry.CstNumber;
-                    custLeadElement.eqs_internalpan = CustLeadData.CorporateEntry.PAN;
+                    
+                    if (!string.IsNullOrEmpty(CustLeadData.CorporateEntry.CinNumber))
+                    {
+                        custLeadElement.eqs_cinnumber = CustLeadData.CorporateEntry.CinNumber;
+                    }
+                    if (!string.IsNullOrEmpty(CustLeadData.CorporateEntry.TanNumber))
+                    {
+                        custLeadElement.eqs_tannumber = CustLeadData.CorporateEntry.TanNumber;
+                    }
+                    if (!string.IsNullOrEmpty(CustLeadData.CorporateEntry.GstNumber))
+                    {
+                        custLeadElement.eqs_gstnumber = CustLeadData.CorporateEntry.GstNumber;
+                    }
+                    if (!string.IsNullOrEmpty(CustLeadData.CorporateEntry.CstNumber))
+                    {
+                        custLeadElement.eqs_cstvatnumber = CustLeadData.CorporateEntry.CstNumber;
+                    }
+                    if (!string.IsNullOrEmpty(CustLeadData.CorporateEntry.PAN))
+                    {
+                        custLeadElement.eqs_internalpan = CustLeadData.CorporateEntry.PAN;
+                    }
+                   
+                    
 
                     CRMLeadmappingFields.Add("firstname", CustLeadData.CorporateEntry.CompanyName.ToString());
                     CRMLeadmappingFields.Add("lastname", CustLeadData.CorporateEntry.CompanyName2.ToString());
-                   // CRMLeadmappingFields.Add("yomifullname", CustLeadData.eqs_companynamepart1 + " " + CustLeadData.eqs_companynamepart2);
+                    // CRMLeadmappingFields.Add("yomifullname", CustLeadData.eqs_companynamepart1 + " " + CustLeadData.eqs_companynamepart2);
                     CRMLeadmappingFields.Add("eqs_panform60code", "615290000");
 
-                    if (!string.IsNullOrEmpty(CustLeadData?.CorporateEntry?.PAN?.ToString())) {
+                    if (!string.IsNullOrEmpty(CustLeadData?.CorporateEntry?.PAN?.ToString()))
+                    {
 
                         CRMLeadmappingFields.Add("eqs_pan", "**********");
                     }
-                    
+
                     CRMLeadmappingFields.Add("eqs_productid@odata.bind", $"eqs_products({ProductId})");
                     CRMLeadmappingFields.Add("eqs_productcategoryid@odata.bind", $"eqs_productcategories({Productcategoryid})");
                     CRMLeadmappingFields.Add("eqs_businesscategoryid@odata.bind", $"eqs_businesscategories({Businesscategoryid})");
@@ -458,27 +573,54 @@
 
                     CRMCustomermappingFields.Add("eqs_entitytypeid@odata.bind", $"eqs_entitytypes({EntityID})");
                     CRMCustomermappingFields.Add("eqs_subentity@odata.bind", $"eqs_subentitytypes({SubEntityID})");
-                    CRMCustomermappingFields.Add("eqs_companynamepart1", CustLeadData.CorporateEntry.CompanyName.ToString());                    
-                    CRMCustomermappingFields.Add("eqs_companynamepart2", CustLeadData.CorporateEntry.CompanyName2.ToString());                    
+                    CRMCustomermappingFields.Add("eqs_companynamepart1", CustLeadData.CorporateEntry.CompanyName.ToString());
+                    CRMCustomermappingFields.Add("eqs_companynamepart2", CustLeadData.CorporateEntry.CompanyName2.ToString());
                     CRMCustomermappingFields.Add("eqs_companynamepart3", CustLeadData.CorporateEntry.CompanyName3.ToString());
                     CRMCustomermappingFields.Add("eqs_contactperson", CustLeadData.CorporateEntry.PocName.ToString());
                     CRMCustomermappingFields.Add("eqs_contactmobilenumber", CustLeadData.CorporateEntry.PocNumber.ToString());
-
-                    CRMCustomermappingFields.Add("eqs_cinnumber", CustLeadData.CorporateEntry.CinNumber.ToString());
-                    CRMCustomermappingFields.Add("eqs_tannumber", CustLeadData.CorporateEntry.TanNumber.ToString());
-                    CRMCustomermappingFields.Add("eqs_gstnumber", CustLeadData.CorporateEntry.GstNumber.ToString());
-                    CRMCustomermappingFields.Add("eqs_cstvatnumber", CustLeadData.CorporateEntry.CstNumber.ToString());
-
                     CRMCustomermappingFields.Add("eqs_dateofincorporation", CustLeadData.CorporateEntry.DateOfIncorporation.ToString());
+
+                    if (!string.IsNullOrEmpty(CustLeadData.CorporateEntry.CinNumber.ToString()))
+                    {
+                        CRMCustomermappingFields.Add("eqs_cinnumber", CustLeadData.CorporateEntry.CinNumber.ToString());
+                    }
+                    if (!string.IsNullOrEmpty(CustLeadData.CorporateEntry.TanNumber.ToString()))
+                    {
+                        CRMCustomermappingFields.Add("eqs_tannumber", CustLeadData.CorporateEntry.TanNumber.ToString());
+                    }
+                    if (!string.IsNullOrEmpty(CustLeadData.CorporateEntry.GstNumber.ToString()))
+                    {
+                        CRMCustomermappingFields.Add("eqs_gstnumber", CustLeadData.CorporateEntry.GstNumber.ToString());
+                    }
+                    if (!string.IsNullOrEmpty(CustLeadData.CorporateEntry.CstNumber.ToString()))
+                    {
+                        CRMCustomermappingFields.Add("eqs_cstvatnumber", CustLeadData.CorporateEntry.CstNumber.ToString());
+                    }
+                  
+
+                  
                     CRMCustomermappingFields.Add("eqs_panform60code", "615290000");
-                  //  CRMCustomermappingFields.Add("eqs_pan", "**********");
+                    //  CRMCustomermappingFields.Add("eqs_pan", "**********");
+
+                    if (!string.IsNullOrEmpty(Applicent_ID?.ToString()))
+                    {
+                        if (custLeadElement?.eqs_internalpan?.ToString() != Pan_Number)
+                        {
+                            CRMCustomermappingFields.Add("eqs_panvalidationmode", "958570001");
+                        }
+                    }
                     CRMCustomermappingFields.Add("eqs_internalpan", custLeadElement.eqs_internalpan);
+
+                    if (!string.IsNullOrEmpty(custLeadElement?.eqs_internalpan?.ToString()))
+                    {
+                        CRMCustomermappingFields.Add("eqs_pan", "**********");
+                    }
 
                     if (!string.IsNullOrEmpty(purpose) && purpose != "")
                     {
                         CRMCustomermappingFields.Add("eqs_purposeofcreationid@odata.bind", $"eqs_purposeofcreations({purpose})");
                     }
-                        
+
 
                     if (Lead_details.Count > 0)
                     {
@@ -513,7 +655,7 @@
                     }
                     else
                     {
-                        this._logger.LogInformation("createDigiCustLeadCorp", "Input parameters are incorrect");                        
+                        this._logger.LogInformation("createDigiCustLeadCorp", "Input parameters are incorrect");
                         csRtPrm.ReturnCode = "CRM-ERROR-102";
                         csRtPrm.Message = OutputMSG.Incorrect_Input;
                     }
@@ -526,7 +668,7 @@
                 }
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 this._logger.LogError("createDigiCustLeadCorp", ex.Message);
                 csRtPrm.ReturnCode = "CRM-ERROR-102";
@@ -545,7 +687,7 @@
 
         private async Task<dynamic> getRequestData(dynamic inputData)
         {
-            
+
             dynamic rejusetJson;
             try
             {

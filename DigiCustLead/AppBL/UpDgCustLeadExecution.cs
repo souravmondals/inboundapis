@@ -295,8 +295,11 @@
                     {
                         CRMDDEmappingFields1.Add("eqs_ispermaddrandcurraddrsame", Convert.ToBoolean(CustIndvData.General?.IsPermAddrAndCurrAddrSame?.ToString()));
                     }
-                   
-                    
+                    if (!string.IsNullOrEmpty(CustIndvData.General?.InstaKitCustomerID?.ToString()))
+                    {
+                        CRMDDEmappingFields.Add("eqs_instakitcustomerid", CustIndvData.General?.InstaKitCustomerID?.ToString());
+                    }
+
                 }
 
                 /*********** Prospect Details *********/
@@ -384,7 +387,7 @@
                     }
                     if (!string.IsNullOrEmpty(CustIndvData.ProspectDetails?.PolitcallyExposedPerson.ToString()))
                     {
-                        CRMDDEmappingFields1.Add("eqs_ispep", Convert.ToBoolean(CustIndvData.ProspectDetails?.PolitcallyExposedPerson.ToString()));
+                        CRMDDEmappingFields.Add("eqs_politicallyexposedpersoncode", await this._queryParser.getOptionSetTextToValue("eqs_ddeindividualcustomer", "eqs_politicallyexposedpersoncode", CustIndvData.ProspectDetails?.PolitcallyExposedPerson.ToString()));
                     }
                     if (!string.IsNullOrEmpty(CustIndvData.ProspectDetails?.LOBCode.ToString()))
                     {
@@ -542,6 +545,11 @@
                 {
                     if (!string.IsNullOrEmpty(CustIndvData.RMDetails?.ServiceRMCode?.ToString()))
                     {
+                        var smEmployeeId = await this._commonFunc.getRMId(CustIndvData.RMDetails?.ServiceRMCode?.ToString());
+                        if (!string.IsNullOrEmpty(smEmployeeId))
+                        {
+                            CRMDDEmappingFields.Add("eqs_servicermemployeeid@odata.bind", $"eqs_rmemployees({smEmployeeId})");
+                        }
                         CRMDDEmappingFields.Add("eqs_servicermcode", CustIndvData.RMDetails?.ServiceRMCode?.ToString());
                     }
                     if (!string.IsNullOrEmpty(CustIndvData.RMDetails?.ServiceRMName?.ToString()))
@@ -554,6 +562,11 @@
                     }
                     if (!string.IsNullOrEmpty(CustIndvData.RMDetails?.BusinessRMCode?.ToString()))
                     {
+                        var bmEmployeeId = await this._commonFunc.getRMId(CustIndvData.RMDetails?.BusinessRMCode?.ToString());
+                        if (!string.IsNullOrEmpty(bmEmployeeId))
+                        {
+                            CRMDDEmappingFields.Add("eqs_businessrmemployeeid@odata.bind", $"eqs_rmemployees({bmEmployeeId})");
+                        }
                         CRMDDEmappingFields.Add("eqs_businessrmcode", CustIndvData.RMDetails?.BusinessRMCode?.ToString());
                     }
                     if (!string.IsNullOrEmpty(CustIndvData.RMDetails?.BusinessRMName?.ToString()))
@@ -564,7 +577,6 @@
                     {
                         CRMDDEmappingFields.Add("eqs_businessrmrole", CustIndvData.RMDetails?.BusinessRMRole?.ToString());
                     }
-                                        
                 }
 
                 

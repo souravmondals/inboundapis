@@ -224,10 +224,11 @@
 
                     if (!string.IsNullOrEmpty(Applicant_Data["eqs_dob"]?.ToString()))
                     {
-                        dd = Applicant_Data["eqs_dob"]?.ToString()?.Substring(0, 2);
-                        mm = Applicant_Data["eqs_dob"]?.ToString()?.Substring(3, 2);
-                        yyyy = Applicant_Data["eqs_dob"]?.ToString()?.Substring(6, 4);
-                        CRMDDEmappingFields.Add("eqs_dob", yyyy + "-" + mm + "-" + dd);
+                        DateTime dt = ((DateTime)((JObject)Applicant_Data)["eqs_dob"]);
+                        //dd = Applicant_Data["eqs_dob"]?.ToString()?.Substring(8, 2);
+                        //mm = Applicant_Data["eqs_dob"]?.ToString()?.Substring(5, 2);
+                        //yyyy = Applicant_Data["eqs_dob"]?.ToString()?.Substring(0, 4);
+                        CRMDDEmappingFields.Add("eqs_dob", dt.ToString("yyyy-MM-dd"));
                     }
 
                     if (!string.IsNullOrEmpty(Applicant_Data["eqs_leadage"]?.ToString()) && Applicant_Data["eqs_leadage"]?.ToString() != "")
@@ -281,7 +282,7 @@
                             fields.Add("CountryId");
                         }
                     }
-                    
+
                 }
                 if (CustIndvData.FATCA != null)
                 {
@@ -302,7 +303,7 @@
                     }
                     if (CustIndvData.FATCA?.Address != null)
                     {
-                        
+
                         if (string.IsNullOrEmpty(CustIndvData.FATCA?.Address?.AddressLine1?.ToString()))
                         {
                             haserror = 1;
@@ -1159,17 +1160,23 @@
                     if (!string.IsNullOrEmpty(Applicant_Data["_eqs_titleid_value"]?.ToString()))
                     {
                         CRMDDEmappingFields.Add("eqs_titleId@odata.bind", $"eqs_titles({Applicant_Data["_eqs_titleid_value"]?.ToString()})");
-                    }                    
+                    }
                     CRMDDEmappingFields.Add("eqs_companyname1", Applicant_Data["eqs_companynamepart1"]?.ToString());
                     CRMDDEmappingFields.Add("eqs_companyname2", Applicant_Data["eqs_companynamepart2"]?.ToString());
                     CRMDDEmappingFields.Add("eqs_companyname3", Applicant_Data["eqs_companynamepart3"]?.ToString());
                     string shname = Applicant_Data["eqs_companynamepart1"]?.ToString() + " " + Applicant_Data["eqs_companynamepart2"]?.ToString() + " " + Applicant_Data["eqs_companynamepart3"]?.ToString();
                     CRMDDEmappingFields.Add("eqs_shortname", (shname.Length > 20) ? shname.Substring(0, 20) : shname);
 
-                    dd = Applicant_Data["eqs_dateofincorporation"]?.ToString()?.Substring(0, 2);
-                    mm = Applicant_Data["eqs_dateofincorporation"]?.ToString()?.Substring(3, 2);
-                    yyyy = Applicant_Data["eqs_dateofincorporation"]?.ToString()?.Substring(6, 4);
-                    CRMDDEmappingFields.Add("eqs_dateofincorporation", yyyy + "-" + mm + "-" + dd);
+
+                    if (!string.IsNullOrEmpty(Applicant_Data["eqs_dateofincorporation"]?.ToString()))
+                    {
+                        DateTime dt = ((DateTime)((JObject)Applicant_Data)["eqs_dateofincorporation"]);
+                        //dd = Applicant_Data["eqs_dateofincorporation"]?.ToString()?.Substring(0, 2);
+                        //mm = Applicant_Data["eqs_dateofincorporation"]?.ToString()?.Substring(3, 2);
+                        //yyyy = Applicant_Data["eqs_dateofincorporation"]?.ToString()?.Substring(6, 4);
+                        CRMDDEmappingFields.Add("eqs_dateofincorporation", dt.ToString("yyyy-MM-dd"));
+                    }
+
                     CRMDDEmappingFields.Add("eqs_accountapplicantid@odata.bind", $"eqs_accountapplicants({Applicant_Data["eqs_accountapplicantid"]?.ToString()})");
 
                 }
@@ -1231,7 +1238,7 @@
                     }
                     if (CustCorpData.FATCA?.Address != null)
                     {
-                        
+
                         if (string.IsNullOrEmpty(CustCorpData.FATCA?.Address?.AddressLine1?.ToString()))
                         {
                             haserror = 1;
@@ -1537,12 +1544,6 @@
                 {
                     var response = await this._queryParser.HttpApiCall($"eqs_ddecorporatecustomers({this.DDEId})?", HttpMethod.Patch, postDataParametr);
                 }
-                if (!string.IsNullOrEmpty(this.DDEId))
-                {
-                    CRMDDEupdateTriggerFields.Add("eqs_triggervalidation", true);
-                    postDataParametr = JsonConvert.SerializeObject(CRMDDEupdateTriggerFields);
-                    var response = await this._queryParser.HttpApiCall($"eqs_ddecorporatecustomers({this.DDEId})?", HttpMethod.Patch, postDataParametr);
-                }
 
                 /*********** KYCVerification *********/
                 if (CustCorpData.KYCVerification != null)
@@ -1803,11 +1804,11 @@
                             var countryCodeId = await this._commonFunc.getContactData(CustCorpData.FATCA?.CustomerUCIC?.ToString());
 
                             CRMDDEmappingFields.Add("eqs_customerucic", CustCorpData.FATCA?.CustomerUCIC?.ToString());
-                            if(countryCodeId.Count > 0)
+                            if (countryCodeId.Count > 0)
                             {
                                 CRMDDEmappingFields.Add("eqs_customerlookup@odata.bind", $"contacts({countryCodeId[0]["contactid"]?.ToString()})");
                                 CRMDDEmappingFields.Add("eqs_customername", countryCodeId[0]["fullname"]?.ToString());
-                            }                            
+                            }
                         }
 
 
@@ -2121,7 +2122,12 @@
                 csRtPrm.BOID = BO_Id;
                 csRtPrm.CPID = CP_Id;
 
-                
+                if (!string.IsNullOrEmpty(this.DDEId))
+                {
+                    CRMDDEupdateTriggerFields.Add("eqs_triggervalidation", true);
+                    postDataParametr = JsonConvert.SerializeObject(CRMDDEupdateTriggerFields);
+                    var response = await this._queryParser.HttpApiCall($"eqs_ddecorporatecustomers({this.DDEId})?", HttpMethod.Patch, postDataParametr);
+                }
 
                 csRtPrm.Message = OutputMSG.Case_Success;
                 csRtPrm.ReturnCode = "CRM-SUCCESS";

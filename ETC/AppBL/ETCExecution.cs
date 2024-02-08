@@ -245,7 +245,12 @@
                 }
                 if (!string.IsNullOrEmpty(RequestData.DOB.ToString()))
                 {
-                    odatab.Add("birthdate", RequestData.DOB?.ToString());
+                    string dd, mm, yy;
+                    dd = RequestData.DOB.ToString().Substring(0, 2);
+                    mm = RequestData.DOB.ToString().Substring(3, 2);
+                    yy = RequestData.DOB.ToString().Substring(6, 4);
+                   
+                    odatab.Add("birthdate", yy + "-" + mm + "-" + dd);
                 }
                 if (!string.IsNullOrEmpty(RequestData.ParentUCIC.ToString()))
                 {
@@ -310,7 +315,12 @@
                 }
                 if (!string.IsNullOrEmpty(RequestData.DOB.ToString()))
                 {
-                    odatab.Add("birthdate", RequestData.DOB?.ToString());
+                    string dd, mm, yy;
+                    dd = RequestData.DOB.ToString().Substring(0, 2);
+                    mm = RequestData.DOB.ToString().Substring(3, 2);
+                    yy = RequestData.DOB.ToString().Substring(6, 4);
+
+                    odatab.Add("birthdate", yy + "-" + mm + "-" + dd);
                 }
                 if (!string.IsNullOrEmpty(RequestData.ParentUCIC.ToString()))
                 {

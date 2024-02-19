@@ -216,7 +216,21 @@
                             //string mm = AccountDDE[0]["eqs_dob"].ToString().Substring(3, 2);
                             //string yy = AccountDDE[0]["eqs_dob"].ToString().Substring(6, 4);
                             msgBdy.individualCustomer.dateOfBirthOrRegistration = yyyy + mm + dd;
-                            msgBdy.individualCustomer.customerMobilePhone = AccountDDE[0]["eqs_mobilenumber"].ToString();
+
+                            string subEntityType = string.Empty; string mobileNumber = "91";
+                            if(!string.IsNullOrEmpty(AccountDDE[0]["_eqs_subentitytypeid_value"]?.ToString()))
+                            {
+                                subEntityType = AccountDDE[0]["eqs_subentitytypeId"]["eqs_name"].ToString();
+                            }
+                            if (!string.IsNullOrEmpty(subEntityType) && !(subEntityType.ToUpper() == "NON RESIDENT INDIVIDUAL" || subEntityType.ToLower() == "foreigners"))
+                            {
+                                mobileNumber = "91" + AccountDDE[0]["eqs_mobilenumber"].ToString();
+                            }
+                            else
+                            {
+                                mobileNumber = AccountDDE[0]["eqs_mobilenumber"].ToString();
+                            }
+                            msgBdy.individualCustomer.customerMobilePhone = mobileNumber;
                             msgBdy.individualCustomer.emailId = AccountDDE[0]["eqs_emailid"].ToString();
 
                             msgBdy.individualCustomer.name.firstName = AccountDDE[0]["eqs_firstname"].ToString();
@@ -289,10 +303,10 @@
                                     var resp2 = await this._queryParser.HttpApiCall($"eqs_ddeindividualcustomers({AccountDDE[0]["eqs_ddeindividualcustomerid"].ToString()})", HttpMethod.Patch, postDataParametr);
 
                                     fieldInput = new Dictionary<string, string>();
-                                    string OnboardingStatus = await this._queryParser.getOptionSetTextToValue("lead", "_eqs_leadid_value", "Completed");
+                                     string OnboardingStatus = await this._queryParser.getOptionSetTextToValue("lead", "eqs_onboardingstatus", "Completed");
                                     fieldInput.Add("eqs_onboardingstatus", OnboardingStatus);
                                     postDataParametr = JsonConvert.SerializeObject(fieldInput);
-                                    await this._queryParser.HttpApiCall($"leads({AccountDDE[0]["_eqs_leadid_value"].ToString()})", HttpMethod.Patch, postDataParametr);
+                                    var resp3 = await this._queryParser.HttpApiCall($"leads({AccountDDE[0]["_eqs_leadid_value"].ToString()})", HttpMethod.Patch, postDataParametr);
 
                                     customerLeadReturn.Message = OutputMSG.Case_Success;
                                     customerLeadReturn.ReturnCode = "CRM-SUCCESS";
@@ -313,7 +327,7 @@
                     }
                     else
                     {
-                        customerLeadReturn.Message = "Lead has been onboarded already. Customer No " + AccountDDE[0]["eqs_accountnocreated"].ToString();
+                        customerLeadReturn.Message = "Lead has been onboarded already. Customer No " + AccountDDE[0]["eqs_customeridcreated"].ToString();
                         customerLeadReturn.ReturnCode = "CRM-ERROR-101";
                     }
                 }
@@ -383,8 +397,12 @@
                             msgBdy.corporateCustomer.name.midName = AccountDDE[0]["eqs_companyname2"].ToString();
                             msgBdy.corporateCustomer.name.shortName = AccountDDE[0]["eqs_companyname1"].ToString();
 
-                            msgBdy.corporateCustomer.nationalIdentificationCode = applicantId;
-                            msgBdy.corporateCustomer.homeBranchCode = await this._commonFunc.getBranchCode(AccountDDE[0]["_eqs_sourcebranchterritoryid_value"].ToString());
+                            msgBdy.corporateCustomer.nationalIdentificationCode = applicantId;                            
+                            if (!string.IsNullOrEmpty(AccountDDE[0]["_eqs_preferredhomebranchid_value"]?.ToString()))
+                            {
+                                msgBdy.corporateCustomer.homeBranchCode = AccountDDE[0]["eqs_preferredhomebranchId"]["eqs_branchidvalue"]?.ToString();
+                            }
+                            //msgBdy.corporateCustomer.homeBranchCode = await this._commonFunc.getBranchCode(AccountDDE[0]["_eqs_sourcebranchterritoryid_value"].ToString());
 
                             msgBdy.corporateCustomer.annualTurnover = AccountDDE[0]["eqs_companyturnovervalue"].ToString();
                             string businessregno = "";
@@ -445,7 +463,7 @@
                                     var resp2 = await this._queryParser.HttpApiCall($"eqs_ddecorporatecustomers({AccountDDE[0]["eqs_ddecorporatecustomerid"].ToString()})", HttpMethod.Patch, postDataParametr);
 
                                     fieldInput = new Dictionary<string, string>();
-                                    string OnboardingStatus = await this._queryParser.getOptionSetTextToValue("lead", "_eqs_leadid_value", "Completed");
+                                    string OnboardingStatus = await this._queryParser.getOptionSetTextToValue("lead", "eqs_onboardingstatus", "Completed");
                                     fieldInput.Add("eqs_onboardingstatus", OnboardingStatus);
                                     postDataParametr = JsonConvert.SerializeObject(fieldInput);
                                     await this._queryParser.HttpApiCall($"leads({AccountDDE[0]["_eqs_leadid_value"].ToString()})", HttpMethod.Patch, postDataParametr);
@@ -469,7 +487,7 @@
                     }
                     else
                     {
-                        customerLeadReturn.Message = "Lead has been onboarded already. Customer No " + AccountDDE[0]["eqs_accountnocreated"].ToString();
+                        customerLeadReturn.Message = "Lead has been onboarded already. Customer No " + AccountDDE[0]["eqs_customeridcreated"].ToString();
                         customerLeadReturn.ReturnCode = "CRM-ERROR-101";
                     }
                 }

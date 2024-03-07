@@ -281,27 +281,25 @@ namespace AccountLead
                                 var Nominee = await this._commonFunc.getAccountNominee(AccountDDE[0]["eqs_ddeaccountid"].ToString());
                                 var AccApplicent = await this._commonFunc.getAccountApplicd(AccountDDE[0]["_eqs_leadaccountid_value"].ToString());
 
+								msgBdy.isRestrictAcct = false;
+                                msgBdy.isSCWaive = false;
+                                msgBdy.transactionType = "A";
+                                if (!string.IsNullOrEmpty(AccountDDE[0]["eqs_fdvaluedate"].ToString()))
+                                {
+                                    DateTime tdValue_Date = (!string.IsNullOrEmpty(AccountDDE[0]["eqs_fdvaluedate"].ToString())) ? (DateTime)AccountDDE[0]["eqs_fdvaluedate"] : DateTime.MinValue;
+                                    msgBdy.tdValueDate = tdValue_Date.ToString("yyyyMMdd");
+                                }
+                                if (AccountDDE[0]["eqs_accountopeningbranchid"] != null)
+                                {
+                                    msgBdy.branchCode = AccountDDE[0]["eqs_accountopeningbranchid"]["eqs_branchidvalue"].ToString();
+                                }
 
                                 if (Nominee.Count > 0)
-                                {
-                                    msgBdy.isRestrictAcct = false;
-                                    msgBdy.isSCWaive = false;
-                                    msgBdy.transactionType = "A";
-                                    if (!string.IsNullOrEmpty(AccountDDE[0]["eqs_fdvaluedate"].ToString()))
-                                    {
-                                        msgBdy.tdValueDate = AccountDDE[0]["eqs_fdvaluedate"].ToString();
-                                    }
-                                    
-
-                                    if (AccountDDE[0]["eqs_accountopeningbranchid"]!= null)
-                                    {
-                                        msgBdy.branchCode = AccountDDE[0]["eqs_accountopeningbranchid"]["eqs_branchidvalue"].ToString();
-                                    }
-                                    
+                                {                                                                       
 
                                     if (!string.IsNullOrEmpty(Nominee[0]["_eqs_city_value"].ToString()))
                                     {
-                                        //  msgBdy.accountNominee.city = await this._commonFunc.getCityName(Nominee[0]["_eqs_city_value"].ToString());
+                                          msgBdy.accountNominee.city = await this._commonFunc.getCityName(Nominee[0]["_eqs_city_value"].ToString());
                                     }
 
                                     if (!string.IsNullOrEmpty(Nominee[0]["_eqs_state_value"].ToString()))
@@ -322,7 +320,10 @@ namespace AccountLead
                                     msgBdy.accountNominee.refGuardPhnCountry = "9834";
                                     msgBdy.accountNominee.refGuardPhnExtn = Nominee[0]["eqs_phoneextn"].ToString();
                                   
-                                    msgBdy.accountNominee.relAcctHolder = Nominee[0]["eqs_guardianrelationshiptominor"]["eqs_name"].ToString();
+                                    if (!string.IsNullOrEmpty(Nominee[0]["eqs_guardianrelationshiptominor"].ToString()))
+                                    {
+                                        msgBdy.accountNominee.relAcctHolder = Nominee[0]["eqs_guardianrelationshiptominor"]["eqs_name"].ToString();
+                                    }
                                     msgBdy.accountNominee.nominee.phone.number = Nominee[0]["eqs_mobile"].ToString();
 
                                     msgBdy.accountNominee.nominee.address.line1 = Nominee[0]["eqs_addressline1"].ToString();
@@ -398,7 +399,7 @@ namespace AccountLead
                                     relationList.Add(applicentRelation);
                                 }
                                 string productCat = await this._commonFunc.getProductCategory(AccountDDE[0]["_eqs_productcategoryid_value"].ToString());
-
+                                
                                 msgBdy.customerAndRelation = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(relationList));
                                 msgBdy.isJointHolder = (AccountDDE[0]["eqs_accountownershipcode"].ToString() == "615290001") ? true : false;
                                 //msgBdy.productCode = Convert.ToInt32(await this._commonFunc.getProductCode(AccountDDE[0]["_eqs_productid_value"].ToString()));

@@ -176,7 +176,7 @@
                     }
                     else
                     {
-                        if (RequestData.General?.InstaKit?.ToString() == "A/C No kit")
+                        if (RequestData.General?.InstaKit?.ToString() != "Non Insta Kit")
                         {
                             if (string.IsNullOrEmpty(RequestData.General?.InstaKitAccountNumber?.ToString()))
                             {
@@ -425,7 +425,7 @@
                         }
                         else
                         {
-                            if (RequestData.General?.InstaKit?.ToString() == "A/C No kit")
+                            if (RequestData.General?.InstaKit?.ToString() != "Non Insta Kit")
                             {
                                 if (string.IsNullOrEmpty(RequestData.General?.InstaKitAccountNumber?.ToString()))
                                 {
